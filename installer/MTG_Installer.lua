@@ -296,7 +296,7 @@ end)
 imgui.OnFrame(
     function() return MainWindow[0] end,
     function(player)
-		imgui.Begin(fa.GEAR .." MTG Installer", MainWindow, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize + imgui.WindowFlags.AlwaysAutoResize)
+		imgui.Begin(fa.GEAR .." MTG Installer " .. fa.GEAR, MainWindow, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize + imgui.WindowFlags.AlwaysAutoResize)
 		imgui.SetNextWindowPos(imgui.ImVec2(sizeX / 2, sizeY / 2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
 		imgui.Columns(2)
 		imgui.CenterColumnText(u8"Название скрипта и версия")
@@ -309,11 +309,23 @@ imgui.OnFrame(
 		if imgui.BeginChild('##1', imgui.ImVec2(350 * MONET_DPI_SCALE, (35*#support_scripts) * MONET_DPI_SCALE), true) then
 			for index, value in ipairs(support_scripts) do
 				imgui.Columns(2)
-					imgui.CenterColumnText(u8(value.name) .. " [" .. value.ver .. "]")
+					imgui.CenterColumnText(value.name .. " [" .. value.ver .. "]")
 					imgui.SetColumnWidth(-1, 250 * MONET_DPI_SCALE)
 					imgui.NextColumn()
-					if imgui.CenterColumnButton(u8("Скачать##") .. index) then
-						downloadFileFromUrlToPath(value.link, dir .. '/' .. value.name .. '.lua')
+					if doesFileExist(dir .. '/' .. value.name .. '.lua') then
+						if imgui.CenterColumnButton(fa.TRASH_CAN .. u8(" Удалить##") .. index) then
+							os.remove(dir .. '/' .. value.name .. '.lua')
+							lua_thread.create(function ()
+								msg('Скрипт ' .. value.name .. '.lua успешно удалён! Перерезапуск скриптов через 3 секунды...')
+								MainWindow[0] = false
+								wait(3000)
+								reloadScripts()
+							end)
+						end
+					else
+						if imgui.CenterColumnButton(fa.DOWNLOAD .. u8(" Скачать##") .. index) then
+							downloadFileFromUrlToPath(value.link, dir .. '/' .. value.name .. '.lua')
+						end
 					end
 					imgui.SetColumnWidth(-1, 100 * MONET_DPI_SCALE)
 					imgui.Columns(1)
