@@ -861,7 +861,7 @@ function isPlayingArizona()
 	end
 end
 
---if not isMonetLoader() then
+if not isMonetLoader() then
 
 function onWindowMessage(msg, wparam, lparam)
 	if(msg == 0x100 or msg == 0x101) then
@@ -888,5 +888,5 @@ function onWindowMessage(msg, wparam, lparam)
 	end
 end
 
---end
+end
 
