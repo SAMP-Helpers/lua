@@ -131,7 +131,7 @@
         "author": "MTG MODS",
         "link": "https://github.com/MTGMODS/lua_scripts/raw/refs/heads/main/scoreboard/Mimgui_ScoreBoard.lua",
         "img": "https://media.discordapp.net/attachments/1119664359891800186/1226260796997374074/image.png?ex=6748239c&is=6746d21c&hm=3871b70636dd18fc6fef66b4700991943bb14fbb90523dbb8b59814dfbeadb88&=&format=webp&quality=lossless",
-        "platform": "PC",
+        "platform": "PC + MOBILE",
         "info": "Скрипт заменяет самповский ScoreBoard"
     },
     {

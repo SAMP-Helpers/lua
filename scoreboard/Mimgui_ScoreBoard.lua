@@ -1,21 +1,18 @@
 script_name("Mimgui Scoreboard [by MTG MODS]")
 script_author("MTG MODS")
-script_version("1.3")
+script_version("1.2.0")
 
 require "lib.moonloader"
 local encoding = require('encoding')
 encoding.default = 'CP1251'
 local u8 = encoding.UTF8
 
---[[
 function isMonetLoader() return MONET_VERSION ~= nil end
 if MONET_DPI_SCALE == nil then MONET_DPI_SCALE_2 = 1.0 else MONET_DPI_SCALE_2 = MONET_DPI_SCALE / 1.25 end
 
 if isMonetLoader() then
 	widgets = require('widgets')
 end
-
-]]
 
 local bitex = require('bitex')
 local memory = require "memory"
@@ -52,7 +49,32 @@ local sizeX, sizeY = getScreenResolution()
 --if isMonetLoader() then imgui.GetStyle().ScrollbarSize = imgui.GetStyle().ScrollbarSize * 2 end
 
 local call_checker = false
-
+local color_nicks = {
+    [4261215253] = 368966908,
+    [4294967168] = 368966908,
+    [4294967040] = 368966908,
+    [1717460481] = 23486046,
+    [4286480000] = 2164227710,
+    [2570282624] = 2157523814,
+    [2573611904] = 2157536819,
+    [4284887936] = 2164221491,
+    [9643929] = 2566951719,
+    [3484370560] = 2161094470,
+    [4286578816] = 2164228096,
+    [139422719] = 2150852249,
+    [2516714112] = 2157314562,
+    [5177216] = 2147503871,
+    [4849536] = 2147503871,
+    [3126074752] = 2159694877,
+    [3439263872] = 2160918272,
+    [3183328640] = 2159918525,
+    [3422604441] = 2580283596,
+    [1718026137] = 2573625087,
+    [4294967295] = 2580667164,
+    [3520797849] = 2580667164,
+    [2826467456] = 2158524536,
+    [16769689] = 2566979554
+}
 function main()
 
     if not isSampLoaded() or not isSampfuncsLoaded() then return end
@@ -67,18 +89,17 @@ function main()
 	while true do
 		wait(0)
 		
-		--[[if isMonetLoader() then 
+		if isMonetLoader() then 
 		
 			if isWidgetDoubletapped(WIDGET_PLAYER_INFO) then
-				--sendUpdateScoresRPC()
 				renderTAB[0] = not renderTAB[0]
 			end
 			
-		end]]
-		
-		if sampIsScoreboardOpen() then 
-			sampToggleScoreboard(false) 
 		end
+		
+		if not isMonetLoader() then if sampIsScoreboardOpen() then 
+			sampToggleScoreboard(false) 
+		end end
 			
 		
 		
@@ -127,13 +148,11 @@ end)
 local Scoreboard = imgui.OnFrame(
     function() return renderTAB[0] end,
     function(player)
-	
-		imgui.GetStyle().ScrollbarSize = 10 
 		
 		imgui.SetNextWindowPos(imgui.ImVec2(sizeX / 2, sizeY / 2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
 		imgui.SetNextWindowSize(imgui.ImVec2(800 , 573 ), imgui.Cond.FirstUseEver)
-		imgui.Begin("##Begin", renderTAB, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize + imgui.WindowFlags.NoTitleBar + imgui.WindowFlags.NoMove )
-		
+		imgui.Begin("##Begin", renderTAB, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize + imgui.WindowFlags.NoTitleBar + imgui.WindowFlags.NoMove + imgui.WindowFlags.NoScrollbar)
+		imgui.GetStyle().ScrollbarSize = 15
 		imgui.GetStyle().FrameRounding = 5.0 
 		if imgui.Button(fa.GEAR) then	
 			renderSettings[0] = true
@@ -225,14 +244,14 @@ local Scoreboard = imgui.OnFrame(
 				imgui.Separator()
 				local my_id = select(2, sampGetPlayerIdByCharHandle(playerPed))
 				drawScoreboardPlayer(my_id)
-				for id = 0, sampGetMaxPlayerId(false) do
+				for id = 0, sampGetMaxPlayerId() do
 					if my_id ~= id and sampIsPlayerConnected(id) then
 						imgui.Separator()
 						drawScoreboardPlayer(id)
 					end
 				end
 			else
-				for idd = 0, sampGetMaxPlayerId(false) do
+				for idd = 0, sampGetMaxPlayerId() do
 					if sampIsPlayerConnected(idd) then
 						if tostring(idd):find(ffi.string(inputField):gsub("[%(%)%.%%%+%-%*%?%[%]%^%$]", "%%%1"))
 						   or string.rlower(sampGetPlayerNickname(idd)):find(string.rlower(u8:decode(ffi.string(inputField))):gsub("[%(%)%.%%%+%-%*%?%[%]%^%$]", "%%%1")) then
@@ -393,58 +412,63 @@ function drawScoreboardPlayer(id)
 	local score = sampGetPlayerScore(id)
 	local ping = sampGetPlayerPing(id)
 	local color = sampGetPlayerColor(id)
+	if isMonetLoader() then
+	if color_nicks[color] then
+    color = color_nicks[color]
+end
+end
 	local r, g, b = bitex.bextract(color, 16, 8), bitex.bextract(color, 8, 8), bitex.bextract(color, 0, 8)
 	local imgui_RGBA = imgui.ImVec4(r / 255, g / 255, b / 255, 1)
 	
 	
 	imgui.SetCursorPosX((imgui.GetColumnOffset() + (imgui.GetColumnWidth() / 2)) - imgui.CalcTextSize(tostring(id)).x / 2)
 	if MainIni.settings.colored_id then 
-		-- if score == 0 and isPlayingArizona() then
-		-- 	imgui.Text(tostring(id))
-		-- else
+		if score == 0 and isPlayingArizona() then
+			imgui.Text(tostring(id))
+		else
 			imgui.TextColored(imgui_RGBA, tostring(id))
-		-- end
+		end
 	else
 		imgui.Text(tostring(id))
 	end
 	imgui.NextColumn()
 	
 	if MainIni.settings.colored_nickname then 
-		-- if score == 0 and isPlayingArizona() then
-		-- 	imgui.Text(" "..tostring(nickname)) imgui.SameLine() imgui.Text(u8"[Connecting...]")
-		-- else
+		if score == 0 and isPlayingArizona() then
+			imgui.Text(" "..tostring(nickname)) imgui.SameLine() imgui.Text(u8"[Connecting...]")
+		else
 			imgui.TextColored(imgui_RGBA, ' '..nickname)
-		-- end
+		end
 	else
-		-- if score == 0 and isPlayingArizona() then
-		-- 	imgui.Text(" "..tostring(nickname)) imgui.SameLine() imgui.Text(u8"[Connecting...]")
-		-- else
+		if score == 0 and isPlayingArizona() then
+			imgui.Text(" "..tostring(nickname)) imgui.SameLine() imgui.Text(u8"[Connecting...]")
+		else
 			imgui.Text(' '..nickname)
-		-- end
+		end
 		
 	end
 	imgui.NextColumn()	
 	
 	imgui.SetCursorPosX((imgui.GetColumnOffset() + (imgui.GetColumnWidth() / 2)) - imgui.CalcTextSize(tostring(score)).x / 2)
 	if MainIni.settings.colored_score then 
-		-- if score == 0 and isPlayingArizona() then
-		-- 	imgui.Text(tostring(score))
-		-- else
+		if score == 0 and isPlayingArizona() then
+			imgui.Text(tostring(score))
+		else
 			imgui.TextColored(imgui_RGBA, tostring(score))
-		-- end
+		end
 	else
 		imgui.Text(tostring(score))
 	end
 	imgui.NextColumn()
 	
 	if MainIni.settings.colored_ping then 
-		-- if score == 0 and isPlayingArizona() then
-		-- 	imgui.SetCursorPosX((imgui.GetColumnOffset() + (imgui.GetColumnWidth() / 2)) - imgui.CalcTextSize(tostring(0)).x / 2)
-		-- 	imgui.Text("0")
-		-- else
+		if score == 0 and isPlayingArizona() then
+			imgui.SetCursorPosX((imgui.GetColumnOffset() + (imgui.GetColumnWidth() / 2)) - imgui.CalcTextSize(tostring(0)).x / 2)
+			imgui.Text("0")
+		else
 			imgui.SetCursorPosX((imgui.GetColumnOffset() + (imgui.GetColumnWidth() / 2)) - imgui.CalcTextSize(tostring(ping)).x / 2)
 			imgui.TextColored(imgui_RGBA, tostring(ping))
-		-- end
+		end
 	else	
 		imgui.SetCursorPosX((imgui.GetColumnOffset() + (imgui.GetColumnWidth() / 2)) - imgui.CalcTextSize(tostring(ping)).x / 2)
 		imgui.Text(tostring(ping))
