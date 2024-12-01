@@ -66,8 +66,7 @@ require("samp.events").onServerMessage = function(color,text)
         show_arz_notify('error', 'AutoDoor', 'У вас нет доступа/ключа для этого обьекта!', 1500)
         return false
 	end
-    if text:find("Не флуди") and active then
-        active = false
+    if text:find("Не флуди") then
         return false
     end
 end
