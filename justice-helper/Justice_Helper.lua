@@ -2102,7 +2102,7 @@ function getNameOfARZVehicleModel(id)
 		sampAddChatMessage('[Justice Helper] {ffffff}Не удалось получить модель транспорта с ID ' .. id .. "! Причина: отсуствует файл VehiclesArizona.json", message_color)
 		sampAddChatMessage('[Justice Helper] {ffffff}Пытаюсь скачать файл VehiclesArizona.json в папку ' .. path_arzvehicles, message_color)
 		download_arzvehicles = true
-		downloadFileFromUrlToPath('https://raw.githubusercontent.com/MTGMODS/justice-helper/main/VehiclesArizona/VehiclesArizona.json', path_arzvehicles)
+		downloadFileFromUrlToPath('https://github.com/MTGMODS/lua_scripts/raw/refs/heads/main/justice-helper/VehiclesArizona/VehiclesArizona.json', path_arzvehicles)
 		return ''
 	end
 end
@@ -2605,7 +2605,7 @@ function check_update()
 	sampAddChatMessage('[Justice Helper] {ffffff}Начинаю проверку на наличие обновлений...', message_color)
 	local path = configDirectory .. "/Update_Info.json"
 	os.remove(path)
-	local url = 'https://github.com/MTGMODS/justice-helper/raw/refs/heads/main/Update_Info.json'
+	local url = 'https://github.com/MTGMODS/lua_scripts/raw/refs/heads/main/justice-helper/Update_Info.json'
 	if isMonetLoader() then
 		downloadToFile(url, path, function(type, pos, total_size)
 			if type == "finished" then
@@ -4121,7 +4121,7 @@ imgui.OnFrame(
 					if imgui.Button(fa.DOWNLOAD .. u8' Загрузить ##smartuk') then
 						if getARZServerNumber() ~= 0 then
 							download_smartuk = true
-							downloadFileFromUrlToPath('https://raw.githubusercontent.com/MTGMODS/justice-helper/main/SmartUK/' .. getARZServerNumber() .. '/SmartUK.json', path_uk)
+							downloadFileFromUrlToPath('https://github.com/MTGMODS/lua_scripts/raw/refs/heads/main/justice-helper/SmartUK/' .. getARZServerNumber() .. '/SmartUK.json', path_uk)
 							imgui.OpenPopup(fa.CIRCLE_INFO .. u8' Justice Helper - Оповещение##donwloadsmartuk')
 						else
 							imgui.OpenPopup(fa.CIRCLE_INFO .. u8' Justice Helper - Оповещение##nocloudsmartuk')
@@ -4353,7 +4353,7 @@ imgui.OnFrame(
 					if imgui.Button(fa.DOWNLOAD .. u8' Загрузить ##smartpdd') then
 						if getARZServerNumber() ~= 0 then
 							download_smartpdd = true
-							downloadFileFromUrlToPath('https://raw.githubusercontent.com/MTGMODS/justice-helper/main/SmartPDD/' .. getARZServerNumber() .. '/SmartPDD.json', path_pdd)
+							downloadFileFromUrlToPath('https://github.com/MTGMODS/lua_scripts/raw/refs/heads/main/justice-helper/SmartPDD/' .. getARZServerNumber() .. '/SmartPDD.json', path_pdd)
 							imgui.OpenPopup(fa.CIRCLE_INFO .. u8' Justice Helper - Оповещение##donwloadsmartpdd')
 						else
 							imgui.OpenPopup(fa.CIRCLE_INFO .. u8' Justice Helper - Оповещение##nocloudsmartpdd')
