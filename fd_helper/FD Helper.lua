@@ -177,7 +177,6 @@ function load_settings()
 						print('[FD Helper] Новая версия, сброс настроек!')
 						settings = default_settings
 						save_settings()
-
 						reload_script = true
 					else
 						print('[FD Helper] Настройки успешно загружены!')
@@ -1803,7 +1802,7 @@ function sampev.onShowDialog(dialogid, style, title, button1, button2, text)
 end
 
 imgui.OnInitialize(function()
-	imgui.GetIO().IniFilename = ni
+	imgui.GetIO().IniFilename = nil
 	if isMonetLoader() then
 		fa.Init(14 * settings.general.custom_dpi)
 	else
@@ -2194,21 +2193,22 @@ imgui.OnFrame(
 					imgui.SetColumnWidth(-1, 480 * settings.general.custom_dpi)
 					imgui.NextColumn()
 					if imgui.CenterColumnSmallButton(u8'Реквизиты') then
-						imgui.OpenPopup(fa.SACK_DOLLAR .. u8' Поддержка')
+						imgui.OpenPopup(fa.SACK_DOLLAR .. u8' Поддержка разработчика')
 					end
-					if imgui.BeginPopupModal(fa.SACK_DOLLAR .. u8' Поддержка', _, imgui.WindowFlags.NoCollapse  + imgui.WindowFlags.NoResize + imgui.WindowFlags.NoScrollbar) then
+					if imgui.BeginPopupModal(fa.SACK_DOLLAR .. u8' Поддержка разработчика', _, imgui.WindowFlags.NoCollapse  + imgui.WindowFlags.NoResize + imgui.WindowFlags.NoScrollbar) then
+						change_dpi()
 						if not isMonetLoader() then imgui.SetWindowFontScale(settings.general.custom_dpi) end
 						imgui.CenterText(u8'Свяжитесь с MTG MODS:')
-						imgui.SetCursorPosX(20*settings.general.custom_dpi)
-						if imgui.Button(u8('Telegram')) then
+						--imgui.SetCursorPosX(20*settings.general.custom_dpi)
+						if imgui.Button(u8('Telegram'), imgui.ImVec2(imgui.GetMiddleButtonX(2), 25 * settings.general.custom_dpi)) then
 							openLink('https://t.me/mtg_mods')
 						end
 						imgui.SameLine()
-						if imgui.Button(u8('Discord')) then
+						if imgui.Button(u8('Discord'), imgui.ImVec2(imgui.GetMiddleButtonX(2), 25 * settings.general.custom_dpi)) then
 							openLink('https://discordapp.com/users/514135796685602827')
 						end
 						imgui.Separator()
-						if imgui.Button(fa.CIRCLE_XMARK .. u8' Закрыть', imgui.ImVec2(imgui.GetMiddleButtonX(1), 25 * settings.general.custom_dpi)) then
+						if imgui.Button(fa.CIRCLE_XMARK .. u8' Закрыть', imgui.ImVec2(200 * settings.general.custom_dpi, 25 * settings.general.custom_dpi)) then
 							imgui.CloseCurrentPopup()
 						end
 						imgui.End()
