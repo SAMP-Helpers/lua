@@ -3,7 +3,7 @@
 script_name("FD Helper")
 script_description('This is a Cross-platform Lua script helper for Arizona RP players who work in the Ministry of')
 script_author("MTG MODS")
-script_version("1.0")
+script_version("1.1")
 
 require('lib.moonloader')
 require('encoding').default = 'CP1251'
@@ -643,7 +643,7 @@ local auto_uval_checker = false
 local dialogid_fires = -1
 local active_fire_locations = ''
 local active_fire_location = ''
-local active_fire_lvl = 'ERROR'
+local active_fire_lvl = '1'
 local isFireDialog = false
 local isFireZone = false
 
@@ -653,13 +653,13 @@ function getFireLocation(id)
 		if id == count then
 			local line2 = line:match('%].+%](.+){.+{.+{'):gsub("^%s+", ""):gsub("%s+$", "")
 			active_fire_location = line2 or 'пожар'
-			if line:find('%[ %*%*%* %]') then
-				active_fire_lvl = 3
-			elseif line:find('%[ %*%* %]') then
-				active_fire_lvl = 2
-			elseif line:find('%[ %* %]') then
-				active_fire_lvl = 1
-			end
+			-- if line:find('%*%*%*') then
+			-- 	active_fire_lvl = 3
+			-- elseif line:find('%*%*') then
+			-- 	active_fire_lvl = 2
+			-- elseif line:find('%*') then
+			-- 	active_fire_lvl = 1
+			-- end
 			if settings.general.auto_doklad_1 then
 				sampSendChat('/r Докладывает ' .. tagReplacements.my_doklad_nick() .. ', выехал' .. tagReplacements.sex() .. ' на ' .. active_fire_location .. ' ' .. active_fire_lvl .. '-й степени')
 			end
@@ -669,6 +669,8 @@ function getFireLocation(id)
 		end
 	end
 end
+
+getFireLocation(id)
 
 ------------------------------------------- Main -----------------------------------------------------
 function welcome_message()
@@ -1576,15 +1578,14 @@ function sampev.onServerMessage(color,text)
 
 	if text:find("Вы заработали на происшествие(.+)забрать вознаграждение можно на базе организации") and isFireZone then
 		isFireZone = false
-		local money = text:match('происшествие(.+)%$(%d+)')
-		sampAddChatMessage(money or 'debug: cannot find money', -1)
-		sampAddChatMessage('[FD Helper] {ffffff}Пожар устранён, вы него вы заработали', message_color)
+		sampAddChatMessage('[FD Helper] {ffffff}Пожар устранён, за его ликвидацию вы заработали:' .. (text:match('происшествие(.+) забрать') or ' error'), message_color)
 		if settings.general.auto_doklad_6 then
 			lua_thread.create(function ()
 				wait(500)
 				sampSendChat('/r Докладывает ' .. tagReplacements.my_doklad_nick() .. ', пожар ' .. active_fire_lvl .. ' степеня опасности полностю устранён!')
 			end)
 		end
+		return false
 	end
 
 	if text:find("Информация(.+)Палатка возвращена Вам в инвентарь.") then
@@ -1595,10 +1596,16 @@ function sampev.onServerMessage(color,text)
 		return false
 	end
 
+	if text:find("Пожарная машина будет зареспавнена через (%d+) минут") then
+		local min = text:match("Пожарная машина будет зареспавнена через (%d+) минут")
+		sampAddChatMessage('[FD Helper] {ffffff}Пожарная машина будет зареспавнена через ' .. (min or 'nil') .. ' минут!', message_color)
+		return false
+	end
+
 	if text:find("Происшествие(.+)В штате произошел пожар! Ранг опасности (%d) звезды") then
-		local stars = text:match('Ранг опасности (%d) звезды')
-		sampAddChatMessage('[FD Helper] {ffffff}В штате новый пожар ' .. stars .. ' уровня опасности!', message_color)
-		if tonumber(stars) >= 2 then
+		active_fire_lvl = text:match('Ранг опасности (%d) звезды')
+		sampAddChatMessage('[FD Helper] {ffffff}В штате новый пожар ' .. active_fire_lvl .. ' уровня опасности!', message_color)
+		if tonumber(active_fire_lvl) >= 2 then
 			sampAddChatMessage('[FD Helper] {ffffff}Действует повышенная выплата за устранение пожара из-за высокого уровня опасности.', message_color)
 		end
 		sampSendChat('/fires')
@@ -2738,8 +2745,8 @@ imgui.OnFrame(
 				imgui.Separator()
 				imgui.Text(fa.GLOBE..u8" Тема хелпера на форуме BlastHack:")
 				imgui.SameLine()
-				if imgui.SmallButton(u8'будет позже') then
-					--openLink('')
+				if imgui.SmallButton(u8'https://www.blast.hk/threads/228070/') then
+					openLink('https://www.blast.hk/threads/228070/')
 				end
 				imgui.EndChild()
 				imgui.BeginChild('##3', imgui.ImVec2(589 * settings.general.custom_dpi, 87 * settings.general.custom_dpi), true)
