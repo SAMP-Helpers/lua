@@ -3793,5 +3793,105 @@
         "model_id": 15888,
         "name": "Cadillac Escalade 2023 Taxi",
         "server_id": 1158
+    },
+    {
+        "model_id": 15956,
+        "name": "Dodge Charger Sled",
+        "server_id": 1159
+    },
+    {
+        "model_id": 15957,
+        "name": "Nissan Skyline F2F",
+        "server_id": 1160
+    },
+    {
+        "model_id": 11785,
+        "name": "Bell FCX 001",
+        "server_id": 1161
+    },
+    {
+        "model_id": 11816,
+        "name": "Собачка Джека",
+        "server_id": 1162
+    },
+    {
+        "model_id": 11818,
+        "name": "Scania Chimera",
+        "server_id": 1163
+    },
+    {
+        "model_id": 11819,
+        "name": "Rosenbauer Panther 6x6",
+        "server_id": 1164
+    },
+    {
+        "model_id": 11820,
+        "name": "Nissan Skyline GTR34",
+        "server_id": 1165
+    },
+    {
+        "model_id": 11821,
+        "name": "Maserati MC-20",
+        "server_id": 1166
+    },
+    {
+        "model_id": 11823,
+        "name": "Maserati Gran Turismo НГ",
+        "server_id": 1167
+    },
+    {
+        "model_id": 11824,
+        "name": "Mercedes ML350",
+        "server_id": 1168
+    },
+    {
+        "model_id": 11825,
+        "name": "MClaren Senna",
+        "server_id": 1169
+    },
+    {
+        "model_id": 11826,
+        "name": "Mercedes E190 Evolution",
+        "server_id": 1170
+    },
+    {
+        "model_id": 11827,
+        "name": "Mercedes E190",
+        "server_id": 1171
+    },
+    {
+        "model_id": 11828,
+        "name": "Kamaz Dakar",
+        "server_id": 1172
+    },
+    {
+        "model_id": 11829,
+        "name": "Maserati MC 20 Mansory",
+        "server_id": 1173
+    },
+    {
+        "model_id": 11831,
+        "name": "BRABUS ROCKET GTS",
+        "server_id": 1174
+    },
+    {
+        "model_id": 11832,
+        "name": "Bentley Continental GT3",
+        "server_id": 1175
+    },
+    {
+        "model_id": 12101,
+        "name": "Land Rover Fly",
+        "server_id": 1176
+    },
+    {
+        "model_id": 12102,
+        "name": "BMW X5 Fly",
+        "server_id": 1177
+    },
+    {
+        "model_id": 12103,
+        "name": "Mercedes Benz ML 350 Fly",
+        "server_id": 1178
     }
 ]
