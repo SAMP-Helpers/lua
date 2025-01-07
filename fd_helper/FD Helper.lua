@@ -2733,8 +2733,8 @@ imgui.OnFrame(
 				imgui.Separator()
 				imgui.Text(fa.BOOK ..u8" Гайд по использованию хелпера:")
 				imgui.SameLine()
-				if imgui.SmallButton(u8'будет позже') then
-					--openLink('')
+				if imgui.SmallButton('https://youtu.be/-q_5_2uWsc0') then
+					openLink('https://youtu.be/-q_5_2uWsc0')
 				end
 				imgui.Separator()
 				imgui.Text(fa.HEADSET..u8" Тех.поддержка по хелперу:")
