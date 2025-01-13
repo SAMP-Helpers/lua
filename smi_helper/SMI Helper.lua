@@ -2267,12 +2267,8 @@ imgui.OnFrame(
 				imgui.Separator()
 				imgui.Text(fa.HEADSET..u8" Тех.поддержка по хелперу:")
 				imgui.SameLine()
-				if imgui.SmallButton('https://discord.gg/mtgmods-samp') then
-					openLink('https://discord.gg/mtgmods-samp')
-				end
-				imgui.SameLine()
-				if imgui.SmallButton(u8'резервная ссылка') then
-					openLink('https://discord.com/invite/mtg-mods-samp-1097643847774908526')
+				if imgui.SmallButton('https://discord.gg/qBPEYjfNhv') then
+					openLink('https://discord.gg/qBPEYjfNhv')
 				end
 				imgui.Separator()
 				imgui.Text(fa.GLOBE..u8" Тема хелпера на форуме BlastHack:")
@@ -2452,7 +2448,7 @@ imgui.OnFrame(
 		local window_size = imgui.GetWindowSize()
 		local size_item_width = settings.general.ads_history and 100 or 70
 		imgui.PushItemWidth(window_size.x - size_item_width * MONET_DPI_SCALE)
-		if imgui.InputTextWithHint('', u8'Отредактируйте объявление либо введите причину для отклонения', input_edit_text, 512, imgui.InputTextFlags.AlwaysInsertMode) then
+		if imgui.InputTextWithHint('', u8'Отредактируйте объявление либо введите причину для отклонения', input_edit_text, 512) then
 			input_edit_text = input_edit_text
 		end
 		imgui.SameLine()
