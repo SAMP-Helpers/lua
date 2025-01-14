@@ -1,5 +1,14 @@
 [
     {
+        "name": "AS Helper",
+        "ver": "3.0",
+        "author": "MTG MODS",
+        "link": "https://github.com/MTGMODS/lua_scripts/raw/refs/heads/main/as_helper/AS%20Helper.lua",
+        "img": "https://cdn.discordapp.com/attachments/1119664359891800186/1273035686450171974/image.png?ex=67483c9f&is=6746eb1f&hm=9fa1b544a3bb1584adcc40592070403784c922fc91556149c5ecb80eb4a8eb40&",
+        "platform": "PC + MOBILE",
+        "info": "Это хелпер для сотрудников ГЦЛ (АвтоШколы) (/sh)"
+    },
+    {
         "name": "Justice Helper",
         "ver": "1.4",
         "author": "MTG MODS",
@@ -52,15 +61,6 @@
         "img": "https://media.discordapp.net/attachments/1251238756435099750/1283407807302996008/2024-09-11_174406.png?ex=674865a9&is=67471429&hm=c5b967277afba7fd4459c5db3439b64834c14cf5e02a3e1dde47070073b78c3b&=&format=webp&quality=lossless",
         "platform": "PC + MOBILE",
         "info": "Это хелпер для сотрудников Правительства (/gh)"
-    },
-    {
-        "name": "AS Helper",
-        "ver": "2.1",
-        "author": "MTG MODS + fitalov",
-        "link": "https://github.com/MTGMODS/lua_scripts/raw/refs/heads/main/as_helper/AS%20Helper.lua",
-        "img": "https://cdn.discordapp.com/attachments/1119664359891800186/1273035686450171974/image.png?ex=67483c9f&is=6746eb1f&hm=9fa1b544a3bb1584adcc40592070403784c922fc91556149c5ecb80eb4a8eb40&",
-        "platform": "PC + MOBILE",
-        "info": "Это хелпер для сотрудников ГЦЛ (АвтоШколы) (/sh)"
     },
     {
         "name": "Prison Helper",
