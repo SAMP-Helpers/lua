@@ -21,6 +21,7 @@ local default_settings = {
 		auto_clicker = true,
 		rp_chat = true,
 		rp_gun = true,
+		auto_lic = false,
 		auto_uval = false,
 		moonmonet_theme_enable = true,
 		moonmonet_theme_color = 15310604,
