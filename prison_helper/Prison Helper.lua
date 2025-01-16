@@ -3,13 +3,15 @@
 script_name("Prison Helper")
 script_description('Скрипт для Тюрьмы Строгого Режима LV')
 script_author("MTG MODS")
-script_version("0.3.10.1")
+script_version("0.3.12.2")
 
 require('lib.moonloader')
 require('encoding').default = 'CP1251'
 local u8 = require('encoding').UTF8
 local ffi = require('ffi')
 local sampev = require('samp.events')
+local imgui = require('mimgui')
+local fa = require('fAwesome6_solid')
 function isMonetLoader() return MONET_VERSION ~= nil end
 
 -------------------------------------------- JSON SETTINGS ---------------------------------------------
@@ -32,7 +34,6 @@ local default_settings = {
 		moonmonet_theme_color = 8900331,
 		mobile_fastmenu_button = true,
 		mobile_stop_button = true,
-		mobile_meg_button = true,
 		use_binds = true,
 		use_info_menu = false,
 		bind_mainmenu = '[113]',
@@ -59,6 +60,7 @@ local default_settings = {
 		postavki_materials = 0,
 	},
 	player_organization_now = {
+		use_infojob_menu = false,
 		materials = 0,
 		postavki_kargobob = 0,
 		postavki_materials = 0,
@@ -153,6 +155,56 @@ local default_settings = {
 		},
 	},
 }
+
+------------------------------------------------- Other --------------------------------------------------------
+local PlayerID = nil
+local player_id = nil
+local check_stats = false
+local check_jobs = false
+local anti_flood_auto_uval = false
+local spawncar_bool = false
+
+local vc_vize_bool = false
+local vc_vize_player_id = nil
+
+local clicked = false
+
+local message1
+local message2
+local message3
+
+local isActiveCommand = false
+local isWindowOpen = false
+local isGeneralWindowOpen = false
+local isNowWindowOpen = false
+
+local debug_mode = false
+
+local command_stop = false
+local command_pause = false
+
+local auto_uval_checker = false
+
+local platoon_check = false
+
+local enemy = {}
+local enem_show = false
+
+local InfraredVision = false
+local NightVision = false
+
+local message_color = 0x87CEEB
+local message_color_hex = '{87CEEB}'
+
+local post = imgui.new.char[256]()
+
+local script_tag = '[Prison Helper]'
+
+-- Переменные для подсчёта FPS
+local frameCount = 0
+local fps = 0
+local lastTime = os.clock()
+-------------------------------------------- Конфигурация ----------------------------------------------
 local configDirectory = getWorkingDirectory():gsub('\\', '/') .. "/PrisonHelper"
 local path_helper = getWorkingDirectory():gsub('\\', '/') .. "/PrisonHelper.lua"
 local path_settings = configDirectory .. "/Settings.json"
@@ -162,7 +214,7 @@ function load_settings()
 	end
 	if not doesFileExist(path_settings) then
 		settings = default_settings
-		print('[Prison Helper] Файл с настройками не найден, использую стандартные настройки!')
+		print(script_tag .. ' Файл с настройками не найден, использую стандартные настройки!')
 	else
 		local file = io.open(path_settings, 'r')
 		if file then
@@ -170,28 +222,28 @@ function load_settings()
 			file:close()
 			if #contents == 0 then
 				settings = default_settings
-				print('[Prison Helper] Не удалось открыть файл с настройками, использую стандартные настройки!')
+				print(script_tag .. ' Не удалось открыть файл с настройками, использую стандартные настройки!')
 			else
 				local result, loaded = pcall(decodeJson, contents)
 				if result then
 					settings = loaded
-					print('[Prison Helper] Настройки успешно загружены!')
+					print(script_tag .. ' Настройки успешно загружены!')
 					if settings.general.version ~= thisScript().version then
-						print('[Prison Helper] Новая версия, сброс настроек!')
+						print(script_tag .. ' Новая версия, сброс настроек!')
 						settings = default_settings
 						save_settings()
 						reload_script = true
 						thisScript():reload()
 					else
-						print('[Prison Helper] Настройки успешно загружены!')
+						print(script_tag .. '  Настройки успешно загружены!')
 					end
 				else
-					print('[Prison Helper] Не удалось открыть файл с настройками, использую стандартные настройки!')
+					print(script_tag .. '  Не удалось открыть файл с настройками, использую стандартные настройки!')
 				end
 			end
 		else
 			settings = default_settings
-			print('[Prison Helper] Не удалось открыть файл с настройками, использую стандартные настройки!')
+			print(script_tag .. '  Не удалось открыть файл с настройками, использую стандартные настройки!')
 		end
 	end
 end
@@ -202,10 +254,10 @@ function save_settings()
 		local result, encoded = pcall(encodeJson, settings)
 		file:write(result and encoded or "")
 		file:close()
-		print('[Prison Helper] Настройки сохранены!')
+		print(script_tag .. '  Настройки сохранены!')
 		return result
 	else
-		print('[Prison Helper] Не удалось сохранить настройки хелпера, ошибка: ', errstr)
+		print(script_tag .. '  Не удалось сохранить настройки хелпера, ошибка: ', errstr)
 		return false
 	end
 end
@@ -224,25 +276,25 @@ function load_notes()
 			local contents = file:read('*a')
 			file:close()
 			if #contents == 0 then
-				print('[Prison Helper] Не удалось открыть файл с заметками!')
-				print('[Prison Helper] Причина: этот файл пустой')
+				print(script_tag .. '  Не удалось открыть файл с заметками!')
+				print(script_tag .. '  Причина: этот файл пустой')
 			else
 				local result, loaded = pcall(decodeJson, contents)
 				if result then
 					notes = loaded
-					print('[Prison Helper] Заметки инициализированы!')
+					print(script_tag .. '  Заметки инициализированы!')
 				else
-					print('[Prison Helper] Не удалось открыть файл с заметками!')
-					print('[Prison Helper] Причина: Не удалось декодировать json (ошибка в файле)')
+					print(script_tag .. '  Не удалось открыть файл с заметками!')
+					print(script_tag .. '  Причина: Не удалось декодировать json (ошибка в файле)')
 				end
 			end
 		else
-			print('[Prison Helper] Не удалось открыть файл с заметками!')
-			print('[Prison Helper] Причина: ')
+			print(script_tag .. '  Не удалось открыть файл с заметками!')
+			print(script_tag .. '  Причина: ')
 		end
 	else
-		print('[Prison Helper] Не удалось открыть файл с заметками!')
-		print('[Prison Helper] Причина: этого файла нету в папке ' .. configDirectory)
+		print(script_tag .. '  Не удалось открыть файл с заметками!')
+		print(script_tag .. '  Причина: этого файла нету в папке ' .. configDirectory)
 	end
 end
 
@@ -252,10 +304,10 @@ function save_notes()
 		local result, encoded = pcall(encodeJson, notes)
 		file:write(result and encoded or "")
 		file:close()
-		print('[Prison Helper] Заметки сохранены!')
+		print(script_tag .. '  Заметки сохранены!')
 		return result
 	else
-		print('[Prison Helper] Не удалось сохранить заметки, ошибка: ', errstr)
+		print(script_tag .. '  Не удалось сохранить заметки, ошибка: ', errstr)
 		return false
 	end
 end
@@ -271,25 +323,25 @@ function load_smart_rptp()
 			local contents = file:read('*a')
 			file:close()
 			if #contents == 0 then
-				print('[Prison Helper] Не удалось открыть файл с регламентом повышения срока заключённым!')
-				print('[Prison Helper] Причина: этот файл пустой')
+				print(script_tag .. '  Не удалось открыть файл с регламентом повышения срока заключённым!')
+				print(script_tag .. '  Причина: этот файл пустой')
 			else
 				local result, loaded = pcall(decodeJson, contents)
 				if result then
 					smart_rptp = loaded
-					print('[Prison Helper] Регламент повышения срока заключённым инициализирован!')
+					print(script_tag .. '  Регламент повышения срока заключённым инициализирован!')
 				else
-					print('[Prison Helper] Не удалось открыть файл с регламентом повышения срока заключённым!')
-					print('[Prison Helper] Причина: Не удалось декодировать json (ошибка в файле)')
+					print(script_tag .. '  Не удалось открыть файл с регламентом повышения срока заключённым!')
+					print(script_tag .. '  Причина: Не удалось декодировать json (ошибка в файле)')
 				end
 			end
 		else
-			print('[Prison Helper] Не удалось открыть файл с регламентом повышения срока заключённым!')
-			print('[Prison Helper] Причина: ')
+			print(script_tag .. '  Не удалось открыть файл с регламентом повышения срока заключённым!')
+			print(script_tag .. '  Причина: ')
 		end
 	else
-		print('[Prison Helper] Не удалось открыть файл с регламентом повышения срока заключённым!')
-		print('[Prison Helper] Причина: этого файла нету в папке ' .. configDirectory)
+		print(script_tag .. '  Не удалось открыть файл с регламентом повышения срока заключённым!')
+		print(script_tag .. '  Причина: этого файла нету в папке ' .. configDirectory)
 	end
 end
 
@@ -299,10 +351,10 @@ function save_smart_rptp()
 		local result, encoded = pcall(encodeJson, smart_rptp)
 		file:write(result and encoded or "")
 		file:close()
-		print('[Prison Helper] Умный розыск сохранён!')
+		print(script_tag .. '  Умный розыск сохранён!')
 		return result
 	else
-		print('[Prison Helper] Не удалось сохранить умный розыск, ошибка: ', errstr)
+		print(script_tag .. '  Не удалось сохранить умный розыск, ошибка: ', errstr)
 		return false
 	end
 end
@@ -311,23 +363,23 @@ load_smart_rptp()
 -------------------------------------------- JSON COMMANDS (Команды) ---------------------------------------------
 local commands = {
 	commands = {
-		{ cmd = 'zd', description = 'Привествие игрока', text = 'Здраствуйте {get_ru_nick({arg_id})}&Я {my_ru_nick} - {fraction_rank} {fraction_tag}&Чем я могу Вам помочь?', arg = '{arg_id}', enable = true, waiting = '3.500' },
-		{ cmd = 'take', description = 'Изьятие предметов игрока', text = '/do В подсумке находиться небольшой зип-пакет.&/me достаёт из подсумка зип-пакет и отрывает его&/me кладёт в зип-пакет изьятые предметы задержанного человека&/take {arg_id}&/do Изьятые предметы в зип-пакете.&/todo Отлично*убирая зип-пакет в подсумок', arg = '{arg_id}', enable = true, waiting = '3.500' },
-		{ cmd = 'cure', description = 'Поднять игрока из стадии', text = '/me наклоняется над человеком, и прощупывает его пульс на сонной артерии&/cure {arg_id}&/do Пульс отсутствует.&/me начинает делать человеку непрямой массаж сердца, время от времени проверяя пульс&/do Спустя несколько минут сердце человека началось биться.&/do Человек пришел в сознание.&/todo Отлично*улыбаясь', arg = '{arg_id}', enable = true, waiting = '3.500' },
-		{ cmd = 'uncarcer', description = 'Выпуск из карцера игрока', text = '/do На поясе висит связка ключей.&/me движениями рук снял ключ со связки, открыл камеру и вытолкнул из неё заключённого&/me закрыл дверцу камеры, закрепил ключ к связке&/uncarcer {arg_id}', arg = '{arg_id}', enable = true, waiting = '3.500' },
-		{ cmd = 'cuff', description = 'Надеть наручники', text = '/do Наручники на тактическом поясе.&/me снимает наручники с пояса и надевает их на задержанного&/cuff {arg_id}&/do Задержанный в наручниках.', arg = '{arg_id}', enable = true, waiting = '3.500' },
-		{ cmd = 'uncuff', description = 'Снять наручники', text = '/do На тактическом поясе прикреплены ключи от наручников.&/me снимает с пояса ключ от наручников и вставляет их в наручники задержанного&/me прокручивает ключ в наручниках и снимает их с задержанного&&/uncuff {arg_id}&/do Наручники сняты с задержанного&/me кладёт ключ и наручники обратно на тактический пояс', arg = '{arg_id}', enable = true, waiting = '3.500' },
-		{ cmd = 'gotome', description = 'Повести за собой', text = '/me схватывает задержанного за руки и ведёт его за собой&/gotome {arg_id}&/do Задержанный идёт в конвое.', arg = '{arg_id}', enable = true, waiting = '3.500' },
-		{ cmd = 'ungotome', description = 'Перестать вести за собой', text = '/me отпускает руки задержанного и перестаёт вести его за собой&/ungotome {arg_id}', arg = '{arg_id}', enable = true, waiting = '3.500' },
-		{ cmd = 't', description = 'Достать тазер', text = '/taser', arg = '', enable = true, waiting = '3.500' },
-		{ cmd = 'camon', description = 'Включить cкрытую боди камеру', text = '/do К форме прикреплена скрытая боди камера.&/me незаметным движением руки включил{sex} боди камеру.&/do Скрытая боди камера включена и снимает всё происходящее.', arg = '', enable = true, waiting = '3.500' },
-		{ cmd = 'camoff', description = 'Выключить cкрытую боди камеру', text = '/do К форме прикреплена скрытая боди камера.&/me незаметным движением руки выключил{sex} боди камеру.&/do Скрытая боди камера выключена и больше не снимает всё происходящее.', arg = '', enable = true, waiting = '3.500' },
-		{ cmd = 'time', description = 'Посмотреть время', text = '/me взглянул{sex} на свои часы с гравировкой MSP One Love и посмотрел{sex} время&/time&/do На часах видно время {get_time}.', arg = '', enable = false, waiting = '3.500' },
-		{ cmd = 'book', description = 'Выдача игроку трудовой книги', text = 'Оказывается у вас нету трудовой книги, но не переживайте!&Сейчас я вам выдам её, вам не нужно никуда ехать, секунду...&/me достаёт из своего кармана новую трудовую книжку и ставит на ней печать {fraction_tag}&/todo Берите*передавая трудовую книгу челоку напротив&/givewbook {arg_id} 100&/n {get_nick({arg_id})}, примите предложение в /offer чтобы получить трудовую книгу!', arg = '{arg_id}', enable = true, waiting = '3.500' },
-		{ cmd = 'frisk', description = 'Обыск заключённого', text = '/do Перчатки на поясе.&/me схватил перчатки и одел&/do Перчатки одеты.&/me начал нащупывать человека напротив&/frisk {arg_id}', arg = '{arg_id}', enable = true, waiting = '3.500' }
+		{ cmd = 'zd', description = 'Привествие игрока', text = 'Здраствуйте {get_ru_nick({arg_id})}&Я {my_ru_nick} - {fraction_rank} {fraction_tag}&Чем я могу Вам помочь?', arg = '{arg_id}', enable = true, waiting = '3.5' },
+		{ cmd = 'take', description = 'Изьятие предметов игрока', text = '/do В подсумке находиться небольшой зип-пакет.&/me достаёт из подсумка зип-пакет и отрывает его&/me кладёт в зип-пакет изьятые предметы задержанного человека&/take {arg_id}&/do Изьятые предметы в зип-пакете.&/todo Отлично*убирая зип-пакет в подсумок', arg = '{arg_id}', enable = true, waiting = '3.5' },
+		{ cmd = 'cure', description = 'Поднять игрока из стадии', text = '/me наклоняется над человеком, и прощупывает его пульс на сонной артерии&/cure {arg_id}&/do Пульс отсутствует.&/me начинает делать человеку непрямой массаж сердца, время от времени проверяя пульс&/do Спустя несколько минут сердце человека началось биться.&/do Человек пришел в сознание.&/todo Отлично*улыбаясь', arg = '{arg_id}', enable = true, waiting = '3.5' },
+		{ cmd = 'uncarcer', description = 'Выпуск из карцера игрока', text = '/do На поясе висит связка ключей.&/me движениями рук снял ключ со связки, открыл камеру и вытолкнул из неё заключённого&/me закрыл дверцу камеры, закрепил ключ к связке&/uncarcer {arg_id}', arg = '{arg_id}', enable = true, waiting = '3.5' },
+		{ cmd = 'cuff', description = 'Надеть наручники', text = '/do Наручники на тактическом поясе.&/me снимает наручники с пояса и надевает их на задержанного&/cuff {arg_id}&/do Задержанный в наручниках.', arg = '{arg_id}', enable = true, waiting = '3.5' },
+		{ cmd = 'uncuff', description = 'Снять наручники', text = '/do На тактическом поясе прикреплены ключи от наручников.&/me снимает с пояса ключ от наручников и вставляет их в наручники задержанного&/me прокручивает ключ в наручниках и снимает их с задержанного&&/uncuff {arg_id}&/do Наручники сняты с задержанного&/me кладёт ключ и наручники обратно на тактический пояс', arg = '{arg_id}', enable = true, waiting = '3.5' },
+		{ cmd = 'gotome', description = 'Повести за собой', text = '/me схватывает задержанного за руки и ведёт его за собой&/gotome {arg_id}&/do Задержанный идёт в конвое.', arg = '{arg_id}', enable = true, waiting = '3.5' },
+		{ cmd = 'ungotome', description = 'Перестать вести за собой', text = '/me отпускает руки задержанного и перестаёт вести его за собой&/ungotome {arg_id}', arg = '{arg_id}', enable = true, waiting = '3.5' },
+		{ cmd = 't', description = 'Достать тазер', text = '/taser', arg = '', enable = true, waiting = '3.5' },
+		{ cmd = 'camon', description = 'Включить cкрытую боди камеру', text = '/do К форме прикреплена скрытая боди камера.&/me незаметным движением руки включил{sex} боди камеру.&/do Скрытая боди камера включена и снимает всё происходящее.', arg = '', enable = true, waiting = '3.5' },
+		{ cmd = 'camoff', description = 'Выключить cкрытую боди камеру', text = '/do К форме прикреплена скрытая боди камера.&/me незаметным движением руки выключил{sex} боди камеру.&/do Скрытая боди камера выключена и больше не снимает всё происходящее.', arg = '', enable = true, waiting = '3.5' },
+		{ cmd = 'time', description = 'Посмотреть время', text = '/me взглянул{sex} на свои часы с гравировкой MSP One Love и посмотрел{sex} время&/time&/do На часах видно время {get_time}.', arg = '', enable = false, waiting = '3.5' },
+		{ cmd = 'frisk', description = 'Обыск заключённого', text = '/do Перчатки на поясе.&/me схватил перчатки и одел&/do Перчатки одеты.&/me начал нащупывать человека напротив&/frisk {arg_id}', arg = '{arg_id}', enable = true, waiting = '3.5' }
 	},
 	commands_senior_staff = {
-		{ cmd = 'rp', description = 'Выдача сотруднику /fractionrp', text = '/fractionrp {arg_id}', arg = '{arg_id}', enable = true, waiting = '3.500' },
+		{ cmd = 'rp', description = 'Выдача сотруднику /fractionrp', text = '/fractionrp {arg_id}', arg = '{arg_id}', enable = true, waiting = '3.5' },
+		{ cmd = 'book', description = 'Выдача игроку трудовой книги', text = 'Оказывается у вас нету трудовой книги, но не переживайте!&Сейчас я вам выдам её, вам не нужно никуда ехать, секунду...&/me достаёт из своего кармана новую трудовую книжку и ставит на ней печать {fraction_tag}&/todo Берите*передавая трудовую книгу челоку напротив&/givewbook {arg_id} 100&/n {get_nick({arg_id})}, примите предложение в /offer чтобы получить трудовую книгу!', arg = '{arg_id}', enable = true, waiting = '3.5' },
 		{
 			cmd = 'punishsu',
 			description = 'Повысить уровень наказания.',
@@ -335,64 +387,64 @@ local commands = {
 			'/me достаёт свой КПК и открывает базу данных преступников&/me вносит изменения в базу данных преступников&/do Преступник занесён в базу данных преступников.&/punish {arg_id} {arg2} 2 {arg3}',
 			arg = '{arg_id} {arg2} {arg3}',
 			enable = true,
-			waiting = '3.500'
+			waiting = '3.5'
 		},
 		{
 			cmd = 'punishclear',
 			description = 'Понизить уровень наказания',
 			text =
-			'/me достаёт блокнот из нагрудного кармана&/do Блокнот в руке.&/me открывает его на странице с записями о поведении заключённых.&/do В блокноте видна запись: "{get_rp_nick({arg_id})}, примерное поведение...&/do ...участие в уборке территории, отсутствие нарушений."&/me берёт ручку и записывает новую информацию о заключённом.&/do В блокноте добавлена запись: "Рекомендация на сокращение срока...&/do ...на 3 месяца за добросовестное выполнение обязанностей."&/me закрывает блокнот и убирает его обратно в карман формы.&/do Данные о заключённом зафиксированы...&/do ...для последующего рассмотрения администрацией.',
+			'/me достаёт блокнот из нагрудного кармана&/do Блокнот в руке.&/me открывает его на странице с записями о поведении заключённых.&/do В блокноте видна запись: "{get_rp_nick({arg_id})}, примерное поведение...&/do ...участие в уборке территории, отсутствие нарушений."&/me берёт ручку и записывает новую информацию о заключённом.&/do В блокноте добавлена запись: "Рекомендация на сокращение срока...&/do ...на {arg2} года за добросовестное выполнение обязанностей."&/me закрывает блокнот и убирает его обратно в карман формы.&/do Данные о заключённом зафиксированы...&/do ...для последующего рассмотрения администрацией.',
 			arg = '{arg_id} {arg2} {arg3}',
 			enable = true,
-			waiting = '3.500'
+			waiting = '3.5'
 		},
 		{
 			cmd = 'carcer',
 			description = 'Посадка в карцер игрока',
 			text =
-			'/do На поясе висит связка ключей.&/me прислонив заключённого к стене, снял ключ со связки, открыл дверцу камеры&/me движениями рук затолкнул заключённого в камеру, после чего закрыл её&/me движениями рук закрепил ключ к связке&/carcer {arg_id} {arg2} {arg3} {arg4}',
+			'/do На поясе висит связка ключей.&/me прислонив заключённого к стене, снял ключ со связки, открыл дверцу камеры&/me лёгкими движениями рук затолкнул заключённого в камеру, после чего закрыл её&/me лёгкими движениями рук закрепил ключ к связке&/carcer {arg_id} {arg2} {arg3} {arg4}',
 			arg = '{arg_id} {arg2} {arg3} {arg4}',
 			enable = true,
-			waiting = '3.500'
+			waiting = '3.5'
 		},
 		{
 			cmd = 'setcarcer',
 			description = 'Смена карцера игроку',
 			text =
-			'/do На поясе висит связка ключей.&/me движениями рук снял ключ со связки, открыл свободную камеру и камеру заключённого&/me вытолкнул заключённого из первой камеры, затолкнул во вторую, закрыв двери обоих камер&/me движениями рук закрепил ключ к связке&/setcarcer {arg_id} {arg2}',
+			'/do На поясе висит связка ключей.&/me лёгкими движениями рук снял ключ со связки, открыл свободную камеру и камеру заключённого&/me вытолкнул заключённого из первой камеры, затолкнул во вторую, закрыв двери обоих камер&/me лёгкими движениями рук закрепил ключ к связке&/setcarcer {arg_id} {arg2}',
 			arg = '{arg_id}, {arg2}',
 			enable = true,
-			waiting = '3.500'
+			waiting = '3.5'
 		},
 	},
 	commands_manage = {
-		{ cmd = 'inv', description = 'Принятие игрока в фракцию', text = '/do В кармане есть связка с ключами от раздевалки.&/me достаёт из кармана один ключ из связки ключей от раздевалки&/todo Возьмите, это ключ от нашей раздевалки*передавая ключ человеку напротив&/invite {arg_id}', arg = '{arg_id}', enable = true, waiting = '3.500' },
-		{ cmd = 'gr', description = 'Повышение/понижение cотрудника', text = '{show_rank_menu}&/me достаёт из кармана свой телефон и заходит в базу данных {fraction_tag}&/me изменяет информацию о сотруднике {get_ru_nick({arg_id})} в базе данных {fraction_tag}&/me выходит с базы данных и убирает телефон обратно в карман&/giverank {arg_id} {get_rank}&/r Сотрудник {get_ru_nick({arg_id})} получил новую должность!', arg = '{arg_id}', enable = true, waiting = '3.500' },
-		{ cmd = 'vize', description = 'Управление Vice City визой сотрудника', text = '/me достаёт из кармана свой телефон и заходит в базу данных {fraction_tag}&/me изменяет информацию о сотруднике {get_ru_nick({arg_id})} в базе данных {fraction_tag}&/me выходит с базы данных и убирает телефон обратно в карман&{lmenu_vc_vize}', arg = '{arg_id}', enable = true, waiting = '3.500' },
-		{ cmd = 'cjob', description = 'Посмотреть успешность сотрудника', text = '/checkjobprogress {arg_id}', arg = '{arg_id}', enable = true, waiting = '3.500' },
-		{ cmd = 'fmutes', description = 'Выдать мут сотруднику (10 min)', text = '/fmutes {arg_id} Н.У.&/r Сотрудник {get_ru_nick({arg_id})} лишился права использовать рацию на 10 минут!', arg = '{arg_id}', enable = true, waiting = '3.500' },
-		{ cmd = 'funmute', description = 'Снять мут сотруднику', text = '/funmute {arg_id}&/r Сотрудник {get_ru_nick({arg_id})} теперь может пользоваться рацией!', arg = '{arg_id}', enable = true, waiting = '3.500' },
-		{ cmd = 'vig', description = 'Выдача выговора cотруднику', text = '/me достаёт из кармана свой телефон и заходит в базу данных {fraction_tag}&/me изменяет информацию о сотруднике {get_ru_nick({arg_id})} в базе данных {fraction_tag}&/me выходит с базы данных и убирает телефон обратно в карман&/fwarn {arg_id} {arg2}&/r Сотруднику {get_ru_nick({arg_id})} выдан выговор! Причина: {arg2}', arg = '{arg_id} {arg2}', enable = true, waiting = '3.500' },
-		{ cmd = 'unvig', description = 'Снятие выговора cотруднику', text = '/me достаёт из кармана свой телефон и заходит в базу данных {fraction_tag}&/me изменяет информацию о сотруднике {get_ru_nick({arg_id})} в базе данных {fraction_tag}&/me выходит с базы данных и убирает телефон обратно в карман&/unfwarn {arg_id}&/r Сотруднику {get_ru_nick({arg_id})} был снят выговор!', arg = '{arg_id}', enable = true, waiting = '3.500' },
-		{ cmd = 'unv', description = 'Увольнение игрока из фракции', text = '/me достаёт из кармана свой телефон и заходит в базу данных {fraction_tag}&/me изменяет информацию о сотруднике {get_ru_nick({arg_id})} в базе данных {fraction_tag}&/me выходит с базы данных и убирает свой телефон обратно в карман&/uninvite {arg_id} {arg2}&/r Сотрудник {get_ru_nick({arg_id})} был уволен по причине: {arg2}', arg = '{arg_id} {arg2}', enable = true, waiting = '3.500' },
-		{ cmd = 'point', description = 'Установить метку для сотрудников', text = '/r Срочно выдвигайтесь ко мне, отправляю вам координаты...&/point', arg = '', enable = true, waiting = '3.500' },
+		{ cmd = 'inv', description = 'Принятие игрока в фракцию', text = '/do В кармане есть связка с ключами от раздевалки.&/me достаёт из кармана один ключ из связки ключей от раздевалки&/todo Возьмите, это ключ от нашей раздевалки*передавая ключ человеку напротив&/invite {arg_id}', arg = '{arg_id}', enable = true, waiting = '3.5' },
+		{ cmd = 'gr', description = 'Повышение/понижение cотрудника', text = '{show_rank_menu}&/me достаёт из кармана свой телефон и заходит в базу данных {fraction_tag}&/me изменяет информацию о сотруднике {get_ru_nick({arg_id})} в базе данных {fraction_tag}&/me выходит с базы данных и убирает телефон обратно в карман&/giverank {arg_id} {get_rank}&/r Сотрудник {get_ru_nick({arg_id})} получил новую должность!', arg = '{arg_id}', enable = true, waiting = '3.5' },
+		{ cmd = 'vize', description = 'Управление Vice City визой сотрудника', text = '/me достаёт из кармана свой телефон и заходит в базу данных {fraction_tag}&/me изменяет информацию о сотруднике {get_ru_nick({arg_id})} в базе данных {fraction_tag}&/me выходит с базы данных и убирает телефон обратно в карман&{lmenu_vc_vize}', arg = '{arg_id}', enable = true, waiting = '3.5' },
+		{ cmd = 'cjob', description = 'Посмотреть успешность сотрудника', text = '/checkjobprogress {arg_id}', arg = '{arg_id}', enable = true, waiting = '3.5' },
+		{ cmd = 'fmutes', description = 'Выдать мут сотруднику (10 min)', text = '/fmutes {arg_id} Н.У.&/r Сотрудник {get_ru_nick({arg_id})} лишился права использовать рацию на 10 минут!', arg = '{arg_id}', enable = true, waiting = '3.5' },
+		{ cmd = 'funmute', description = 'Снять мут сотруднику', text = '/funmute {arg_id}&/r Сотрудник {get_ru_nick({arg_id})} теперь может пользоваться рацией!', arg = '{arg_id}', enable = true, waiting = '3.5' },
+		{ cmd = 'vig', description = 'Выдача выговора cотруднику', text = '/me достаёт из кармана свой телефон и заходит в базу данных {fraction_tag}&/me изменяет информацию о сотруднике {get_ru_nick({arg_id})} в базе данных {fraction_tag}&/me выходит с базы данных и убирает телефон обратно в карман&/fwarn {arg_id} {arg2}&/r Сотруднику {get_ru_nick({arg_id})} выдан выговор! Причина: {arg2}', arg = '{arg_id} {arg2}', enable = true, waiting = '3.5' },
+		{ cmd = 'unvig', description = 'Снятие выговора cотруднику', text = '/me достаёт из кармана свой телефон и заходит в базу данных {fraction_tag}&/me изменяет информацию о сотруднике {get_ru_nick({arg_id})} в базе данных {fraction_tag}&/me выходит с базы данных и убирает телефон обратно в карман&/unfwarn {arg_id}&/r Сотруднику {get_ru_nick({arg_id})} был снят выговор!', arg = '{arg_id}', enable = true, waiting = '3.5' },
+		{ cmd = 'unv', description = 'Увольнение игрока из фракции', text = '/me достаёт из кармана свой телефон и заходит в базу данных {fraction_tag}&/me изменяет информацию о сотруднике {get_ru_nick({arg_id})} в базе данных {fraction_tag}&/me выходит с базы данных и убирает свой телефон обратно в карман&/uninvite {arg_id} {arg2}&/r Сотрудник {get_ru_nick({arg_id})} был уволен по причине: {arg2}', arg = '{arg_id} {arg2}', enable = true, waiting = '3.5' },
+		{ cmd = 'point', description = 'Установить метку для сотрудников', text = '/r Срочно выдвигайтесь ко мне, отправляю вам координаты...&/point', arg = '', enable = true, waiting = '3.5' },
 		{
 			cmd = 'unpunish',
 			description = 'Выпуск заключённых из ТСР',
 			text =
-			'/me движениями рук берёт дело заключённого с полки, кладёт его на стол&/do На столе лежит ручка и печать.&/me движением правой руки берёт ручку, заполняет поле в деле заключённого&/me движениями рук кладёт ручку на стол, берёт печать и ставит её в деле&/me движениями рук ставит печать на стол, после чего закрывает дело&Ваш срок укорочен, возвращайтесь в камеру и ожидайте ...&... транспортировки до ближайшего населённого пункта.&/unpunish {arg_id} {arg1}',
-			arg = '{arg_id} {arg1}',
+			'/me лёгкими движениями рук берёт дело заключённого с полки, кладёт его на стол&/do На столе лежит ручка и печать.&/me лёгким движением правой руки берёт ручку, заполняет поле в деле заключённого&/me лёгкими движениями рук кладёт ручку на стол, берёт печать и ставит её в деле&/me лёгкими движениями рук ставит печать на стол, после чего закрывает дело&Ваш срок укорочен, возвращайтесь в камеру и ожидайте ...&... транспортировки до ближайшего населённого пункта.&/unpunish {arg_id} {arg2}',
+			arg = '{arg_id} {arg2}',
 			enable = true,
-			waiting = '3.500'
+			waiting = '3.5'
 		},
 		{
 			cmd = 'rjailreklama',
 			description = 'Реклама УДО',
 			text =
-			'/rjail Доброго времени суток заключение.&/rjail В данный момент Вы можете покинуть тюрьму досрочно, через кабинет начальства тюрьмы.&/rjail По УДО будет отказано людям, попавшим сюда по следующим причинам:&/rjail По статьям: 3.5 УК. За любое проявление расизма и национализма, ...&/rjail 5.1 УК. За совершение или планирование терроризма, ...&/rjail 3.1 УК. За похищение гражданина/группы граждан и удержание их в заложниках, ...&/rjail 5.6 УК. За соучастие в захватах, подрывах ...&/rjail ... а также при попадании в тюрьму по решению сената.&/rjail Спасибо за внимание.',
+			'/rjail Доброго времени суток заключенные.&/rjail В данный момент Вы можете покинуть тюрьму досрочно, через кабинет начальства тюрьмы.&/rjail По УДО будет отказано людям, попавшим сюда по следующим причинам:&/rjail По статьям: 3.5 УК. За любое проявление расизма и национализма, ...&/rjail 5.1 УК. За совершение или планирование терроризма, ...&/rjail 3.1 УК. За похищение гражданина/группы граждан и удержание их в заложниках, ...&/rjail 5.6 УК. За соучастие в захватах, подрывах ...&/rjail ... а также при попадании в тюрьму по решению сената.&/rjail Спасибо за внимание.',
 			arg = '',
 			enable = true,
-			waiting = '3.500'
+			waiting = '3.5'
 		}
 	}
 }
@@ -405,26 +457,26 @@ function load_commands()
 			local contents = file:read('*a')
 			file:close()
 			if #contents == 0 then
-				print('[Prison Helper] Не удалось открыть файл с командами!')
-				print('[Prison Helper] Причина: этот файл пустой')
+				print(script_tag .. '  Не удалось открыть файл с командами!')
+				print(script_tag .. '  Причина: этот файл пустой')
 			else
 				local result, loaded = pcall(decodeJson, contents)
 				if result then
 					commands = loaded
-					print('[Prison Helper] Все команды инициализирован!')
+					print(script_tag .. '  Все команды инициализирован!')
 				else
-					print('[Prison Helper] Не удалось открыть файл с командами!')
-					print('[Prison Helper] Причина: Не удалось декодировать json (ошибка в файле)')
+					print(script_tag .. '  Не удалось открыть файл с командами!')
+					print(script_tag .. '  Причина: Не удалось декодировать json (ошибка в файле)')
 				end
 			end
 		else
-			print('[Prison Helper] Не удалось открыть файл с командами!')
-			print('[Prison Helper] Причина: ', errstr)
+			print(script_tag .. '  Не удалось открыть файл с командами!')
+			print(script_tag .. '  Причина: ', errstr)
 		end
 	else
-		print('[Prison Helper] Не удалось открыть файл с командами!')
-		print('[Prison Helper] Причина: этого файла нету в папке ' .. configDirectory)
-		print('[Prison Helper] Инициализация стандартных команд...')
+		print(script_tag .. '  Не удалось открыть файл с командами!')
+		print(script_tag .. '  Причина: этого файла нету в папке ' .. configDirectory)
+		print(script_tag .. '  Инициализация стандартных команд...')
 		save_commands()
 		load_commands()
 	end
@@ -436,10 +488,10 @@ function save_commands()
 		local result, encoded = pcall(encodeJson, commands)
 		file:write(result and encoded or "")
 		file:close()
-		print('[Prison Helper] Ваши команды сохранены!')
+		print(script_tag .. '  Ваши команды сохранены!')
 		return result
 	else
-		print('[Prison Helper] Не удалось сохранить команды хелпера, ошибка: ', errstr)
+		print(script_tag .. '  Не удалось сохранить команды хелпера, ошибка: ', errstr)
 		return false
 	end
 end
@@ -455,25 +507,25 @@ function load_arzvehicles()
 			local contents = file:read('*a')
 			file:close()
 			if #contents == 0 then
-				print('[Prison Helper] Не удалось открыть файл с моделями каров аризоны!')
-				print('[Prison Helper] Причина: этот файл пустой')
+				print(script_tag .. '  Не удалось открыть файл с моделями каров аризоны!')
+				print(script_tag .. '  Причина: этот файл пустой')
 			else
 				local result, loaded = pcall(decodeJson, contents)
 				if result then
 					arzvehicles = loaded
-					print('[Prison Helper] Модели кастом каров аризоны инициализированы!')
+					print(script_tag .. '  Модели кастом каров аризоны инициализированы!')
 				else
-					print('[Prison Helper] Не удалось открыть файл с моделями каров аризоны!')
-					print('[Prison Helper] Причина: Не удалось декодировать json (ошибка в файле)')
+					print(script_tag .. '  Не удалось открыть файл с моделями каров аризоны!')
+					print(script_tag .. '  Причина: Не удалось декодировать json (ошибка в файле)')
 				end
 			end
 		else
-			print('[Prison Helper] Не удалось открыть файл с моделями каров аризоны!')
-			print('[Prison Helper] Причина: ', errstr)
+			print(script_tag .. '  Не удалось открыть файл с моделями каров аризоны!')
+			print(script_tag .. '  Причина: ', errstr)
 		end
 	else
-		print('[Prison Helper] Не удалось открыть файл с моделями каров аризоны!')
-		print('[Prison Helper] Причина: этого файла нету в папке ' .. configDirectory)
+		print(script_tag .. '  Не удалось открыть файл с моделями каров аризоны!')
+		print(script_tag .. '  Причина: этого файла нету в папке ' .. configDirectory)
 	end
 end
 
@@ -772,14 +824,13 @@ local colorNames = {
 		imgui.WindowFlags.NoFocusOnAppearing - отключает фокус при переходе от скрытого к видимому состоянию
 		
 ]] --
-local imgui = require('mimgui')
-local fa = require('fAwesome6_solid')
 local sizeX, sizeY = getScreenResolution()
 
 local MainWindow = imgui.new.bool()
 local checkboxone = imgui.new.bool(false)
 local checkbox_accent_enable = imgui.new.bool(settings.general.accent_enable or false)
 local checkbox_automask = imgui.new.bool(settings.general.auto_mask or false)
+local checkbox_notify_payday = imgui.new.bool(settings.general.auto_notify_payday or false)
 local checkbox_update_members = imgui.new.bool(settings.general.auto_update_members or false)
 
 local input_accent = imgui.new.char[256](u8(settings.player_info.accent))
@@ -840,8 +891,8 @@ local show_note_text = nil
 local naidenpost = false
 
 local InformationWindow = imgui.new.bool()
-local JobInformationWindow = imgui.new.bool()
-local MegafonWindow = imgui.new.bool()
+local JobInformationGeneralWindow = imgui.new.bool()
+local JobInformationNowWindow = imgui.new.bool()
 local UpdateWindow = imgui.new.bool()
 local updateUrl = ""
 local updateVer = ""
@@ -1093,64 +1144,26 @@ if not isMonetLoader() then
 		end)
 	end
 end
-------------------------------------------------- Other --------------------------------------------------------
-local PlayerID = nil
-local player_id = nil
-local check_stats = false
-local check_jobs = false
-local anti_flood_auto_uval = false
-local spawncar_bool = false
-
-local vc_vize_bool = false
-local vc_vize_player_id = nil
-
-local clicked = false
-
-local message1
-local message2
-local message3
-
-local isActiveCommand = false
-
-local debug_mode = false
-
-local command_stop = false
-local command_pause = false
-
-local auto_uval_checker = false
-
-local platoon_check = false
-
-local enemy = {}
-local enem_show = false
-
-local InfraredVision = false
-local NightVision = false
-
-local message_color = 0x87CEEB
-local message_color_hex = '{87CEEB}'
-
-local post = imgui.new.char[256]()
 ------------------------------------------- Main -----------------------------------------------------
 function welcome_message()
 	if not sampIsLocalPlayerSpawned() then
-		sampAddChatMessage('[Prison Helper] {ffffff}Инициализация хелпера прошла успешно!', message_color)
+		sampAddChatMessage(script_tag .. '  {ffffff}Инициализация хелпера прошла успешно!', message_color)
 		sampAddChatMessage(
-			'[Prison Helper] {ffffff}Для полной загрузки хелпера сначало заспавнитесь (войдите на сервер)', message_color)
+			script_tag .. '  {ffffff}Для полной загрузки хелпера сначало заспавнитесь (войдите на сервер)', message_color)
 		repeat wait(0) until sampIsLocalPlayerSpawned()
 	end
-	sampAddChatMessage('[Prison Helper] {ffffff}Загрузка хелпера прошла успешно!', message_color)
+	sampAddChatMessage(script_tag .. '  {ffffff}Загрузка хелпера прошла успешно!', message_color)
 	show_cef_notify('info', 'Prison Helper', "Загрузка хелпера прошла успешно!", 3000)
 	if hotkey_no_errors and settings.general.bind_mainmenu and settings.general.use_binds then
 		sampAddChatMessage(
-			'[Prison Helper] {ffffff}Чтоб открыть меню хелпера нажмите ' ..
+			script_tag .. '  {ffffff}Чтоб открыть меню хелпера нажмите ' ..
 			message_color_hex ..
 			getNameKeysFrom(settings.general.bind_mainmenu) ..
 			' {ffffff}или введите команду ' .. message_color_hex .. '/ph',
 			message_color)
 	else
 		sampAddChatMessage(
-			'[Prison Helper] {ffffff}Чтоб открыть меню хелпера введите команду ' .. message_color_hex .. '/ph',
+			script_tag .. '  {ffffff}Чтоб открыть меню хелпера введите команду ' .. message_color_hex .. '/ph',
 			message_color)
 	end
 end
@@ -1174,7 +1187,7 @@ function register_command(chat_cmd, cmd_arg, cmd_text, cmd_waiting)
 					arg_check = true
 				else
 					sampAddChatMessage(
-						'[Prison Helper] {ffffff}Используйте ' .. message_color_hex .. '/' .. chat_cmd .. ' [аргумент]',
+						script_tag .. '  {ffffff}Используйте ' .. message_color_hex .. '/' .. chat_cmd .. ' [аргумент]',
 						message_color)
 					play_error_sound()
 				end
@@ -1190,7 +1203,7 @@ function register_command(chat_cmd, cmd_arg, cmd_text, cmd_waiting)
 					arg_check = true
 				else
 					sampAddChatMessage(
-						'[Prison Helper] {ffffff}Используйте ' .. message_color_hex .. '/' .. chat_cmd .. ' [ID игрока]',
+						script_tag .. '  {ffffff}Используйте ' .. message_color_hex .. '/' .. chat_cmd .. ' [ID игрока]',
 						message_color)
 					play_error_sound()
 				end
@@ -1210,13 +1223,13 @@ function register_command(chat_cmd, cmd_arg, cmd_text, cmd_waiting)
 						arg_check = true
 					else
 						sampAddChatMessage(
-							'[Prison Helper] {ffffff}Используйте ' ..
+							script_tag .. '  {ffffff}Используйте ' ..
 							message_color_hex .. '/' .. chat_cmd .. ' [ID игрока] [аргумент]', message_color)
 						play_error_sound()
 					end
 				else
 					sampAddChatMessage(
-						'[Prison Helper] {ffffff}Используйте ' ..
+						script_tag .. '  {ffffff}Используйте ' ..
 						message_color_hex .. '/' .. chat_cmd .. ' [ID игрока] [аргумент]', message_color)
 					play_error_sound()
 				end
@@ -1237,13 +1250,13 @@ function register_command(chat_cmd, cmd_arg, cmd_text, cmd_waiting)
 						arg_check = true
 					else
 						sampAddChatMessage(
-							'[Prison Helper] {ffffff}Используйте ' ..
+							script_tag .. '  {ffffff}Используйте ' ..
 							message_color_hex .. '/' .. chat_cmd .. ' [ID игрока] [аргумент] [аргумент]', message_color)
 						play_error_sound()
 					end
 				else
 					sampAddChatMessage(
-						'[Prison Helper] {ffffff}Используйте ' ..
+						script_tag .. '  {ffffff}Используйте ' ..
 						message_color_hex .. '/' .. chat_cmd .. ' [ID игрока] [аргумент] [аргумент]', message_color)
 					play_error_sound()
 				end
@@ -1265,14 +1278,14 @@ function register_command(chat_cmd, cmd_arg, cmd_text, cmd_waiting)
 						arg_check = true
 					else
 						sampAddChatMessage(
-							'[Prison Helper] {ffffff}Используйте ' ..
+							script_tag .. '  {ffffff}Используйте ' ..
 							message_color_hex .. '/' .. chat_cmd .. ' [ID игрока] [аргумент] [аргумент] [аргумент]',
 							message_color)
 						play_error_sound()
 					end
 				else
 					sampAddChatMessage(
-						'[Prison Helper] {ffffff}Используйте ' ..
+						script_tag .. '  {ffffff}Используйте ' ..
 						message_color_hex .. '/' .. chat_cmd .. ' [ID игрока] [аргумент] [аргумент] [аргумент]',
 						message_color)
 					play_error_sound()
@@ -1287,18 +1300,18 @@ function register_command(chat_cmd, cmd_arg, cmd_text, cmd_waiting)
 					if modifiedText:find('&.+&') then
 						if isMonetLoader() and settings.general.mobile_stop_button then
 							sampAddChatMessage(
-								'[Prison Helper] {ffffff}Чтобы остановить отыгровку команды используйте ' ..
+								script_tag .. '  {ffffff}Чтобы остановить отыгровку команды используйте ' ..
 								message_color_hex .. '/stop {ffffff}или нажмите кнопку внизу экрана', message_color)
 							CommandStopWindow[0] = true
 						elseif not isMonetLoader() and hotkey_no_errors and settings.general.bind_command_stop and settings.general.use_binds then
 							sampAddChatMessage(
-								'[Prison Helper] {ffffff}Чтобы остановить отыгровку команды используйте ' ..
+								script_tag .. '  {ffffff}Чтобы остановить отыгровку команды используйте ' ..
 								message_color_hex ..
 								'/stop {ffffff}или нажмите ' ..
 								message_color_hex .. getNameKeysFrom(settings.general.bind_command_stop), message_color)
 						else
 							sampAddChatMessage(
-								'[Prison Helper] {ffffff}Чтобы остановить отыгровку команды используйте ' ..
+								script_tag .. '  {ffffff}Чтобы остановить отыгровку команды используйте ' ..
 								message_color_hex .. '/stop', message_color)
 						end
 					end
@@ -1311,7 +1324,7 @@ function register_command(chat_cmd, cmd_arg, cmd_text, cmd_waiting)
 							command_stop = false
 							isActiveCommand = false
 							sampAddChatMessage(
-								'[Prison Helper] {ffffff}Отыгровка команды /' .. chat_cmd .. " успешно остановлена!",
+								script_tag .. '  {ffffff}Отыгровка команды /' .. chat_cmd .. " успешно остановлена!",
 								message_color)
 							return
 						end
@@ -1360,14 +1373,14 @@ function register_command(chat_cmd, cmd_arg, cmd_text, cmd_waiting)
 							break
 						elseif line == "{pause}" then
 							sampAddChatMessage(
-								'[Prison Helper] {ffffff}Команда /' .. chat_cmd .. ' поставлена на паузу!', message_color)
+								script_tag .. '  {ffffff}Команда /' .. chat_cmd .. ' поставлена на паузу!', message_color)
 							command_pause = true
 							CommandPauseWindow[0] = true
 							while command_pause do
 								wait(0)
 							end
 							if not command_stop then
-								sampAddChatMessage('[Prison Helper] {ffffff}Продолжаю отыгровку команды /' .. chat_cmd,
+								sampAddChatMessage(script_tag .. '  {ffffff}Продолжаю отыгровку команды /' .. chat_cmd,
 									message_color)
 							end
 						else
@@ -1386,7 +1399,7 @@ function register_command(chat_cmd, cmd_arg, cmd_text, cmd_waiting)
 				end)
 			end
 		else
-			sampAddChatMessage('[Prison Helper] {ffffff}Дождитесь завершения отыгровки предыдущей команды!',
+			sampAddChatMessage(script_tag .. '  {ffffff}Дождитесь завершения отыгровки предыдущей команды!',
 				message_color)
 			play_error_sound()
 		end
@@ -1428,7 +1441,7 @@ function find_and_use_command(cmd, cmd_arg)
 	-- Если команда не найдена
 	if not check then
 		--print("Команда не найдена!") -- Отладочная информация
-		sampAddChatMessage('[Prison Helper] {ffffff}Ошибка, не могу найти бинд для выполнения этой команды!',
+		sampAddChatMessage(script_tag .. '  {ffffff}Ошибка, не могу найти бинд для выполнения этой команды!',
 			message_color)
 		play_error_sound()
 		return
@@ -1449,7 +1462,7 @@ function initialize_commands()
 		if isActiveCommand then
 			command_stop = true
 		else
-			sampAddChatMessage('[Prison Helper] {ffffff}В данный момент нету никакой активной команды/отыгровки!',
+			sampAddChatMessage(script_tag .. '  {ffffff}В данный момент нету никакой активной команды/отыгровки!',
 				message_color)
 			play_error_sound()
 		end
@@ -1462,17 +1475,17 @@ function initialize_commands()
 					SumMenuWindow[0] = true
 				else
 					sampAddChatMessage(
-						'[Prison Helper] {ffffff}Сначало загрузите/отредактируйте умный регламент повышения срока в /ph',
+						script_tag .. '  {ffffff}Сначало загрузите/отредактируйте умный регламент повышения срока в /ph',
 						message_color)
 					play_error_sound()
 				end
 			else
-				sampAddChatMessage('[Prison Helper] {ffffff}Используйте ' .. message_color_hex .. '/sum [ID игрока]',
+				sampAddChatMessage(script_tag .. '  {ffffff}Используйте ' .. message_color_hex .. '/sum [ID игрока]',
 					message_color)
 				play_error_sound()
 			end
 		else
-			sampAddChatMessage('[Prison Helper] {ffffff}Дождитесь завершения отыгровки предыдущей команды!',
+			sampAddChatMessage(script_tag .. '  {ffffff}Дождитесь завершения отыгровки предыдущей команды!',
 				message_color)
 			play_error_sound()
 		end
@@ -1483,12 +1496,12 @@ function initialize_commands()
 				player_id = tonumber(arg)
 				SobesMenu[0] = not SobesMenu[0]
 			else
-				sampAddChatMessage('[Prison Helper] {ffffff}Используйте ' .. message_color_hex .. '/sob [ID игрока]',
+				sampAddChatMessage(script_tag .. '  {ffffff}Используйте ' .. message_color_hex .. '/sob [ID игрока]',
 					message_color)
 				play_error_sound()
 			end
 		else
-			sampAddChatMessage('[Prison Helper] {ffffff}Дождитесь завершения отыгровки предыдущей команды!',
+			sampAddChatMessage(script_tag .. '  {ffffff}Дождитесь завершения отыгровки предыдущей команды!',
 				message_color)
 			play_error_sound()
 		end
@@ -1499,19 +1512,19 @@ function initialize_commands()
 			isActiveCommand = true
 			if isMonetLoader() and settings.general.mobile_stop_button then
 				sampAddChatMessage(
-					'[Prison Helper] {ffffff}Чтобы остановить отыгровку команды используйте ' ..
+					script_tag .. '  {ffffff}Чтобы остановить отыгровку команды используйте ' ..
 					message_color_hex .. '/stop {ffffff}или нажмите кнопку внизу экрана', message_color)
 				CommandStopWindow[0] = true
 			elseif not isMonetLoader() and hotkey_no_errors and settings.general.bind_command_stop and settings.general.use_binds then
 				sampAddChatMessage(
-					'[Prison Helper] {ffffff}Чтобы остановить отыгровку команды используйте ' ..
+					script_tag .. '  {ffffff}Чтобы остановить отыгровку команды используйте ' ..
 					message_color_hex ..
 					'/stop {ffffff}или нажмите ' ..
 					message_color_hex .. getNameKeysFrom(settings.general.bind_command_stop),
 					message_color)
 			else
 				sampAddChatMessage(
-					'[Prison Helper] {ffffff}Чтобы остановить отыгровку команды используйте ' ..
+					script_tag .. '  {ffffff}Чтобы остановить отыгровку команды используйте ' ..
 					message_color_hex .. '/stop',
 					message_color)
 			end
@@ -1525,7 +1538,7 @@ function initialize_commands()
 						if isMonetLoader() and settings.general.mobile_stop_button then
 							CommandStopWindow[0] = false
 						end
-						sampAddChatMessage('[Prison Helper] {ffffff}Отыгровка команды /mask успешно остановлена!',
+						sampAddChatMessage(script_tag .. '  {ffffff}Отыгровка команды /mask успешно остановлена!',
 							message_color)
 						return
 					end
@@ -1537,7 +1550,7 @@ function initialize_commands()
 						if isMonetLoader() and settings.general.mobile_stop_button then
 							CommandStopWindow[0] = false
 						end
-						sampAddChatMessage('[Prison Helper] {ffffff}Отыгровка команды /mask успешно остановлена!',
+						sampAddChatMessage(script_tag .. '  {ffffff}Отыгровка команды /mask успешно остановлена!',
 							message_color)
 						return
 					end
@@ -1549,7 +1562,7 @@ function initialize_commands()
 						if isMonetLoader() and settings.general.mobile_stop_button then
 							CommandStopWindow[0] = false
 						end
-						sampAddChatMessage('[Prison Helper] {ffffff}Отыгровка команды /mask успешно остановлена!',
+						sampAddChatMessage(script_tag .. '  {ffffff}Отыгровка команды /mask успешно остановлена!',
 							message_color)
 						return
 					end
@@ -1566,7 +1579,7 @@ function initialize_commands()
 						if isMonetLoader() and settings.general.mobile_stop_button then
 							CommandStopWindow[0] = false
 						end
-						sampAddChatMessage('[Prison Helper] {ffffff}Отыгровка команды /mask успешно остановлена!',
+						sampAddChatMessage(script_tag .. '  {ffffff}Отыгровка команды /mask успешно остановлена!',
 							message_color)
 						return
 					end
@@ -1578,7 +1591,7 @@ function initialize_commands()
 						if isMonetLoader() and settings.general.mobile_stop_button then
 							CommandStopWindow[0] = false
 						end
-						sampAddChatMessage('[Prison Helper] {ffffff}Отыгровка команды /mask успешно остановлена!',
+						sampAddChatMessage(script_tag .. '  {ffffff}Отыгровка команды /mask успешно остановлена!',
 							message_color)
 						return
 					end
@@ -1590,7 +1603,7 @@ function initialize_commands()
 						if isMonetLoader() and settings.general.mobile_stop_button then
 							CommandStopWindow[0] = false
 						end
-						sampAddChatMessage('[Prison Helper] {ffffff}Отыгровка команды /mask успешно остановлена!',
+						sampAddChatMessage(script_tag .. '  {ffffff}Отыгровка команды /mask успешно остановлена!',
 							message_color)
 						return
 					end
@@ -1599,7 +1612,7 @@ function initialize_commands()
 				end)
 			end
 		else
-			sampAddChatMessage('[Prison Helper] {ffffff}Дождитесь завершения отыгровки предыдущей команды!',
+			sampAddChatMessage(script_tag .. '  {ffffff}Дождитесь завершения отыгровки предыдущей команды!',
 				message_color)
 			play_error_sound()
 		end
@@ -1615,7 +1628,7 @@ function initialize_commands()
 				--MembersWindow[0] = true
 			end
 		else
-			sampAddChatMessage('[Prison Helper] {ffffff}Дождитесь завершения отыгровки предыдущей команды!',
+			sampAddChatMessage(script_tag .. '  {ffffff}Дождитесь завершения отыгровки предыдущей команды!',
 				message_color)
 			play_error_sound()
 		end
@@ -1624,13 +1637,10 @@ function initialize_commands()
 		if not isActiveCommand then
 			DeportamentWindow[0] = not DeportamentWindow[0]
 		else
-			sampAddChatMessage('[Prison Helper] {ffffff}Дождитесь завершения отыгровки предыдущей команды!',
+			sampAddChatMessage(script_tag .. '  {ffffff}Дождитесь завершения отыгровки предыдущей команды!',
 				message_color)
 			play_error_sound()
 		end
-	end)
-	sampRegisterChatCommand("meg", function()
-		MegafonWindow[0] = not MegafonWindow[0]
 	end)
 
 	if tonumber(settings.player_info.fraction_rank_number) >= 9 then
@@ -1641,18 +1651,18 @@ function initialize_commands()
 					isActiveCommand = true
 					if isMonetLoader() and settings.general.mobile_stop_button then
 						sampAddChatMessage(
-							'[Prison Helper] {ffffff}Чтобы остановить отыгровку команды используйте ' ..
+							script_tag .. '  {ffffff}Чтобы остановить отыгровку команды используйте ' ..
 							message_color_hex .. '/stop {ffffff}или нажмите кнопку внизу экрана', message_color)
 						CommandStopWindow[0] = true
 					elseif not isMonetLoader() and hotkey_no_errors and settings.general.bind_command_stop and settings.general.use_binds then
 						sampAddChatMessage(
-							'[Prison Helper] {ffffff}Чтобы остановить отыгровку команды используйте ' ..
+							script_tag .. '  {ffffff}Чтобы остановить отыгровку команды используйте ' ..
 							message_color_hex ..
 							'/stop {ffffff}или нажмите ' ..
 							message_color_hex .. getNameKeysFrom(settings.general.bind_command_stop), message_color)
 					else
 						sampAddChatMessage(
-							'[Prison Helper] {ffffff}Чтобы остановить отыгровку команды используйте ' ..
+							script_tag .. '  {ffffff}Чтобы остановить отыгровку команды используйте ' ..
 							message_color_hex .. '/stop', message_color)
 					end
 					sampSendChat("/rb Внимание! Через 15 секунд будет спавн транспорта организации.")
@@ -1663,7 +1673,7 @@ function initialize_commands()
 						if isMonetLoader() and settings.general.mobile_stop_button then
 							CommandStopWindow[0] = false
 						end
-						sampAddChatMessage('[Prison Helper] {ffffff}Отыгровка команды /spcar успешно остановлена!',
+						sampAddChatMessage(script_tag .. '  {ffffff}Отыгровка команды /spcar успешно остановлена!',
 							message_color)
 						return
 					end
@@ -1675,7 +1685,7 @@ function initialize_commands()
 						if isMonetLoader() and settings.general.mobile_stop_button then
 							CommandStopWindow[0] = false
 						end
-						sampAddChatMessage('[Prison Helper] {ffffff}Отыгровка команды /spcar успешно остановлена!',
+						sampAddChatMessage(script_tag .. '  {ffffff}Отыгровка команды /spcar успешно остановлена!',
 							message_color)
 						return
 					end
@@ -1687,7 +1697,7 @@ function initialize_commands()
 					end
 				end)
 			else
-				sampAddChatMessage('[Prison Helper] {ffffff}Дождитесь завершения отыгровки предыдущей команды!',
+				sampAddChatMessage(script_tag .. '  {ffffff}Дождитесь завершения отыгровки предыдущей команды!',
 					message_color)
 			end
 		end)
@@ -1843,17 +1853,17 @@ function show_fast_menu(id)
 	else
 		if isMonetLoader() or settings.general.bind_fastmenu == nil then
 			if not FastMenuPlayers[0] then
-				sampAddChatMessage('[Prison Helper] {ffffff}Используйте ' .. message_color_hex .. '/jm [ID]',
+				sampAddChatMessage(script_tag .. '  {ffffff}Используйте ' .. message_color_hex .. '/jm [ID]',
 					message_color)
 			end
 		elseif settings.general.bind_fastmenu and settings.general.use_binds and hotkey_no_errors then
 			sampAddChatMessage(
-				'[Prison Helper] {ffffff}Используйте ' ..
+				script_tag .. '  {ffffff}Используйте ' ..
 				message_color_hex ..
 				'/jm [ID] {ffffff}или наведитесь на игрока через ' ..
 				message_color_hex .. 'ПКМ + ' .. getNameKeysFrom(settings.general.bind_fastmenu), message_color)
 		else
-			sampAddChatMessage('[Prison Helper] {ffffff}Используйте ' .. message_color_hex .. '/jm [ID]', message_color)
+			sampAddChatMessage(script_tag .. '  {ffffff}Используйте ' .. message_color_hex .. '/jm [ID]', message_color)
 		end
 		play_error_sound()
 	end
@@ -1865,15 +1875,15 @@ function show_leader_fast_menu(id)
 		LeaderFastMenu[0] = true
 	else
 		if isMonetLoader() or settings.general.bind_leader_fastmenu == nil then
-			sampAddChatMessage('[Prison Helper] {ffffff}Используйте ' .. message_color_hex .. '/jlm [ID]', message_color)
+			sampAddChatMessage(script_tag .. '  {ffffff}Используйте ' .. message_color_hex .. '/jlm [ID]', message_color)
 		elseif settings.general.bind_leader_fastmenu and settings.general.use_binds and hotkey_no_errors then
 			sampAddChatMessage(
-				'[Prison Helper] {ffffff}Используйте ' ..
+				script_tag .. '  {ffffff}Используйте ' ..
 				message_color_hex ..
 				'/jlm [ID] {ffffff}или наведитесь на игрока через ' ..
 				message_color_hex .. 'ПКМ + ' .. getNameKeysFrom(settings.general.bind_leader_fastmenu), message_color)
 		else
-			sampAddChatMessage('[Prison Helper] {ffffff}Используйте ' .. message_color_hex .. '/jlm [ID]', message_color)
+			sampAddChatMessage(script_tag .. '  {ffffff}Используйте ' .. message_color_hex .. '/jlm [ID]', message_color)
 		end
 		play_error_sound()
 	end
@@ -1897,6 +1907,18 @@ function get_players()
 		end
 	end
 	return playersInRange
+end
+
+-- Функция для обновления FPS
+function calculateFPS()
+	frameCount = frameCount + 1
+	local currentTime = os.clock()
+	if currentTime - lastTime >= 1 then
+		fps = frameCount -- Сохраняем количество кадров за секунду
+		frameCount = 0   -- Сбрасываем счётчик кадров
+		lastTime = currentTime -- Обновляем время
+	end
+	return fps
 end
 
 function show_cef_notify(type, title, text, time)
@@ -2221,17 +2243,17 @@ function getNameOfARZVehicleModel(id)
 			end
 		else
 			sampAddChatMessage(
-				'[Prison Helper] {ffffff}Не удалось получить модель транспорта с ID ' ..
+				script_tag .. '  {ffffff}Не удалось получить модель транспорта с ID ' ..
 				id .. "! Причина: ошибка инициализации VehiclesArizona.json", message_color)
 			load_arzvehicles()
 			return ''
 		end
 	else
 		sampAddChatMessage(
-			'[Prison Helper] {ffffff}Не удалось получить модель транспорта с ID ' ..
+			script_tag .. '  {ffffff}Не удалось получить модель транспорта с ID ' ..
 			id .. "! Причина: отсуствует файл VehiclesArizona.json", message_color)
 		sampAddChatMessage(
-			'[Prison Helper] {ffffff}Пытаюсь скачать файл VehiclesArizona.json в папку ' .. path_arzvehicles,
+			script_tag .. '  {ffffff}Пытаюсь скачать файл VehiclesArizona.json в папку ' .. path_arzvehicles,
 			message_color)
 		download_arzvehicles = true
 		downloadFileFromUrlToPath(
@@ -2775,90 +2797,80 @@ function getARZServerName(number)
 	return server
 end
 
--- function check_update()
--- 	print('[Prison Helper] Начинаю проверку на наличие обновлений...')
--- 	sampAddChatMessage('[Prison Helper] {ffffff}Начинаю проверку на наличие обновлений...', message_color)
--- 	local path = configDirectory .. "/Update_Info.json"
--- 	os.remove(path)
--- 	local url =
--- 	'https://raw.githubusercontent.com/Alexandr-Botovod/Prison_Helper/refs/heads/main/PrisonHelper/Update_info.json'
--- 	if isMonetLoader() then
--- 		downloadToFile(url, path, function(type, pos, total_size)
--- 			if type == "finished" then
--- 				local updateInfo = readJsonFile(path)
--- 				if updateInfo then
--- 					local uVer = updateInfo.current_version
--- 					local uUrl = updateInfo.update_url
--- 					local uText = updateInfo.update_info
--- 					print("[Prison Helper] Текущая установленная версия:", thisScript().version)
--- 					print("[Prison Helper] Текущая версия в облаке:", uVer)
--- 					if thisScript().version ~= uVer then
--- 						print('[Prison Helper] Доступно обновление!')
--- 						sampAddChatMessage('[Prison Helper] {ffffff}Доступно обновление!', message_color)
--- 						need_update_helper = true
--- 						updateUrl = uUrl
--- 						updateVer = uVer
--- 						updateInfoText = uText
--- 						UpdateWindow[0] = true
--- 					else
--- 						print('[Prison Helper] Обновление не нужно!')
--- 						sampAddChatMessage('[Prison Helper] {ffffff}Обновление не нужно, у вас актуальная версия!',
--- 							message_color)
--- 					end
--- 				end
--- 			end
--- 		end)
--- 	else
--- 		downloadUrlToFile(url, path, function(id, status)
--- 			if status == 6 then -- ENDDOWNLOADDATA
--- 				updateInfo = readJsonFile(path)
--- 				if updateInfo then
--- 					local uVer = updateInfo.current_version
--- 					local uUrl = updateInfo.update_url
--- 					local uText = updateInfo.update_info
--- 					print("[Prison Helper] Текущая установленная версия:", thisScript().version)
--- 					print("[Prison Helper] Текущая версия в облаке:", uVer)
--- 					if thisScript().version ~= uVer then
--- 						print('[Prison Helper] Доступно обновление!')
--- 						sampAddChatMessage('[Prison Helper] {ffffff}Доступно обновление!', message_color)
--- 						need_update_helper = true
--- 						updateUrl = uUrl
--- 						updateVer = uVer
--- 						updateInfoText = uText
--- 						UpdateWindow[0] = true
--- 					else
--- 						print('[Prison Helper] Обновление не нужно!')
--- 						sampAddChatMessage('[Prison Helper] {ffffff}Обновление не нужно, у вас актуальная версия!',
--- 							message_color)
--- 					end
--- 				end
--- 			end
--- 		end)
--- 	end
--- 	function readJsonFile(filePath)
--- 		if not doesFileExist(filePath) then
--- 			print("[Prison Helper] Ошибка: Файл " .. filePath .. " не существует")
--- 			return nil
--- 		end
+function check_update()
+	print(script_tag .. '  Начинаю проверку на наличие обновлений...')
+	sampAddChatMessage(script_tag .. '  {ffffff}Начинаю проверку на наличие обновлений...', message_color)
+	local path = configDirectory .. "/Update_Info.json"
+	os.remove(path)
+	local url =
+	'https://raw.githubusercontent.com/Alexandr-Botovod/Prison_Helper/refs/heads/main/PrisonHelper/Update_info.json'
+	if isMonetLoader() then
+		downloadToFile(url, path, function(type, pos, total_size)
+			if type == "finished" then
+				local updateInfo = readJsonFile(path)
+				if updateInfo then
+					local uVer = updateInfo.current_version
+					local uUrl = updateInfo.update_url
+					local uText = updateInfo.update_info
+					print("[Prison Helper] Текущая установленная версия:", thisScript().version)
+					print("[Prison Helper] Текущая версия в облаке:", uVer)
+					if thisScript().version ~= uVer then
+						sampAddChatMessage('[Prison Helper] {ffffff}Авто-обновления прямо из игры вырезаны в целях безопасности.', message_color)
+						sampAddChatMessage('[Prison Helper] {ffffff}Вручную скачать и посмотреть файл можно здесь https://github.com/Alexandr-Botovod/Prison_Helper',  message_color)
+					else
+						print(script_tag .. '  Обновление не нужно!')
+						sampAddChatMessage(script_tag .. '  {ffffff}Обновление не нужно, у вас актуальная версия!',
+							message_color)
+					end
+				end
+			end
+		end)
+	else
+		downloadUrlToFile(url, path, function(id, status)
+			if status == 6 then -- ENDDOWNLOADDATA
+				updateInfo = readJsonFile(path)
+				if updateInfo then
+					local uVer = updateInfo.current_version
+					local uUrl = updateInfo.update_url
+					local uText = updateInfo.update_info
+					print("[Prison Helper] Текущая установленная версия:", thisScript().version)
+					print("[Prison Helper] Текущая версия в облаке:", uVer)
+					if thisScript().version ~= uVer then
+						sampAddChatMessage('[Prison Helper] {ffffff}Авто-обновления прямо из игры вырезаны в целях безопасности.', message_color)
+						sampAddChatMessage('[Prison Helper] {ffffff}Вручную скачать и посмотреть файл можно здесь https://github.com/Alexandr-Botovod/Prison_Helper',  message_color)
+					else
+						print(script_tag .. '  Обновление не нужно!')
+						sampAddChatMessage(script_tag .. '  {ffffff}Обновление не нужно, у вас актуальная версия!',
+							message_color)
+					end
+				end
+			end
+		end)
+	end
+	function readJsonFile(filePath)
+		if not doesFileExist(filePath) then
+			print("[Prison Helper] Ошибка: Файл " .. filePath .. " не существует")
+			return nil
+		end
 
--- 		local file, err = io.open(filePath, "r")
--- 		if not file then
--- 			print("[Prison Helper] Ошибка при открытии файла " .. filePath .. ": " .. err)
--- 			return nil
--- 		end
+		local file, err = io.open(filePath, "r")
+		if not file then
+			print("[Prison Helper] Ошибка при открытии файла " .. filePath .. ": " .. err)
+			return nil
+		end
 
--- 		local content = file:read("*a")
--- 		file:close()
+		local content = file:read("*a")
+		file:close()
 
--- 		local jsonData = decodeJson(content)
--- 		if not jsonData then
--- 			print("[Prison Helper] Ошибка: Неверный формат JSON в файле " .. filePath)
--- 			return nil
--- 		end
+		local jsonData = decodeJson(content)
+		if not jsonData then
+			print("[Prison Helper] Ошибка: Неверный формат JSON в файле " .. filePath)
+			return nil
+		end
 
--- 		return jsonData
--- 	end
--- end
+		return jsonData
+	end
+end
 
 function downloadToFile(url, path, callback, progressInterval)
 	callback = callback or function() end
@@ -2946,33 +2958,33 @@ function downloadToFile(url, path, callback, progressInterval)
 end
 
 function downloadFileFromUrlToPath(url, path)
-	print('[Prison Helper] Начинаю скачивание файла в ' .. path)
+	print(script_tag .. '  Начинаю скачивание файла в ' .. path)
 	if isMonetLoader() then
 		downloadToFile(url, path, function(type, pos, total_size)
 			if type == "downloading" then
 			elseif type == "finished" then
 				if download_helper then
 					sampAddChatMessage(
-						'[Prison Helper] {ffffff}Загрузка новой версии хелпера завершена успешно! Перезагрузка..',
+						script_tag .. '  {ffffff}Загрузка новой версии хелпера завершена успешно! Перезагрузка..',
 						message_color)
 					reload_script = true
 					thisScript():unload()
 				elseif download_smartRPTP then
 					sampAddChatMessage(
-						'[Prison Helper] {ffffff}Загрузка умного регламента повышения срока для сервера ' ..
+						script_tag .. '  {ffffff}Загрузка умного регламента повышения срока для сервера ' ..
 						getARZServerName(getARZServerNumber()) .. '[' .. getARZServerNumber() .. '] завершена успешно!',
 						message_color)
 					download_smartRPTP = false
 					load_smart_rptp()
 				elseif download_arzvehicles then
 					sampAddChatMessage(
-						'[Prison Helper] {ffffff}Загрузка списка моделей кастом каров аризоны заверешена успешно!',
+						script_tag .. '  {ffffff}Загрузка списка моделей кастом каров аризоны заверешена успешно!',
 						message_color)
 					download_arzvehicles = false
 					load_arzvehicles()
 				end
 			elseif type == "error" then
-				sampAddChatMessage('[Prison Helper] {ffffff}Ошибка загрузки: ' .. pos, message_color)
+				sampAddChatMessage(script_tag .. '  {ffffff}Ошибка загрузки: ' .. pos, message_color)
 			end
 		end)
 	else
@@ -2980,20 +2992,20 @@ function downloadFileFromUrlToPath(url, path)
 			if status == 6 then -- ENDDOWNLOADDATA
 				if download_helper then
 					sampAddChatMessage(
-						'[Prison Helper] {ffffff}Загрузка новой версии хелпера завершена успешно! Перезагрузка..',
+						script_tag .. '  {ffffff}Загрузка новой версии хелпера завершена успешно! Перезагрузка..',
 						message_color)
 					reload_script = true
 					thisScript():unload()
 				elseif download_smartRPTP then
 					sampAddChatMessage(
-						'[Prison Helper] {ffffff}Загрузка умного регламента повышения срока для сервера ' ..
+						script_tag .. '  {ffffff}Загрузка умного регламента повышения срока для сервера ' ..
 						getARZServerName(getARZServerNumber()) .. '[' .. getARZServerNumber() .. '] завершена успешно!',
 						message_color)
 					download_smartRPTP = false
 					load_smart_rptp()
 				elseif download_arzvehicles then
 					sampAddChatMessage(
-						'[Prison Helper] {ffffff}Загрузка списка моделей кастом каров аризоны заверешена успешно!',
+						script_tag .. '  {ffffff}Загрузка списка моделей кастом каров аризоны заверешена успешно!',
 						message_color)
 					download_arzvehicles = false
 					load_arzvehicles()
@@ -3005,22 +3017,22 @@ end
 
 function sampev.onShowTextDraw(id, data)
 	if data.text:find('~n~~n~~n~~n~~n~~n~~n~~n~~w~Style: ~r~Sport!') then
-		sampAddChatMessage('[Prison Helper] {ffffff}Активирован режим езды Sport!', message_color)
+		sampAddChatMessage(script_tag .. '  {ffffff}Активирован режим езды Sport!', message_color)
 		return false
 	end
 	if data.text:find('~n~~n~~n~~n~~n~~n~~n~~n~~w~Style: ~g~Comfort!') then
-		sampAddChatMessage('[Prison Helper] {ffffff}Активирован режим езды Comfort!', message_color)
+		sampAddChatMessage(script_tag .. '  {ffffff}Активирован режим езды Comfort!', message_color)
 		return false
 	end
 end
 
 function sampev.onDisplayGameText(style, time, text)
 	if text:find('~n~~n~~n~~n~~n~~n~~n~~n~~w~Style: ~r~Sport!') then
-		sampAddChatMessage('[Prison Helper] {ffffff}Активирован режим езды Sport!', message_color)
+		sampAddChatMessage(script_tag .. '  {ffffff}Активирован режим езды Sport!', message_color)
 		return false
 	end
 	if text:find('~n~~n~~n~~n~~n~~n~~n~~n~~w~Style: ~g~Comfort!') then
-		sampAddChatMessage('[Prison Helper] {ffffff}Активирован режим езды Comfort!', message_color)
+		sampAddChatMessage(script_tag .. '  {ffffff}Активирован режим езды Comfort!', message_color)
 		return false
 	end
 end
@@ -3033,7 +3045,7 @@ function sampev.onSendTakeDamage(playerId, damage, weapon)
 			local weapon_name = weapons.get_name(weapon)
 			if weapon_name then
 				sampAddChatMessage(
-					'[Prison Helper] {ffffff}Игрок ' ..
+					script_tag .. '  {ffffff}Игрок ' ..
 					sampGetPlayerNickname(playerId) ..
 					'[' .. playerId .. '] напал на вас используя ' .. weapon_name .. '.',
 					message_color)
@@ -3102,14 +3114,14 @@ function sampev.onServerMessage(color, text)
 				wait(50)
 				if Name == MyName then
 					sampAddChatMessage(
-						'[Prison Helper] {ffffff}Увольняю игрока ' .. sampGetPlayerNickname(PlayerID) .. '!',
+						script_tag .. '  {ffffff}Увольняю игрока ' .. sampGetPlayerNickname(PlayerID) .. '!',
 						message_color)
 					auto_uval_checker = false
 					temp = PlayerID .. ' ПСЖ'
 					find_and_use_command("/uninvite {arg_id} {arg2}", temp)
 				else
 					sampAddChatMessage(
-						'[Prison Helper] {ffffff}Другой заместитель/лидер уже увольняет игрока ' ..
+						script_tag .. '  {ffffff}Другой заместитель/лидер уже увольняет игрока ' ..
 						sampGetPlayerNickname(PlayerID) .. '!', message_color)
 					auto_uval_checker = false
 				end
@@ -3131,7 +3143,7 @@ function sampev.onServerMessage(color, text)
 			end
 		end
 		sampAddChatMessage(
-			'[Prison Helper] {ffffff}У игрока ' ..
+			script_tag .. '  {ffffff}У игрока ' ..
 			nick ..
 			' нету трудовой книжки, выдайте её используя ' ..
 			message_color_hex .. cmd .. ' ' .. sampGetPlayerIdByNickname(nick), message_color)
@@ -3154,14 +3166,14 @@ function sampev.onServerMessage(color, text)
 	end
 	if (settings.general.auto_mask) then
 		if text:find('Время действия маски истекло, вам пришлось ее выбросить.') then
-			sampAddChatMessage('[Prison Helper] {ffffff}Время действия маски истекло, автоматически надеваю новую',
+			sampAddChatMessage(script_tag .. '  {ffffff}Время действия маски истекло, автоматически надеваю новую',
 				message_color)
 			sampSendChat("/mask")
 			return false
 		elseif (text:find('Время действия маски (%d+) минут, после исхода времени ее придётся выбросить.')) then
 			local min = text:match('Время действия маски (%d+) минут, после исхода времени ее придётся выбросить.')
 			sampAddChatMessage(
-				'[Prison Helper] {ffffff}Время действия маски ' ..
+				script_tag .. '  {ffffff}Время действия маски ' ..
 				min .. ' минут, после исхода времени автоматически надеву новую!', message_color)
 			return false
 		end
@@ -3177,20 +3189,21 @@ function sampev.onServerMessage(color, text)
 		return false
 	end
 	if text:find("Номера телефонов государственных служб:") then
-		sampAddChatMessage('[Prison Helper] {ffffff}Номера телефонов государственных служб:', message_color)
+		sampAddChatMessage(script_tag .. '  {ffffff}Номера телефонов государственных служб:', message_color)
 		sampAddChatMessage(
-			'[Prison Helper] {ffffff}111 Баланс | 60 Время | 911 МЮ | 912 МЗ | 913 Такси | 914 Мехи | 8828 Банк | 997 Дома',
+			script_tag ..
+			'  {ffffff}111 Баланс | 60 Время | 911 МЮ | 912 МЗ | 913 Такси | 914 Мехи | 8828 Банк | 997 Дома',
 			message_color)
 		return false
 	end
 	if text:find('{FFFFFF}Время действия маски 20 минут, после исхода времени ее придётся выбросить.') then
 		sampAddChatMessage(
-			'[Prison Helper] {ffffff}Время действия маски 20 минут, после исхода времени автоматически надену новую',
+			script_tag .. '  {ffffff}Время действия маски 20 минут, после исхода времени автоматически надену новую',
 			message_color)
 		return false
 	end
 	if text:find('Время действия маски истекло, вам пришлось ее выбросить.') then
-		sampAddChatMessage('[Prison Helper] {ffffff}Время действия маски истекло! Автоматически надеваю новую',
+		sampAddChatMessage(script_tag .. '  {ffffff}Время действия маски истекло! Автоматически надеваю новую',
 			message_color)
 		sampProcessChatInput("/mask")
 		return false
@@ -3200,27 +3213,38 @@ function sampev.onServerMessage(color, text)
 	end
 	if text:find("Вы успешно надели маску") then
 		maska = true
-		sampAddChatMessage('[Prison Helper] {ffffff}Вы надели маску', message_color)
+		sampAddChatMessage(script_tag .. '  {ffffff}Вы надели маску', message_color)
 		return false
 	end
 	if text:find("Теперь вы в маске") then
 		return false
 	end
 	if text:find("Вы успешно выкинули маску") or text:find("Вы сняли маску") then
-		sampAddChatMessage('[Prison Helper] {ffffff}Вы сняли маску!', message_color)
+		sampAddChatMessage(script_tag .. '  {ffffff}Вы сняли маску!', message_color)
 		return false
 	end
 	if text:find("Вы уже изготовили: {DC4747}(%d+){FFFFFF} материалов") then
-		local material = text:match("Вы уже изготовили: {DC4747}(%d+){FFFFFF} материалов")
-		if material then
-			local currentAmount = tonumber(material)                  -- Преобразуем строку в число
-			currentAmount = settings.player_organization_general.materials + 1 -- Прибавляем 1 материал
+		materialsGeneral = settings.player_organization_general.materials + 1
+		materialsNow = settings.player_organization_now.materials + 1 -- Прибавляем 1 материал
 
-			settings.player_organization_general.materials = currentAmount
-			return true
-		end
+		settings.player_organization_general.materials = materialsGeneral
+		settings.player_organization_now.materials = materialsNow
+		save_settings()
+		return true
 	end
-	if (text:find('William_Wright%[%d+%]') and getARZServerNumber():find('05')) or text:find('%[20%]William_Wright') then
+	local clean_text = text:gsub("{.-}", ""):gsub("^%s+", ""):gsub("%s+$", "")
+
+	-- Проверяем совпадение
+	if clean_text:find("За доставку 10%-ти ящиков вы получаете 1 пропуск в тир%.") then
+		postavkiMaterialsGeneral = settings.player_organization_general.postavki_materials + 1
+		postavkiMaterialsNow = settings.player_organization_now.postavki_materials + 1
+
+		settings.player_organization_general.postavki_materials = postavkiMaterialsGeneral
+		settings.player_organization_now.postavki_materials = postavkiMaterialsNow
+		save_settings()
+		return true
+	end
+	if (text:find('William_Wright%[%d+%]') and getARZServerNumber():find('05')) or text:find('%[05%]William_Wright') then
 		local lastColor = text:match("(.+){%x+}$")
 		if not lastColor then
 			lastColor = "{" .. rgba_to_hex(color) .. "}"
@@ -3228,14 +3252,14 @@ function sampev.onServerMessage(color, text)
 		if text:find('%[VIP ADV%]') or text:find('%[FOREVER%]') then
 			lastColor = "{FFFFFF}"
 		end
-		if text:find('%[20%]William_Wright%[%d+%]') then
-			-- Случай 2: [20]William_Wright[123]
-			local id = text:match('%[20%]William_Wright%[(%d+)%]') or ''
-			text = string.gsub(text, '%[20%]William_Wright%[%d+%]',
-				message_color_hex .. '[20]MTG MODS[' .. id .. ']' .. lastColor)
-		elseif text:find('%[20%]William_Wright') then
-			-- Случай 1: [20]William_Wright
-			text = string.gsub(text, '%[20%]William_Wright', message_color_hex .. '[20]William Wright' .. lastColor)
+		if text:find('%[05%]William_Wright%[%d+%]') then
+			-- Случай 2: [05]William_Wright[123]
+			local id = text:match('%[05%]William_Wright%[(%d+)%]') or ''
+			text = string.gsub(text, '%[05%]William_Wright%[%d+%]',
+				message_color_hex .. '[05]William Wright[' .. id .. ']' .. lastColor)
+		elseif text:find('%[05%]William_Wright') then
+			-- Случай 1: [05]William_Wright
+			text = string.gsub(text, '%[05%]William_Wright', message_color_hex .. '[20]William Wright' .. lastColor)
 		elseif text:find('William_Wright%[%d+%]') then
 			-- Случай 3: William_Wright[123]
 			local id = text:match('William_Wright%[(%d+)%]') or ''
@@ -3316,22 +3340,22 @@ function sampev.onShowDialog(dialogid, style, title, button1, button2, text)
 			settings.player_info.name_surname = TranslateNick(text:match("{FFFFFF}Имя: {B83434}%[(.-)]"))
 			input_name_surname = imgui.new.char[256](u8(settings.player_info.name_surname))
 			sampAddChatMessage(
-				'[Prison Helper] {ffffff}Ваше Имя и Фамилия обнаружены, вы - ' .. settings.player_info.name_surname,
+				script_tag .. '  {ffffff}Ваше Имя и Фамилия обнаружены, вы - ' .. settings.player_info.name_surname,
 				message_color)
 		end
 		if text:find("{FFFFFF}Пол: {B83434}%[(.-)]") then
 			settings.player_info.sex = text:match("{FFFFFF}Пол: {B83434}%[(.-)]")
-			sampAddChatMessage('[Prison Helper] {ffffff}Ваш пол обнаружен, вы - ' .. settings.player_info.sex,
+			sampAddChatMessage(script_tag .. '  {ffffff}Ваш пол обнаружен, вы - ' .. settings.player_info.sex,
 				message_color)
 		end
 		if text:find("{FFFFFF}Организация: {B83434}%[(.-)]") then
 			settings.player_info.fraction = text:match("{FFFFFF}Организация: {B83434}%[(.-)]")
 			if settings.player_info.fraction == 'Не имеется' then
-				sampAddChatMessage('[Prison Helper] {ffffff}Вы не состоите в организации!', message_color)
+				sampAddChatMessage(script_tag .. '  {ffffff}Вы не состоите в организации!', message_color)
 				settings.player_info.fraction_tag = "Неизвестно"
 			else
 				sampAddChatMessage(
-					'[Prison Helper] {ffffff}Ваша организация обнаружена, это: ' .. settings.player_info.fraction,
+					script_tag .. '  {ffffff}Ваша организация обнаружена, это: ' .. settings.player_info.fraction,
 					message_color)
 				if settings.player_info.fraction == 'Полиция ЛС' or settings.player_info.fraction == 'Полиция LS' then
 					settings.player_info.fraction_tag = 'ЛСПД'
@@ -3356,7 +3380,7 @@ function sampev.onShowDialog(dialogid, style, title, button1, button2, text)
 				input_dep_tag1 = imgui.new.char[32](u8(settings.deportament.dep_tag1))
 				input_fraction_tag = imgui.new.char[256](u8(settings.player_info.fraction_tag))
 				sampAddChatMessage(
-					'[Prison Helper] {ffffff}Вашей организации присвоен тег ' ..
+					script_tag .. '  {ffffff}Вашей организации присвоен тег ' ..
 					settings.player_info.fraction_tag .. ". Но вы можете изменить его.", message_color)
 			end
 		end
@@ -3364,7 +3388,7 @@ function sampev.onShowDialog(dialogid, style, title, button1, button2, text)
 			settings.player_info.fraction_rank, settings.player_info.fraction_rank_number = text:match(
 				"{FFFFFF}Должность: {B83434}(.+)%((%d+)%)(.+)Уровень розыска")
 			sampAddChatMessage(
-				'[Prison Helper] {ffffff}Ваша должность обнаружена, это: ' ..
+				script_tag .. '  {ffffff}Ваша должность обнаружена, это: ' ..
 				settings.player_info.fraction_rank .. " (" .. settings.player_info.fraction_rank_number .. ")",
 				message_color)
 			if tonumber(settings.player_info.fraction_rank_number) >= 9 then
@@ -3374,7 +3398,7 @@ function sampev.onShowDialog(dialogid, style, title, button1, button2, text)
 		else
 			settings.player_info.fraction_rank = "Неизвестно"
 			settings.player_info.fraction_rank_number = 0
-			sampAddChatMessage('[Prison Helper] {ffffff}Произошла ошибка, не могу получить ваш ранг!', message_color)
+			sampAddChatMessage(script_tag .. '  {ffffff}Произошла ошибка, не могу получить ваш ранг!', message_color)
 		end
 		save_settings()
 		sampSendDialogResponse(235, 0, 0, 0)
@@ -3412,23 +3436,26 @@ function sampev.onShowDialog(dialogid, style, title, button1, button2, text)
 				settings.player_organization_now.materials = materials
 			end
 			if trucks then
-				settings.player_organization_now.postavki_kargobob = trucks
+				settings.player_organization_now.postavki_materials = trucks
 			end
 			if helicopters then
-				settings.player_organization_now.postavki_materials = helicopters
+				settings.player_organization_now.postavki_kargobob = helicopters
 			end
-
-			-- Печатаем значения для проверки
-			print("Сделанных патронов на складе:", materials)
-			print("Доставленных в ПД фур:", trucks)
-			print("Доставленных вертолётов с материалами:", helicopters)
-		else
-			print("Подзаголовок 'Статистика успеваемости за сегодня:' не найден.")
 		end
 		save_settings()
 		sampSendDialogResponse(0, 0, 0, 0)
 		check_jobs = false
 		return false
+	end
+
+	if string.find(text, "Вы успешно доставили груз с ингредиентами") then
+		-- Увеличиваем значения доставок
+		settings.player_organization_general.postavki_kargobob = settings.player_organization_general.postavki_kargobob +
+			1
+		settings.player_organization_now.postavki_kargobob = settings.player_organization_now.postavki_kargobob + 1
+		-- Сохраняем настройки
+		save_settings()
+		return true
 	end
 
 	if spawncar_bool and title:find('$') and text:find('Спавн транспорта') then -- спавн транспорта
@@ -3514,7 +3541,7 @@ function sampev.onShowDialog(dialogid, style, title, button1, button2, text)
 			MembersWindow[0] = true
 		else
 			sampSendDialogResponse(dialogid, 0, 0, 0)
-			sampAddChatMessage('[Prison Helper]{ffffff} Список сотрудников пуст!', message_color)
+			sampAddChatMessage(script_tag .. ' {ffffff} Список сотрудников пуст!', message_color)
 			members_check = false
 		end
 		return false
@@ -3555,10 +3582,11 @@ function onReceivePacket(id, bs)
 				end
 
 				if cmd2:find('Основная статистика') and check_stats then -- /jme
-					sampAddChatMessage('[Prison Helper] {ffffff}Ошибка, не могу получить данные из нового CEF диалога!',
+					sampAddChatMessage(script_tag .. '  {ffffff}Ошибка, не могу получить данные из нового CEF диалога!',
 						message_color)
 					sampAddChatMessage(
-						'[Prison Helper] {ffffff}Включите старый (класичесский) вид диалогов в /settings - Кастомизация интерфейса',
+						script_tag ..
+						'  {ffffff}Включите старый (класичесский) вид диалогов в /settings - Кастомизация интерфейса',
 						message_color)
 					run_code("window.executeEvent('cef.modals.closeModal', `[\"dialog\"]`);")
 				end
@@ -3594,10 +3622,10 @@ imgui.OnFrame(
 		imgui.SetNextWindowPos(imgui.ImVec2(sizeX / 2, sizeY / 2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
 		imgui.SetNextWindowSize(imgui.ImVec2(700 * MONET_DPI_SCALE, 436 * MONET_DPI_SCALE), imgui.Cond.FirstUseEver) -- Размеры всего окна скрипта
 		imgui.Begin(fa.BUILDING_SHIELD .. " Prison Helper##main", MainWindow,
-			imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize + imgui.WindowFlags.NoMove)
+			imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize)
 		if imgui.BeginTabBar('пон') then
 			if imgui.BeginTabItem(fa.HOUSE .. u8 ' Главное меню') then
-				if imgui.BeginChild('##1', imgui.ImVec2(688 * MONET_DPI_SCALE, 194 * MONET_DPI_SCALE), true) then -- Размеры первой вкладки
+				if imgui.BeginChild('##1', imgui.ImVec2(690 * MONET_DPI_SCALE, 168 * MONET_DPI_SCALE), true) then -- Размеры первой вкладки
 					imgui.CenterText(fa.USER_NURSE .. u8 ' Информация про сотрудника')
 					imgui.Separator()
 					imgui.Columns(3)
@@ -3614,7 +3642,7 @@ imgui.OnFrame(
 						save_settings()
 						imgui.OpenPopup(fa.USER_NURSE .. u8 ' Имя и Фамилия##name_surname')
 					end
-					if imgui.BeginPopupModal(fa.USER_NURSE .. u8 ' Имя и Фамилия##name_surname', _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize + imgui.WindowFlags.NoMove) then
+					if imgui.BeginPopupModal(fa.USER_NURSE .. u8 ' Имя и Фамилия##name_surname', _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize) then
 						imgui.PushItemWidth(405 * MONET_DPI_SCALE)
 						imgui.InputText(u8 '##name_surname', input_name_surname, 256)
 						imgui.Separator()
@@ -3663,7 +3691,7 @@ imgui.OnFrame(
 					if imgui.CenterColumnSmallButton(u8 'Изменить##accent') then
 						imgui.OpenPopup(fa.USER_NURSE .. u8 ' Акцент персонажа##accent')
 					end
-					if imgui.BeginPopupModal(fa.USER_NURSE .. u8 ' Акцент персонажа##accent', _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize + imgui.WindowFlags.NoMove) then
+					if imgui.BeginPopupModal(fa.USER_NURSE .. u8 ' Акцент персонажа##accent', _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize) then
 						if imgui.Checkbox('##checkbox_accent_enable', checkbox_accent_enable) then
 							settings.general.accent_enable = checkbox_accent_enable[0]
 							save_settings()
@@ -3704,7 +3732,7 @@ imgui.OnFrame(
 					if imgui.CenterColumnSmallButton(u8 'Изменить##fraction_tag') then
 						imgui.OpenPopup(fa.BUILDING_SHIELD .. u8 ' Тэг организации##fraction_tag')
 					end
-					if imgui.BeginPopupModal(fa.BUILDING_SHIELD .. u8 ' Тэг организации##fraction_tag', _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize + imgui.WindowFlags.NoMove) then
+					if imgui.BeginPopupModal(fa.BUILDING_SHIELD .. u8 ' Тэг организации##fraction_tag', _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize) then
 						imgui.PushItemWidth(405 * MONET_DPI_SCALE)
 						imgui.InputText(u8 '##input_fraction_tag', input_fraction_tag, 256)
 						imgui.Separator()
@@ -3735,7 +3763,40 @@ imgui.OnFrame(
 
 					imgui.EndChild()
 				end
-				if imgui.BeginChild('##3', imgui.ImVec2(688 * MONET_DPI_SCALE, 170 * MONET_DPI_SCALE), true) then -- Размеры окна "Дополнительные функции хелпера"
+				if imgui.BeginChild('##2', imgui.ImVec2(690 * MONET_DPI_SCALE, 50 * MONET_DPI_SCALE), true) then
+					imgui.CenterText(fa.ROBOT .. u8 ' Ассистент')
+					imgui.Separator()
+					imgui.Columns(2)
+					imgui.CenterColumnText(u8("Ваш незаменимый помощник для автоматизации некоторых действий"))
+					imgui.SetColumnWidth(-1, 580 * MONET_DPI_SCALE)
+					imgui.NextColumn()
+					if imgui.CenterColumnSmallButton(u8 'Управление') then
+						imgui.OpenPopup(fa.ROBOT .. u8 ' Ассистент для автоматизации некоторых ваших действий')
+					end
+					if imgui.BeginPopupModal(fa.ROBOT .. u8 ' Ассистент для автоматизации некоторых ваших действий', _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize) then
+						if not isMonetLoader() then imgui.SetWindowFontScale(MONET_DPI_SCALE) end
+						imgui.BeginChild('##ai',
+							imgui.ImVec2(589 * MONET_DPI_SCALE, 360 * MONET_DPI_SCALE), true)
+						if imgui.Checkbox(u8(' Если до PAYDAY осталось 5 минут, то напоминать про него в чате'), checkbox_notify_payday) then
+							settings.general.auto_notify_payday = checkbox_notify_payday[0]
+							save_settings()
+						end
+						imgui.EndChild()
+						if imgui.Button(fa.CIRCLE_XMARK .. u8 " Закрыть", imgui.ImVec2(589 * MONET_DPI_SCALE, 25 * MONET_DPI_SCALE)) then
+							imgui.CloseCurrentPopup()
+						end
+						if imgui.Button(fa.ARROW_ROTATE_LEFT .. u8 " Сбросить", imgui.ImVec2(589 * MONET_DPI_SCALE, 25 * MONET_DPI_SCALE)) then
+							settings.general.auto_notify_payday = false
+							checkbox_notify_payday[0] = false
+							save_settings()
+						end
+						imgui.EndPopup()
+					end
+					imgui.SetColumnWidth(-1, 100 * MONET_DPI_SCALE)
+					imgui.Columns(1)
+					imgui.EndChild()
+				end
+				if imgui.BeginChild('##3', imgui.ImVec2(690 * MONET_DPI_SCALE, 144 * MONET_DPI_SCALE), true) then -- Размеры окна "Дополнительные функции хелпера"
 					imgui.CenterText(fa.SITEMAP .. u8 ' Дополнительные функции хелпера')
 					imgui.Separator()
 					imgui.Columns(3)
@@ -3878,7 +3939,7 @@ imgui.OnFrame(
 							else
 								settings.general.auto_uval = false
 								sampAddChatMessage(
-									'[Prison Helper] {ffffff}Эта Функция доступна только лидеру и заместителям!',
+									script_tag .. '  {ffffff}Эта Функция доступна только лидеру и заместителям!',
 									message_color)
 							end
 						end
@@ -4007,7 +4068,7 @@ imgui.OnFrame(
 								if imgui.IsItemHovered() then
 									imgui.SetTooltip(u8 "Удаление команды /" .. command.cmd)
 								end
-								if imgui.BeginPopupModal(fa.TRIANGLE_EXCLAMATION .. u8 ' Предупреждение ##' .. command.cmd, _, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoMove) then
+								if imgui.BeginPopupModal(fa.TRIANGLE_EXCLAMATION .. u8 ' Предупреждение ##' .. command.cmd, _, imgui.WindowFlags.NoResize) then
 									imgui.CenterText(u8 'Вы действительно хотите удалить команду /' ..
 										u8(command.cmd) .. '?')
 									imgui.Separator()
@@ -4138,9 +4199,6 @@ imgui.OnFrame(
 										change_waiting = command.waiting
 										waiting_slider = imgui.new.float(tonumber(command.waiting))
 										binder_create_command_5_8 = true
-
-										
-
 										BinderWindow[0] = true
 									end
 									if imgui.IsItemHovered() then
@@ -4154,7 +4212,7 @@ imgui.OnFrame(
 									if imgui.IsItemHovered() then
 										imgui.SetTooltip(u8 "Удаление команды /" .. command.cmd)
 									end
-									if imgui.BeginPopupModal(fa.TRIANGLE_EXCLAMATION .. u8 ' Предупреждение ##' .. command.cmd, _, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoMove) then
+									if imgui.BeginPopupModal(fa.TRIANGLE_EXCLAMATION .. u8 ' Предупреждение ##' .. command.cmd, _, imgui.WindowFlags.NoResize) then
 										imgui.CenterText(u8 'Вы действительно хотите удалить команду /' ..
 											u8(command.cmd) .. '?')
 										imgui.Separator()
@@ -4308,7 +4366,8 @@ imgui.OnFrame(
 										binder_create_command_9_10 = true
 										binder_create_command_5_8 = false
 										change_waiting = command.waiting
-										waiting_slider = imgui.new.float(command.waiting)
+										local waiting_value = tonumber(command.waiting) or 0
+										waiting_slider = imgui.new.float(waiting_value)
 										BinderWindow[0] = true
 									end
 									if imgui.IsItemHovered() then
@@ -4322,7 +4381,7 @@ imgui.OnFrame(
 									if imgui.IsItemHovered() then
 										imgui.SetTooltip(u8 "Удаление команды /" .. command.cmd)
 									end
-									if imgui.BeginPopupModal(fa.TRIANGLE_EXCLAMATION .. u8 ' Предупреждение ##9-10' .. command.cmd, _, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoMove) then
+									if imgui.BeginPopupModal(fa.TRIANGLE_EXCLAMATION .. u8 ' Предупреждение ##9-10' .. command.cmd, _, imgui.WindowFlags.NoResize) then
 										imgui.CenterText(u8 'Вы действительно хотите удалить команду /' ..
 											u8(command.cmd) .. '?')
 										imgui.Separator()
@@ -4439,7 +4498,7 @@ imgui.OnFrame(
 								end
 								imgui.Separator()
 
-								if imgui.BeginPopupModal(fa.KEYBOARD .. u8 ' Настройка клавиш', _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize + imgui.WindowFlags.NoMove) then
+								if imgui.BeginPopupModal(fa.KEYBOARD .. u8 ' Настройка клавиш', _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize) then
 									imgui.SetWindowSizeVec2(imgui.ImVec2(600 * MONET_DPI_SCALE, 425 * MONET_DPI_SCALE))
 									if settings.general.use_binds and hotkey_no_errors then
 										imgui.Separator()
@@ -4510,7 +4569,7 @@ imgui.OnFrame(
 					imgui.SameLine(nil, 5)
 					imgui.TextDisabled("[?]")
 					if imgui.IsItemHovered() then
-						imgui.SetTooltip(u8 "Отображение на экране менюшки с информацией")
+						imgui.SetTooltip(u8 "Отображение на экране менюшки с информацией о проделанной работе за всё время.")
 					end
 					imgui.SetColumnWidth(-1, 280 * MONET_DPI_SCALE) -- Длина названия пункта
 					imgui.NextColumn()
@@ -4522,15 +4581,47 @@ imgui.OnFrame(
 					imgui.SetColumnWidth(-1, 300 * MONET_DPI_SCALE) -- Длина описание пункта
 					imgui.NextColumn()
 					if settings.player_organization_general.use_infojob_menu then
-						if imgui.CenterColumnSmallButton(u8 'Отключить##info_menu') then
+						if imgui.CenterColumnSmallButton(u8 'Отключить##info_job_general') then
 							settings.player_organization_general.use_infojob_menu = false
-							JobInformationWindow[0] = false
+							JobInformationGeneralWindow[0] = false
 							save_settings()
 						end
 					else
-						if imgui.CenterColumnSmallButton(u8 'Включить##info_menu') then
+						if imgui.CenterColumnSmallButton(u8 'Включить##info_job_general') then
 							settings.player_organization_general.use_infojob_menu = true
-							JobInformationWindow[0] = true
+							JobInformationGeneralWindow[0] = true
+							save_settings()
+						end
+					end
+					imgui.SetColumnWidth(-1, 100 * MONET_DPI_SCALE) -- Размер кнопки
+					imgui.Columns(1)
+					imgui.Separator()
+					imgui.Columns(3)
+					imgui.CenterColumnText(u8 "Информация о работе за всё время")
+					imgui.SameLine(nil, 5)
+					imgui.TextDisabled("[?]")
+					if imgui.IsItemHovered() then
+						imgui.SetTooltip(u8 "Отображение на экране менюшки с информацией о проделанной работе за всё время")
+					end
+					imgui.SetColumnWidth(-1, 280 * MONET_DPI_SCALE) -- Длина названия пункта
+					imgui.NextColumn()
+					if settings.player_organization_now.use_infojob_menu then
+						imgui.CenterColumnText(u8 'Включено')
+					else
+						imgui.CenterColumnText(u8 'Отключено')
+					end
+					imgui.SetColumnWidth(-1, 300 * MONET_DPI_SCALE) -- Длина описание пункта
+					imgui.NextColumn()
+					if settings.player_organization_now.use_infojob_menu then
+						if imgui.CenterColumnSmallButton(u8 'Отключить##info_job_now') then
+							settings.player_organization_now.use_infojob_menu = false
+							JobInformationNowWindow[0] = false
+							save_settings()
+						end
+					else
+						if imgui.CenterColumnSmallButton(u8 'Включить##info_job_now') then
+							settings.player_organization_now.use_infojob_menu = true
+							JobInformationNowWindow[0] = true
 							save_settings()
 						end
 					end
@@ -4554,7 +4645,7 @@ imgui.OnFrame(
 						imgui.OpenPopup(fa.BUILDING_SHIELD .. u8 ' Состояние поста##post_status')
 					end
 					imgui.SetColumnWidth(-1, 300 * MONET_DPI_SCALE) -- Длина второго столбца
-					if imgui.BeginPopupModal(fa.BUILDING_SHIELD .. u8 ' Состояние поста##post_status', _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize + imgui.WindowFlags.NoMove) then
+					if imgui.BeginPopupModal(fa.BUILDING_SHIELD .. u8 ' Состояние поста##post_status', _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize) then
 						imgui.PushItemWidth(405 * MONET_DPI_SCALE)
 						imgui.InputText(u8 '##input_post_status', input_post_status, 256)
 						imgui.Separator()
@@ -4651,23 +4742,43 @@ imgui.OnFrame(
 				imgui.EndTabItem()
 			end
 			if imgui.BeginTabItem(fa.WALLET .. u8 'Обновления') then
-				if imgui.BeginChild('##update', imgui.ImVec2(688 * MONET_DPI_SCALE, 372 * MONET_DPI_SCALE), true) then
-					imgui.CenterText(fa.STAR .. u8 'История обновлений')
+				if updateInfo then
+					if imgui.BeginChild('##update', imgui.ImVec2(688 * MONET_DPI_SCALE, 372 * MONET_DPI_SCALE), true) then
+						imgui.CenterText(fa.STAR .. u8 'История обновлений')
+						imgui.Separator()
+
+						local indent = string.rep(" ", 115) -- Создает отступ из 10 пробелов
+
+						-- Четвёртый спойлер
+						if imgui.CollapsingHeader(fa.TAG .. " " .. updateInfo.news[4].title .. indent .. updateInfo.news[4].date) then
+							local text = table.concat(updateInfo.news[4].text, "\n")
+							imgui.Text(text)
+						end
+
+						-- Третий спойлер
+						if imgui.CollapsingHeader(fa.TAG .. " " .. updateInfo.news[3].title .. indent .. updateInfo.news[3].date) then
+							local text = table.concat(updateInfo.news[3].text, "\n")
+							imgui.Text(text)
+						end
+
+						-- Второй спойлер
+						if imgui.CollapsingHeader(fa.TAG .. " " .. updateInfo.news[2].title .. indent .. updateInfo.news[2].date) then
+							local text = table.concat(updateInfo.news[2].text, "\n")
+							imgui.Text(text)
+						end
+
+						-- Первый спойлер
+						if imgui.CollapsingHeader(fa.TAG .. " " .. updateInfo.news[1].title .. indent .. updateInfo.news[1].date) then
+							local text = table.concat(updateInfo.news[1].text, "\n")
+							imgui.Text(text)
+						end
+						imgui.EndChild()
+					end
+					imgui.EndTabItem()
+				else
+					imgui.CenterText(fa.MONEY_CHECK_DOLLAR .. u8 ' Обновления')
 					imgui.Separator()
-
-					local indent = string.rep(" ", 115) -- Создает отступ из 10 пробелов
-
-					-- Второй спойлер
-					if imgui.CollapsingHeader(fa.TAG .. " " .. updateInfo.news[2].title .. indent .. updateInfo.news[2].date) then
-						local text = table.concat(updateInfo.news[2].text, "\n")
-						imgui.Text(text)
-					end
-
-					-- Первый спойлер
-					if imgui.CollapsingHeader(fa.TAG .. " " .. updateInfo.news[1].title .. indent .. updateInfo.news[1].date) then
-						local text = table.concat(updateInfo.news[1].text, "\n")
-						imgui.Text(text)
-					end
+					imgui.CenterText(u8 'Список обновлений не загружен!')
 					imgui.EndChild()
 				end
 				imgui.EndTabItem()
@@ -4682,14 +4793,14 @@ imgui.OnFrame(
 						if getARZServerNumber() ~= 0 then
 							download_smartRPTP = true
 							downloadFileFromUrlToPath(
-								'https://raw.githubusercontent.com/WF-Helpers-MODS/Prison-Helper/refs/heads/main/Prison%20Helper/' ..
+								'https://raw.githubusercontent.com/Alexandr-Botovod/Prison_Helper/refs/heads/main/PrisonHelper/' ..
 								getARZServerNumber() .. '/SmartRPTP.json', path_rptp) -- Ссылка на файл с регламентом повышения срока заключённым
 							imgui.OpenPopup(fa.CIRCLE_INFO .. u8 ' Prison Helper - Оповещение##donwloadsmartRPTP')
 						else
 							imgui.OpenPopup(fa.CIRCLE_INFO .. u8 ' Prison Helper - Оповещение##nocloudsmartRPTP')
 						end
 					end
-					if imgui.BeginPopupModal(fa.CIRCLE_INFO .. u8 ' Prison Helper - Оповещение##nocloudsmartRPTP', _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize + imgui.WindowFlags.NoMove) then
+					if imgui.BeginPopupModal(fa.CIRCLE_INFO .. u8 ' Prison Helper - Оповещение##nocloudsmartRPTP', _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize) then
 						imgui.CenterText(u8 'В базе данных ещё нету регламента повышения срока заключённым для вашего сервера!')
 						imgui.Separator()
 						imgui.CenterText(u8 'Вы можете вручную заполнить его по кнопке "Отредактировать"')
@@ -4700,7 +4811,7 @@ imgui.OnFrame(
 						end
 						imgui.EndPopup()
 					end
-					if imgui.BeginPopupModal(fa.CIRCLE_INFO .. u8 ' Prison Helper - Оповещение##donwloadsmartRPTP', _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize + imgui.WindowFlags.NoMove) then
+					if imgui.BeginPopupModal(fa.CIRCLE_INFO .. u8 ' Prison Helper - Оповещение##donwloadsmartRPTP', _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize) then
 						if download_smartRPTP then
 							imgui.CenterText(u8 'Если вы видите это окно значит идёт скачивание регламента повышения срока заключённым для ' ..
 								getARZServerNumber() .. u8 ' сервера!')
@@ -4729,7 +4840,7 @@ imgui.OnFrame(
 					end
 					imgui.SetCursorPosY(250 * MONET_DPI_SCALE)
 					imgui.CenterText(u8('Использование: /sum [ID игрока]'))
-					if imgui.BeginPopupModal(fa.STAR .. u8 ' Регламент повышения срока заключённым##smartRPTP', _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize + imgui.WindowFlags.NoMove) then
+					if imgui.BeginPopupModal(fa.STAR .. u8 ' Регламент повышения срока заключённым##smartRPTP', _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize) then
 						imgui.BeginChild('##smartRPTPedit', imgui.ImVec2(589 * MONET_DPI_SCALE, 360 * MONET_DPI_SCALE),
 							true)
 						for chapter_index, chapter in ipairs(smart_rptp) do
@@ -4745,7 +4856,7 @@ imgui.OnFrame(
 								imgui.OpenPopup(fa.TRIANGLE_EXCLAMATION ..
 									u8 ' Prison Helper - Предупреждение ##' .. chapter_index)
 							end
-							if imgui.BeginPopupModal(fa.TRIANGLE_EXCLAMATION .. u8 ' Prison Helper - Предупреждение ##' .. chapter_index, _, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoMove) then
+							if imgui.BeginPopupModal(fa.TRIANGLE_EXCLAMATION .. u8 ' Prison Helper - Предупреждение ##' .. chapter_index, _, imgui.WindowFlags.NoResize) then
 								imgui.CenterText(u8 'Вы действительно хотите удалить пункт?')
 								imgui.CenterText(u8(chapter.name))
 								imgui.Separator()
@@ -4762,7 +4873,7 @@ imgui.OnFrame(
 							end
 							imgui.SetColumnWidth(-1, 100 * MONET_DPI_SCALE)
 							imgui.Columns(1)
-							if imgui.BeginPopupModal(u8(chapter.name) .. '##' .. chapter_index, _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize + imgui.WindowFlags.NoMove) then
+							if imgui.BeginPopupModal(u8(chapter.name) .. '##' .. chapter_index, _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize) then
 								if imgui.BeginChild('##smartRPTPedititem', imgui.ImVec2(589 * MONET_DPI_SCALE, 390 * MONET_DPI_SCALE), true) then
 									if chapter.item then
 										for index, item in ipairs(chapter.item) do
@@ -4778,7 +4889,7 @@ imgui.OnFrame(
 													u8(" Редактирование подпункта##") ..
 													chapter.name .. index .. chapter_index)
 											end
-											if imgui.BeginPopupModal(fa.PEN_TO_SQUARE .. u8(" Редактирование подпункта##") .. chapter.name .. index .. chapter_index, _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize + imgui.WindowFlags.NoMove) then
+											if imgui.BeginPopupModal(fa.PEN_TO_SQUARE .. u8(" Редактирование подпункта##") .. chapter.name .. index .. chapter_index, _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize) then
 												if imgui.BeginChild('##smartRPTPedititeminput', imgui.ImVec2(489 * MONET_DPI_SCALE, 155 * MONET_DPI_SCALE), true) then
 													imgui.CenterText(u8 'Название подпункта:')
 													imgui.PushItemWidth(478 * MONET_DPI_SCALE)
@@ -4806,7 +4917,8 @@ imgui.OnFrame(
 														imgui.CloseCurrentPopup()
 													else
 														sampAddChatMessage(
-															'[Prison Helper] {ffffff}Ошибка в указанных данных, исправьте!',
+															script_tag ..
+															'  {ffffff}Ошибка в указанных данных, исправьте!',
 															message_color)
 													end
 												end
@@ -4818,7 +4930,7 @@ imgui.OnFrame(
 													u8 ' Prison Helper - Предупреждение ##' ..
 													chapter_index .. '##' .. index)
 											end
-											if imgui.BeginPopupModal(fa.TRIANGLE_EXCLAMATION .. u8 ' Prison Helper - Предупреждение ##' .. chapter_index .. '##' .. index, _, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoMove) then
+											if imgui.BeginPopupModal(fa.TRIANGLE_EXCLAMATION .. u8 ' Prison Helper - Предупреждение ##' .. chapter_index .. '##' .. index, _, imgui.WindowFlags.NoResize) then
 												imgui.CenterText(u8 'Вы действительно хотите удалить подпункт?')
 												imgui.CenterText(u8(item.text))
 												imgui.Separator()
@@ -4846,7 +4958,7 @@ imgui.OnFrame(
 									input_smartRPTP_reason = imgui.new.char[256](u8(''))
 									imgui.OpenPopup(fa.CIRCLE_PLUS .. u8(' Добавление нового подпункта'))
 								end
-								if imgui.BeginPopupModal(fa.CIRCLE_PLUS .. u8(' Добавление нового подпункта'), _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize + imgui.WindowFlags.NoMove) then
+								if imgui.BeginPopupModal(fa.CIRCLE_PLUS .. u8(' Добавление нового подпункта'), _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize) then
 									if imgui.BeginChild('##smartRPTPedititeminput', imgui.ImVec2(489 * MONET_DPI_SCALE, 155 * MONET_DPI_SCALE), true) then
 										imgui.CenterText(u8 'Название подпункта:')
 										imgui.PushItemWidth(478 * MONET_DPI_SCALE)
@@ -4874,7 +4986,7 @@ imgui.OnFrame(
 											imgui.CloseCurrentPopup()
 										else
 											sampAddChatMessage(
-												'[Prison Helper] {ffffff}Ошибка в указанных данных, исправьте!',
+												script_tag .. '  {ffffff}Ошибка в указанных данных, исправьте!',
 												message_color)
 										end
 									end
@@ -4893,7 +5005,7 @@ imgui.OnFrame(
 							input_smartRPTP_name = imgui.new.char[256](u8(''))
 							imgui.OpenPopup(fa.CIRCLE_PLUS .. u8 ' Добавление нового пункта')
 						end
-						if imgui.BeginPopupModal(fa.CIRCLE_PLUS .. u8 ' Добавление нового пункта', _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize + imgui.WindowFlags.NoMove) then
+						if imgui.BeginPopupModal(fa.CIRCLE_PLUS .. u8 ' Добавление нового пункта', _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize) then
 							imgui.CenterText(u8('Введите название/номер пункта и нажмите "Сохранить"'))
 							imgui.PushItemWidth(500 * MONET_DPI_SCALE)
 							imgui.InputText(u8 '##input_smartRPTP_name', input_smartRPTP_name, 256)
@@ -4954,7 +5066,7 @@ imgui.OnFrame(
 					if imgui.IsItemHovered() then
 						imgui.SetTooltip(u8 'Редактирование заметки "' .. u8(note.note_name) .. '"')
 					end
-					if imgui.BeginPopupModal(fa.PEN_TO_SQUARE .. u8 ' Изменение заметки' .. '##' .. i, _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize + imgui.WindowFlags.NoMove) then
+					if imgui.BeginPopupModal(fa.PEN_TO_SQUARE .. u8 ' Изменение заметки' .. '##' .. i, _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize) then
 						if imgui.BeginChild('##9992', imgui.ImVec2(589 * MONET_DPI_SCALE, 360 * MONET_DPI_SCALE), true) then
 							imgui.PushItemWidth(578 * MONET_DPI_SCALE)
 							imgui.InputText(u8 '##note_name', input_name_note, 256)
@@ -4982,7 +5094,7 @@ imgui.OnFrame(
 					if imgui.IsItemHovered() then
 						imgui.SetTooltip(u8 'Удаление заметки "' .. u8(note.note_name) .. '"')
 					end
-					if imgui.BeginPopupModal(fa.TRIANGLE_EXCLAMATION .. u8 ' Предупреждение ##' .. note.note_name, _, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoMove) then
+					if imgui.BeginPopupModal(fa.TRIANGLE_EXCLAMATION .. u8 ' Предупреждение ##' .. note.note_name, _, imgui.WindowFlags.NoResize) then
 						imgui.CenterText(u8 'Вы действительно хотите удалить заметку "' .. u8(note.note_name) .. '" ?')
 						imgui.Separator()
 						if imgui.Button(fa.CIRCLE_XMARK .. u8 ' Нет, отменить', imgui.ImVec2(200 * MONET_DPI_SCALE, 25 * MONET_DPI_SCALE)) then
@@ -5005,7 +5117,7 @@ imgui.OnFrame(
 					input_text_note = imgui.new.char[16384](u8("Текст"))
 					imgui.OpenPopup(fa.PEN_TO_SQUARE .. u8 ' Создание заметки')
 				end
-				if imgui.BeginPopupModal(fa.PEN_TO_SQUARE .. u8 ' Создание заметки', _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoMove + imgui.WindowFlags.NoResize) then
+				if imgui.BeginPopupModal(fa.PEN_TO_SQUARE .. u8 ' Создание заметки', _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize) then
 					if imgui.BeginChild('##999999', imgui.ImVec2(589 * MONET_DPI_SCALE, 360 * MONET_DPI_SCALE), true) then
 						imgui.PushItemWidth(578 * MONET_DPI_SCALE)
 						imgui.InputText(u8 '##note_name', input_name_note, 256)
@@ -5044,7 +5156,7 @@ imgui.OnFrame(
 					local result, check = pcall(check_update)
 					if not result then
 						sampAddChatMessage(
-							'[Prison Helper] {ffffff}Произошла ошибка при попытке проверить наличие обновлений!',
+							script_tag .. '  {ffffff}Произошла ошибка при попытке проверить наличие обновлений!',
 							message_color)
 					end
 				end
@@ -5076,7 +5188,7 @@ imgui.OnFrame(
 				if imgui.SmallButton(u8 'Получить реквизиты') then
 					imgui.OpenPopup(fa.SACK_DOLLAR .. u8 ' Поддержка разработчика')
 				end
-				if imgui.BeginPopupModal(fa.SACK_DOLLAR .. u8 ' Поддержка разработчика', _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoMove + imgui.WindowFlags.NoResize) then
+				if imgui.BeginPopupModal(fa.SACK_DOLLAR .. u8 ' Поддержка разработчика', _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize) then
 					imgui.CenterText(u8 'Реквизиты указаны на нашем Discord сервере тех.поддержки')
 					imgui.CenterText(u8 'Если же вы не можете зайти туда, то свяжитесь с MTG MODS:')
 					imgui.SetCursorPosX(130 * MONET_DPI_SCALE)
@@ -5151,7 +5263,7 @@ imgui.OnFrame(
 				if imgui.Button(fa.POWER_OFF .. u8 " Выключение ", imgui.ImVec2(imgui.GetMiddleButtonX(4), 25 * MONET_DPI_SCALE)) then
 					imgui.OpenPopup(fa.TRIANGLE_EXCLAMATION .. u8 ' Предупреждение ##off')
 				end
-				if imgui.BeginPopupModal(fa.TRIANGLE_EXCLAMATION .. u8 ' Предупреждение ##off', _, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoMove + imgui.WindowFlags.NoScrollbar) then
+				if imgui.BeginPopupModal(fa.TRIANGLE_EXCLAMATION .. u8 ' Предупреждение ##off', _, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoScrollbar) then
 					imgui.CenterText(u8 'Вы действительно хотите выгрузить (отключить) хелпер?')
 					imgui.Separator()
 					if imgui.Button(fa.CIRCLE_XMARK .. u8 ' Нет, отменить', imgui.ImVec2(200 * MONET_DPI_SCALE, 25 * MONET_DPI_SCALE)) then
@@ -5162,11 +5274,11 @@ imgui.OnFrame(
 						reload_script = true
 						play_error_sound()
 						sampAddChatMessage(
-							'[Prison Helper] {ffffff}Хелпер приостановил свою работу до следущего входа в игру!',
+							script_tag .. '  {ffffff}Хелпер приостановил свою работу до следущего входа в игру!',
 							message_color)
 						if not isMonetLoader() then
 							sampAddChatMessage(
-								'[Prison Helper] {ffffff}Либо используйте ' ..
+								script_tag .. '  {ffffff}Либо используйте ' ..
 								message_color_hex ..
 								'CTRL {ffffff}+ ' .. message_color_hex .. 'R {ffffff}чтобы запустить хелпер.',
 								message_color)
@@ -5184,7 +5296,7 @@ imgui.OnFrame(
 				if imgui.Button(fa.CLOCK_ROTATE_LEFT .. u8 " Сброс настроек ", imgui.ImVec2(imgui.GetMiddleButtonX(4), 25 * MONET_DPI_SCALE)) then
 					imgui.OpenPopup(fa.TRIANGLE_EXCLAMATION .. u8 ' Предупреждение ##reset')
 				end
-				if imgui.BeginPopupModal(fa.TRIANGLE_EXCLAMATION .. u8 ' Предупреждение ##reset', _, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoMove) then
+				if imgui.BeginPopupModal(fa.TRIANGLE_EXCLAMATION .. u8 ' Предупреждение ##reset', _, imgui.WindowFlags.NoResize) then
 					imgui.CenterText(u8 'Вы действительно хотите сбросить все настройки хелпера?')
 					imgui.Separator()
 					if imgui.Button(fa.CIRCLE_XMARK .. u8 ' Нет, отменить', imgui.ImVec2(200 * MONET_DPI_SCALE, 25 * MONET_DPI_SCALE)) then
@@ -5207,7 +5319,7 @@ imgui.OnFrame(
 				if imgui.Button(fa.TRASH_CAN .. u8 " Удаление ", imgui.ImVec2(imgui.GetMiddleButtonX(4), 25 * MONET_DPI_SCALE)) then
 					imgui.OpenPopup(fa.TRIANGLE_EXCLAMATION .. u8 ' Предупреждение ##delete')
 				end
-				if imgui.BeginPopupModal(fa.TRIANGLE_EXCLAMATION .. u8 ' Предупреждение ##delete', _, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoMove) then
+				if imgui.BeginPopupModal(fa.TRIANGLE_EXCLAMATION .. u8 ' Предупреждение ##delete', _, imgui.WindowFlags.NoResize) then
 					imgui.CenterText(u8 'Вы действительно хотите удалить Prison Helper?')
 					imgui.Separator()
 					if imgui.Button(fa.CIRCLE_XMARK .. u8 ' Нет, отменить', imgui.ImVec2(200 * MONET_DPI_SCALE, 25 * MONET_DPI_SCALE)) then
@@ -5215,7 +5327,7 @@ imgui.OnFrame(
 					end
 					imgui.SameLine()
 					if imgui.Button(fa.TRASH_CAN .. u8 ' Да, я хочу удалить', imgui.ImVec2(200 * MONET_DPI_SCALE, 25 * MONET_DPI_SCALE)) then
-						sampAddChatMessage('[Prison Helper] {ffffff}Хелпер полностю удалён из вашего устройства!',
+						sampAddChatMessage(script_tag .. '  {ffffff}Хелпер полностю удалён из вашего устройства!',
 							message_color)
 						sampShowDialog(999999, message_color_hex .. "Prison Helper",
 							"Мне очень жаль что вы удалили Prison Helper из своего устройства.\nЕсли удаление связано с негативным опытом использования, и вы сталкивались с багами или проблемами, то\nсообщите мне что именно заставило вас удалить хелпер на нашем Discord сервере или на форуме BlastHack\n\nDiscord: https://discord.com/invite/qBPEYjfNhv\nBlastHack: https://www.blast.hk/threads/195388/\n\nЕсли что, вы можете заново скачать и установить хелпер в любой момент :)",
@@ -5245,8 +5357,7 @@ imgui.OnFrame(
 	function(player)
 		imgui.SetNextWindowPos(imgui.ImVec2(sizeX / 2, sizeY / 2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
 		imgui.Begin(fa.WALKIE_TALKIE .. u8 " Рация департамента", DeportamentWindow,
-			imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize + imgui.WindowFlags.AlwaysAutoResize +
-			imgui.WindowFlags.NoMove)
+			imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize + imgui.WindowFlags.AlwaysAutoResize)
 		imgui.BeginChild('##2', imgui.ImVec2(589 * MONET_DPI_SCALE, 160 * MONET_DPI_SCALE), true)
 		imgui.Columns(3)
 		imgui.CenterColumnText(u8('Ваш тег:'))
@@ -5258,7 +5369,7 @@ imgui.OnFrame(
 		if imgui.CenterColumnButton(u8('Выбрать тег##1')) then
 			imgui.OpenPopup(fa.TAG .. u8 ' Теги организаций##1')
 		end
-		if imgui.BeginPopupModal(fa.TAG .. u8 ' Теги организаций##1', _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize + imgui.WindowFlags.NoMove) then
+		if imgui.BeginPopupModal(fa.TAG .. u8 ' Теги организаций##1', _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize) then
 			if imgui.BeginTabBar('TabTags') then
 				if imgui.BeginTabItem(fa.BARS .. u8 ' Стандартные теги (ru) ') then
 					local line_started = false
@@ -5333,7 +5444,7 @@ imgui.OnFrame(
 					if imgui.Button(fa.CIRCLE_PLUS .. u8 ' Добавить тег', imgui.ImVec2(imgui.GetMiddleButtonX(2), 25 * MONET_DPI_SCALE)) then
 						imgui.OpenPopup(fa.TAG .. u8 ' Добавление нового тега##1')
 					end
-					if imgui.BeginPopupModal(fa.TAG .. u8 ' Добавление нового тега##1', _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize + imgui.WindowFlags.NoMove) then
+					if imgui.BeginPopupModal(fa.TAG .. u8 ' Добавление нового тега##1', _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize) then
 						imgui.PushItemWidth(215 * MONET_DPI_SCALE)
 						imgui.InputText('##input_dep_new_tag', input_dep_new_tag, 256)
 						imgui.Separator()
@@ -5369,7 +5480,7 @@ imgui.OnFrame(
 		if imgui.CenterColumnButton(u8('Выбрать частоту##1')) then
 			imgui.OpenPopup(fa.WALKIE_TALKIE .. u8 ' Частота рации /d')
 		end
-		if imgui.BeginPopupModal(fa.WALKIE_TALKIE .. u8 ' Частота рации /d', _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize + imgui.WindowFlags.NoMove) then
+		if imgui.BeginPopupModal(fa.WALKIE_TALKIE .. u8 ' Частота рации /d', _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize) then
 			for i, tag in ipairs(settings.deportament.dep_fms) do
 				imgui.SameLine()
 				if imgui.Button(' ' .. u8(tag) .. ' ##' .. i) then
@@ -5396,7 +5507,7 @@ imgui.OnFrame(
 		if imgui.CenterColumnButton(u8('Выбрать тег##2')) then
 			imgui.OpenPopup(fa.TAG .. u8 ' Теги организаций##2')
 		end
-		if imgui.BeginPopupModal(fa.TAG .. u8 ' Теги организаций##2', _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize + imgui.WindowFlags.NoMove) then
+		if imgui.BeginPopupModal(fa.TAG .. u8 ' Теги организаций##2', _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize) then
 			if imgui.BeginTabBar('TabTags') then
 				if imgui.BeginTabItem(fa.BARS .. u8 ' Стандартные теги (ru) ') then
 					local line_started = false
@@ -5471,7 +5582,7 @@ imgui.OnFrame(
 					if imgui.Button(fa.CIRCLE_PLUS .. u8 ' Добавить тег', imgui.ImVec2(imgui.GetMiddleButtonX(2), 25 * MONET_DPI_SCALE)) then
 						imgui.OpenPopup(fa.TAG .. u8 ' Добавление нового тега##2')
 					end
-					if imgui.BeginPopupModal(fa.TAG .. u8 ' Добавление нового тега##2', _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoMove + imgui.WindowFlags.NoResize) then
+					if imgui.BeginPopupModal(fa.TAG .. u8 ' Добавление нового тега##2', _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize) then
 						imgui.PushItemWidth(215 * MONET_DPI_SCALE)
 						imgui.InputText('##input_dep_new_tag', input_dep_new_tag, 256)
 						imgui.Separator()
@@ -5527,7 +5638,7 @@ imgui.OnFrame(
 		imgui.SetNextWindowPos(imgui.ImVec2(sizeX / 2, sizeY / 2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
 		imgui.SetNextWindowSize(imgui.ImVec2(600 * MONET_DPI_SCALE, 425 * MONET_DPI_SCALE), imgui.Cond.FirstUseEver)
 		imgui.Begin(fa.PEN_TO_SQUARE .. u8 ' Редактирование команды /' .. change_cmd, BinderWindow,
-			imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoMove + imgui.WindowFlags.NoResize)
+			imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize)
 		if imgui.BeginChild('##binder_edit', imgui.ImVec2(589 * MONET_DPI_SCALE, 361 * MONET_DPI_SCALE), true) then
 			imgui.CenterText(fa.FILE_LINES .. u8 ' Описание команды:')
 			imgui.PushItemWidth(579 * MONET_DPI_SCALE)
@@ -5552,7 +5663,7 @@ imgui.OnFrame(
 		if imgui.Button(fa.CLOCK .. u8 ' Задержка', imgui.ImVec2(imgui.GetMiddleButtonX(5), 0)) then
 			imgui.OpenPopup(fa.CLOCK .. u8 ' Задержка (в секундах) ')
 		end
-		if imgui.BeginPopupModal(fa.CLOCK .. u8 ' Задержка (в секундах) ', _, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoMove) then
+		if imgui.BeginPopupModal(fa.CLOCK .. u8 ' Задержка (в секундах) ', _, imgui.WindowFlags.NoResize) then
 			imgui.PushItemWidth(200 * MONET_DPI_SCALE)
 
 			-- Создание буфера для текстового ввода
@@ -5582,7 +5693,7 @@ imgui.OnFrame(
 		if imgui.Button(fa.TAGS .. u8 ' Тэги (1)', imgui.ImVec2(imgui.GetMiddleButtonX(5), 0)) then
 			imgui.OpenPopup(fa.TAGS .. u8 ' Основные тэги для использования в биндере')
 		end
-		if imgui.BeginPopupModal(fa.TAGS .. u8 ' Основные тэги для использования в биндере', _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.AlwaysAutoResize + imgui.WindowFlags.NoMove) then
+		if imgui.BeginPopupModal(fa.TAGS .. u8 ' Основные тэги для использования в биндере', _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.AlwaysAutoResize) then
 			imgui.Text(u8(binder_tags_text))
 			imgui.Separator()
 			if imgui.Button(fa.CIRCLE_XMARK .. u8 ' Закрыть', imgui.ImVec2(imgui.GetMiddleButtonX(1), 0)) then
@@ -5594,7 +5705,7 @@ imgui.OnFrame(
 		if imgui.Button(fa.TAGS .. u8 ' Тэги (2)', imgui.ImVec2(imgui.GetMiddleButtonX(5), 0)) then
 			imgui.OpenPopup(fa.TAGS .. u8 ' Дополнительные тэги для взаимодействия с кодом')
 		end
-		if imgui.BeginPopupModal(fa.TAGS .. u8 ' Дополнительные тэги для взаимодействия с кодом', _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.AlwaysAutoResize + imgui.WindowFlags.NoMove) then
+		if imgui.BeginPopupModal(fa.TAGS .. u8 ' Дополнительные тэги для взаимодействия с кодом', _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.AlwaysAutoResize) then
 			imgui.CenterText(u8 'Использовать очень акуратно, иначе можете что-то сломать!')
 			imgui.Separator()
 			imgui.Text(u8(binder_tags_text2))
@@ -5655,32 +5766,32 @@ imgui.OnFrame(
 						save_commands()
 						if command.arg == '' then
 							sampAddChatMessage(
-								'[Prison Helper] {ffffff}Команда ' ..
+								script_tag .. '  {ffffff}Команда ' ..
 								message_color_hex .. '/' .. new_command .. ' {ffffff}успешно сохранена!', message_color)
 						elseif command.arg == '{arg}' then
 							sampAddChatMessage(
-								'[Prison Helper] {ffffff}Команда ' ..
+								script_tag .. '  {ffffff}Команда ' ..
 								message_color_hex .. '/' .. new_command .. ' [аргумент] {ffffff}успешно сохранена!',
 								message_color)
 						elseif command.arg == '{arg_id}' then
 							sampAddChatMessage(
-								'[Prison Helper] {ffffff}Команда ' ..
+								script_tag .. '  {ffffff}Команда ' ..
 								message_color_hex .. '/' .. new_command .. ' [ID игрока] {ffffff}успешно сохранена!',
 								message_color)
 						elseif command.arg == '{arg_id} {arg2}' then
 							sampAddChatMessage(
-								'[Prison Helper] {ffffff}Команда ' ..
+								script_tag .. '  {ffffff}Команда ' ..
 								message_color_hex ..
 								'/' .. new_command .. ' [ID игрока] [аргумент] {ffffff}успешно сохранена!', message_color)
 						elseif command.arg == '{arg_id} {arg2} {arg3}' then
 							sampAddChatMessage(
-								'[Prison Helper] {ffffff}Команда ' ..
+								script_tag .. '  {ffffff}Команда ' ..
 								message_color_hex ..
 								'/' .. new_command .. ' [ID игрока] [аргумент] [аргумент] {ffffff}успешно сохранена!',
 								message_color)
 						elseif command.arg == '{arg_id} {arg2} {arg3} {arg4}' then
 							sampAddChatMessage(
-								'[Prison Helper] {ffffff}Команда ' ..
+								script_tag .. '  {ffffff}Команда ' ..
 								message_color_hex ..
 								'/' ..
 								new_command .. ' [ID игрока] [аргумент] [аргумент] [аргумент] {ffffff}успешно сохранена!',
@@ -5694,7 +5805,7 @@ imgui.OnFrame(
 				BinderWindow[0] = false
 			end
 		end
-		if imgui.BeginPopupModal(fa.TRIANGLE_EXCLAMATION .. u8 ' Ошибка сохранения команды!', _, imgui.WindowFlags.AlwaysAutoResize + imgui.WindowFlags.NoMove) then
+		if imgui.BeginPopupModal(fa.TRIANGLE_EXCLAMATION .. u8 ' Ошибка сохранения команды!', _, imgui.WindowFlags.AlwaysAutoResize) then
 			if ffi.string(input_cmd):find('%W') then
 				imgui.BulletText(u8 " В команде можно использовать только англ. буквы и/или цифры!")
 			elseif ffi.string(input_cmd) == '' then
@@ -5729,7 +5840,7 @@ imgui.OnFrame(
 		imgui.SetNextWindowSize(imgui.ImVec2(600 * MONET_DPI_SCALE, sizeYY * MONET_DPI_SCALE), imgui.Cond.FirstUseEver)
 
 		imgui.Begin(fa.BUILDING_SHIELD .. " " .. u8(members_fraction) .. " - " .. #members .. u8 ' сотрудников онлайн',
-			MembersWindow, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize + imgui.WindowFlags.NoMove)
+			MembersWindow, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize)
 		for i, v in ipairs(members) do
 			imgui.Columns(3)
 			if v.working then
@@ -5768,7 +5879,7 @@ imgui.OnFrame(
 	function(player)
 		imgui.SetNextWindowPos(imgui.ImVec2(sizeX / 2, sizeY / 2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
 		imgui.Begin(fa.FILE_PEN .. ' ' .. show_note_name, NoteWindow,
-			imgui.WindowFlags.AlwaysAutoResize + imgui.WindowFlags.NoMove)
+			imgui.WindowFlags.AlwaysAutoResize)
 		imgui.Text(show_note_text:gsub('&', '\n'))
 		imgui.Separator()
 		if imgui.Button(fa.CIRCLE_XMARK .. u8 ' Закрыть', imgui.ImVec2(imgui.GetMiddleButtonX(1), 25 * MONET_DPI_SCALE)) then
@@ -5783,8 +5894,19 @@ imgui.OnFrame(
 	function(player)
 		imgui.SetNextWindowPos(imgui.ImVec2(sizeX / 2, sizeY / 2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
 		imgui.Begin(fa.USER .. ' ' .. sampGetPlayerNickname(player_id) .. ' [' .. player_id .. ']##FastMenu', FastMenu,
-			imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize + imgui.WindowFlags.NoMove)
+			imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize)
+		-- Объединяем обе таблицы команд
+		local allCommands = {}
 		for _, command in ipairs(commands.commands) do
+			table.insert(allCommands, command)
+		end
+		for _, command in ipairs(commands.commands_senior_staff) do
+			table.insert(allCommands, command)
+		end
+
+		print(allCommands)
+
+		for _, command in ipairs(allCommands) do
 			if command.enable and command.arg == '{arg_id}' and not command.text:find('/cure') and not command.text:find('/unstuff') then
 				if imgui.Button(u8(command.description), imgui.ImVec2(290 * MONET_DPI_SCALE, 30 * MONET_DPI_SCALE)) then
 					sampProcessChatInput("/" .. command.cmd .. " " .. player_id)
@@ -5801,7 +5923,7 @@ imgui.OnFrame(
 	function(player)
 		imgui.SetNextWindowPos(imgui.ImVec2(sizeX / 2, sizeY / 2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
 		imgui.Begin(fa.USER .. ' ' .. sampGetPlayerNickname(player_id) .. ' [' .. player_id .. ']##LeaderFastMenu',
-			LeaderFastMenu, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.AlwaysAutoResize + imgui.WindowFlags.NoMove)
+			LeaderFastMenu, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.AlwaysAutoResize)
 		for _, command in ipairs(commands.commands_manage) do
 			if command.enable and command.arg == '{arg_id}' then
 				if imgui.Button(u8(command.description), imgui.ImVec2(290 * MONET_DPI_SCALE, 30 * MONET_DPI_SCALE)) then
@@ -5832,7 +5954,7 @@ imgui.OnFrame(
 		imgui.SetNextWindowPos(imgui.ImVec2(sizeX / 2, sizeY / 2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
 		imgui.Begin(fa.BUILDING_SHIELD .. " Prison Helper##rank", GiveRankMenu,
 			imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize + imgui.WindowFlags.NoScrollbar +
-			imgui.WindowFlags.AlwaysAutoResize + imgui.WindowFlags.NoMove)
+			imgui.WindowFlags.AlwaysAutoResize)
 		imgui.CenterText(u8 'Выберите ранг для ' .. sampGetPlayerNickname(player_id) .. ':')
 		imgui.PushItemWidth(250 * MONET_DPI_SCALE)
 		imgui.SliderInt('', giverank, 1, 9)
@@ -5855,18 +5977,18 @@ imgui.OnFrame(
 						isActiveCommand = true
 						if isMonetLoader() and settings.general.mobile_stop_button then
 							sampAddChatMessage(
-								'[Prison Helper] {ffffff}Чтобы остановить отыгровку команды используйте ' ..
+								script_tag .. '  {ffffff}Чтобы остановить отыгровку команды используйте ' ..
 								message_color_hex .. '/stop {ffffff}или нажмите кнопку внизу экрана', message_color)
 							CommandStopWindow[0] = true
 						elseif not isMonetLoader() and hotkey_no_errors and settings.general.bind_command_stop and settings.general.use_binds then
 							sampAddChatMessage(
-								'[Prison Helper] {ffffff}Чтобы остановить отыгровку команды используйте ' ..
+								script_tag .. '  {ffffff}Чтобы остановить отыгровку команды используйте ' ..
 								message_color_hex ..
 								'/stop {ffffff}или нажмите ' ..
 								message_color_hex .. getNameKeysFrom(settings.general.bind_command_stop), message_color)
 						else
 							sampAddChatMessage(
-								'[Prison Helper] {ffffff}Чтобы остановить отыгровку команды используйте ' ..
+								script_tag .. '  {ffffff}Чтобы остановить отыгровку команды используйте ' ..
 								message_color_hex .. '/stop', message_color)
 						end
 						local lines = {}
@@ -5881,7 +6003,7 @@ imgui.OnFrame(
 									CommandStopWindow[0] = false
 								end
 								sampAddChatMessage(
-									'[Prison Helper] {ffffff}Отыгровка команды /' ..
+									script_tag .. '  {ffffff}Отыгровка команды /' ..
 									command.cmd .. " успешно остановлена!",
 									message_color)
 								return
@@ -5916,9 +6038,9 @@ imgui.OnFrame(
 				end
 			end
 			if not command_find then
-				sampAddChatMessage('[Prison Helper] {ffffff}Бинд для изменения ранга отсутствует либо отключён!',
+				sampAddChatMessage(script_tag .. '  {ffffff}Бинд для изменения ранга отсутствует либо отключён!',
 					message_color)
-				sampAddChatMessage('[Prison Helper] {ffffff}Попробуйте сбросить настройки хелпера!', message_color)
+				sampAddChatMessage(script_tag .. '  {ffffff}Попробуйте сбросить настройки хелпера!', message_color)
 				sampSendChat('/giverank ' .. player_id .. " " .. giverank[0])
 			end
 			GiveRankMenu[0] = false
@@ -5934,7 +6056,7 @@ imgui.OnFrame(
 			imgui.ImVec2(0.5, 0.5))
 		imgui.Begin(fa.BUILDING_SHIELD .. " Prison Helper##CommandStopWindow", _,
 			imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize + imgui.WindowFlags.NoScrollbar +
-			imgui.WindowFlags.AlwaysAutoResize + imgui.WindowFlags.NoMove)
+			imgui.WindowFlags.AlwaysAutoResize)
 		if isMonetLoader() and isActiveCommand then
 			if imgui.Button(fa.CIRCLE_STOP .. u8 ' Остановить отыгровку ') then
 				command_stop = true
@@ -5978,8 +6100,7 @@ imgui.OnFrame(
 	function(player)
 		imgui.SetNextWindowPos(imgui.ImVec2(sizeX / 2, sizeY / 2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
 		imgui.Begin(fa.BUILDING_SHIELD .. u8 " Выберите игрока##fast_menu_players", FastMenuPlayers,
-			imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize + imgui.WindowFlags.AlwaysAutoResize +
-			imgui.WindowFlags.NoMove)
+			imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize + imgui.WindowFlags.AlwaysAutoResize)
 		if tonumber(#get_players()) == 0 then
 			show_fast_menu(get_players()[1])
 			FastMenuPlayers[0] = false
@@ -6002,7 +6123,7 @@ imgui.OnFrame(
 		imgui.SetNextWindowPos(imgui.ImVec2(sizeX / 8.5, sizeY / 2.3), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
 		imgui.Begin(fa.HOSPITAL .. " Prison Helper##fast_menu_button", FastMenuButton,
 			imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize + imgui.WindowFlags.NoScrollbar +
-			imgui.WindowFlags.NoTitleBar + imgui.WindowFlags.NoMove)
+			imgui.WindowFlags.NoTitleBar)
 		if imgui.Button(fa.IMAGE_PORTRAIT .. u8 ' Взаимодействие ') then
 			if tonumber(#get_players()) == 1 then
 				show_fast_menu(get_players()[1])
@@ -6017,30 +6138,66 @@ imgui.OnFrame(
 )
 
 imgui.OnFrame(
-	function() return InformationWindow[0] end,
+	function()
+		isWindowOpen = InformationWindow[0] or JobInformationGeneralWindow[0] or
+			JobInformationNowWindow
+			[0] -- Проверяем активность окон
+		return InformationWindow[0]
+	end,
 	function(player)
+		local currentFPS = calculateFPS() -- Вычисляем FPS
 		imgui.SetNextWindowPos(imgui.ImVec2(sizeX / 8, sizeY / 1.7), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
 		imgui.SetNextWindowSize(imgui.ImVec2(225 * MONET_DPI_SCALE, 113 * MONET_DPI_SCALE), imgui.Cond.FirstUseEver)
 		imgui.Begin(fa.BUILDING_SHIELD .. u8 " Prison Helper##info_menu", _,
 			imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize + imgui.WindowFlags.AlwaysAutoResize)
-		if not isMonetLoader() and not sampIsChatInputActive() then player.HideCursor = true else player.HideCursor = false end
+
+		if not isMonetLoader() and not sampIsChatInputActive() then
+			player.HideCursor = true
+		else
+			player.HideCursor = false
+		end
+
 		imgui.Text(fa.CITY .. u8(' Город: ') .. u8(tagReplacements.get_city()))
 		imgui.Text(fa.MAP_LOCATION_DOT .. u8(' Район: ') .. u8(tagReplacements.get_area()))
 		imgui.Text(fa.LOCATION_CROSSHAIRS .. u8(' Квадрат: ') .. u8(tagReplacements.get_square()))
-		imgui.Separator()
-		imgui.Text(fa.CLOCK .. u8(' Текущее время: ') .. u8(tagReplacements.get_time()))
+		imgui.Text(fa.BOOK .. u8(' ФПС: ') .. tostring(currentFPS)) -- Обновление FPS
+
+		-- Проверяем состояние окон
+		local isAnyWindowOpen = isNowWindowOpen or isGeneralWindowOpen
+
+		-- Если оба окна закрыты, показываем время в isWindowOpen
+		if not isAnyWindowOpen then
+			imgui.Separator()
+			imgui.Text(fa.CLOCK .. u8(' Текущее время: ') .. u8(tagReplacements.get_time()))
+		end
+
 		imgui.End()
 	end
 )
 
 imgui.OnFrame(
-	function() return JobInformationWindow[0] end,
+	function()
+		isGeneralWindowOpen = JobInformationGeneralWindow[0]
+		isNowWindowOpen = JobInformationNowWindow[0]
+		isWindowOpen = InformationWindow[0]
+		return JobInformationGeneralWindow[0]
+	end,
 	function(player)
 		imgui.SetNextWindowPos(imgui.ImVec2(sizeX / 8.5, sizeY / 2.1), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
 		imgui.SetNextWindowSize(imgui.ImVec2(225 * MONET_DPI_SCALE, 113 * MONET_DPI_SCALE), imgui.Cond.FirstUseEver)
 		imgui.Begin(fa.BUILDING_SHIELD .. u8 " Prison Helper##info_menu", _,
 			imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize + imgui.WindowFlags.AlwaysAutoResize)
-		if not isMonetLoader() and not sampIsChatInputActive() then player.HideCursor = true else player.HideCursor = false end
+
+		if not isMonetLoader() and not sampIsChatInputActive() then
+			player.HideCursor = true
+		else
+			player.HideCursor = false
+		end
+
+		if isWindowOpen then
+			imgui.Separator()
+		end
+
 		imgui.CenterText(u8('Общая статистика'))
 		imgui.Separator()
 		imgui.Text(fa.CITY .. u8(' Материалы: ') .. tostring(settings.player_organization_general.materials))
@@ -6048,15 +6205,51 @@ imgui.OnFrame(
 			u8(' Поставки в МЮ: ') .. tostring(settings.player_organization_general.postavki_materials))
 		imgui.Text(fa.CAR ..
 			u8(' Поставки в МО(ТСР): ') .. tostring(settings.player_organization_general.postavki_kargobob))
-		imgui.Separator()
-		imgui.CenterText(u8('Статистика за сегодня:'))
+
+		-- Время отображается только если окно "Статистика за сегодня" закрыто
+		if isGeneralWindowOpen and not isNowWindowOpen then
+			imgui.Separator()
+			imgui.Text(fa.CLOCK .. u8(' Текущее время: ') .. u8(tagReplacements.get_time()))
+		end
+
+		imgui.End()
+	end
+)
+
+imgui.OnFrame(
+	function()
+		isGeneralWindowOpen = JobInformationGeneralWindow[0]
+		isNowWindowOpen = JobInformationNowWindow[0]
+		isWindowOpen = InformationWindow[0]
+		return JobInformationNowWindow[0]
+	end,
+	function(player)
+		imgui.SetNextWindowPos(imgui.ImVec2(sizeX / 8.5, sizeY / 2.1), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
+		imgui.SetNextWindowSize(imgui.ImVec2(225 * MONET_DPI_SCALE, 113 * MONET_DPI_SCALE), imgui.Cond.FirstUseEver)
+		imgui.Begin(fa.BUILDING_SHIELD .. u8 " Prison Helper##info_menu", _,
+			imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize + imgui.WindowFlags.AlwaysAutoResize)
+
+		if not isMonetLoader() and not sampIsChatInputActive() then
+			player.HideCursor = true
+		else
+			player.HideCursor = false
+		end
+
+		if isGeneralWindowOpen or isWindowOpen then
+			imgui.Separator()
+		end
+
+		imgui.CenterText(u8('Статистика за сегодня'))
 		imgui.Separator()
 		imgui.Text(fa.PLAY .. u8(' Материалы: ') .. tostring(settings.player_organization_now.materials))
 		imgui.Text(fa.KEYBOARD .. u8(' Поставки в МЮ: ') .. tostring(settings.player_organization_now.postavki_materials))
 		imgui.Text(fa.MAP_LOCATION_DOT ..
 			u8(' Поставки в МО(ТСР): ') .. tostring(settings.player_organization_now.postavki_kargobob))
+
+		-- Время отображается только в этом окне, если оно открыто
 		imgui.Separator()
 		imgui.Text(fa.CLOCK .. u8(' Текущее время: ') .. u8(tagReplacements.get_time()))
+
 		imgui.End()
 	end
 )
@@ -6066,7 +6259,7 @@ imgui.OnFrame(
 	function(player)
 		imgui.SetNextWindowPos(imgui.ImVec2(sizeX / 2, sizeY / 2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
 		imgui.Begin(fa.CIRCLE_INFO .. u8 " Оповещение##need_update_helper", _,
-			imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize + imgui.WindowFlags.NoMove)
+			imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize)
 		imgui.CenterText(u8 'У вас сейчас установлена версия хелпера ' .. u8(tostring(thisScript().version)) .. ".")
 		imgui.CenterText(u8 'В базе данных найдена версия хелпера - ' .. u8(updateVer) .. ".")
 		imgui.CenterText(u8 'Рекомендуется обновиться, дабы иметь весь актуальный функционал!')
@@ -6095,7 +6288,7 @@ imgui.OnFrame(
 			imgui.Begin(
 				fa.PERSON_CIRCLE_CHECK .. u8 ' Проведение собеседования игроку ' .. sampGetPlayerNickname(player_id),
 				SobesMenu, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize + imgui.WindowFlags
-				.AlwaysAutoResize + imgui.WindowFlags.NoMove)
+				.AlwaysAutoResize)
 			if imgui.BeginChild('sobes1', imgui.ImVec2(240 * MONET_DPI_SCALE, 182 * MONET_DPI_SCALE), true) then
 				imgui.CenterColumnText(fa.BOOKMARK .. u8 " Основное")
 				imgui.Separator()
@@ -6237,7 +6430,7 @@ imgui.OnFrame(
 			end
 			imgui.EndChild()
 		else
-			sampAddChatMessage('[Prison Helper] {ffffff}Прозиошла ошибка, ID игрока недействителен!', message_color)
+			sampAddChatMessage(script_tag .. '  {ffffff}Прозиошла ошибка, ID игрока недействителен!', message_color)
 			SobesMenu[0] = false
 		end
 	end
@@ -6249,7 +6442,7 @@ imgui.OnFrame(
 		imgui.SetNextWindowPos(imgui.ImVec2(sizeX / 2, sizeY / 2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
 		imgui.SetNextWindowSize(imgui.ImVec2(600 * MONET_DPI_SCALE, 413 * MONET_DPI_SCALE), imgui.Cond.FirstUseEver)
 		imgui.Begin(fa.STAR .. u8 " Регламент повышения срока##sum_menu", SumMenuWindow,
-			imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize + imgui.WindowFlags.NoMove)
+			imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize)
 		if smart_rptp ~= nil and isParamSampID(player_id) then
 			imgui.SetWindowFontScale(1.4)
 			imgui.Text(fa.MAGNIFYING_GLASS .. u8 ' Поиск:')
@@ -6285,7 +6478,7 @@ imgui.OnFrame(
 									imgui.OpenPopup(popup_id)
 								end
 								-- imgui.PopStyleColor()
-								if imgui.BeginPopupModal(popup_id, nil, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize + imgui.WindowFlags.NoMove) then
+								if imgui.BeginPopupModal(popup_id, nil, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize) then
 									imgui.Text(fa.USER ..
 										u8 ' Игрок: ' .. u8(sampGetPlayerNickname(player_id)) .. ' [' .. player_id .. ']')
 									imgui.Text(fa.STAR .. u8 ' Количество звёзд: ' .. item.lvl)
@@ -6325,7 +6518,7 @@ imgui.OnFrame(
 									if imgui.Button(u8(item.text) .. '##' .. item.text .. item.lvl .. item.reason, imgui.ImVec2(imgui.GetMiddleButtonX(1), 25 * MONET_DPI_SCALE)) then
 										imgui.OpenPopup(popup_id)
 									end
-									if imgui.BeginPopupModal(popup_id, nil, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize + imgui.WindowFlags.NoMove) then
+									if imgui.BeginPopupModal(popup_id, nil, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize) then
 										imgui.Text(fa.USER ..
 											u8 ' Игрок: ' ..
 											u8(sampGetPlayerNickname(player_id)) .. ' [' .. player_id .. ']')
@@ -6358,7 +6551,7 @@ imgui.OnFrame(
 			end
 		else
 			sampAddChatMessage(
-				'[Prison Helper] {ffffff}Произошла ошибка умного повышения срока (нету данных либо игрок офнулся)!',
+				script_tag .. '  {ffffff}Произошла ошибка умного повышения срока (нету данных либо игрок офнулся)!',
 				message_color)
 			SumMenuWindow[0] = false
 		end
@@ -6702,10 +6895,7 @@ function main()
 		InformationWindow[0] = true
 	end
 	if settings.player_organization_general.use_infojob_menu then
-		JobInformationWindow[0] = true
-	end
-	if settings.general.mobile_meg_button and isMonetLoader() then
-		MegafonWindow[0] = true
+		JobInformationGeneralWindow[0] = true
 	end
 
 	local result, check = pcall(check_update)
@@ -6713,8 +6903,6 @@ function main()
 		sampAddChatMessage('[Justice Helper] {ffffff}Произошла ошибка при попытке проверить наличие обновлений!',
 			message_color)
 	end
-
-
 
 	while true do
 		wait(0)
@@ -6753,16 +6941,22 @@ function main()
 				message_color)
 			wait(1000)
 		end
+		if os.date("%H", os.time()) == "02" and os.date("%M", os.time()) == "00" then
+			settings.player_organization_now.materials = 0
+			settings.player_organization_now.postavki_kargobob = 0
+			settings.player_organization_now.postavki_materials = 0
+			wait(1000)
+		end
 	end
 end
 
 function onScriptTerminate(script, game_quit)
 	if script == thisScript() and not game_quit and not reload_script then
-		sampAddChatMessage('[Prison Helper] {ffffff}Произошла неизвестная ошибка, хелпер приостановил свою работу!',
+		sampAddChatMessage(script_tag .. '  {ffffff}Произошла неизвестная ошибка, хелпер приостановил свою работу!',
 			message_color)
 		if not isMonetLoader() then
 			sampAddChatMessage(
-				'[Prison Helper] {ffffff}Используйте ' ..
+				script_tag .. '  {ffffff}Используйте ' ..
 				message_color_hex .. 'CTRL {ffffff}+ ' .. message_color_hex .. 'R {ffffff}чтобы перезапустить хелпер.',
 				message_color)
 		end
