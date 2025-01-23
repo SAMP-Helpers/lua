@@ -570,11 +570,11 @@ function welcome_message()
 	sampAddChatMessage('[AS Helper] {ffffff}Загрузка хелпера прошла успешно!', message_color)
 	show_arz_notify('info', 'AS Helper', "Загрузка хелпера прошла успешно!", 3000)
 	if isMonetLoader() or settings.general.bind_mainmenu == nil or not settings.general.use_binds then	
-		sampAddChatMessage('[AS Helper] {ffffff}Чтоб открыть меню хелпера введите команду ' .. message_color_hex .. '/hh', message_color)
+		sampAddChatMessage('[AS Helper] {ffffff}Чтоб открыть меню хелпера введите команду ' .. message_color_hex .. '/sh', message_color)
 	elseif hotkey_no_errors and settings.general.bind_mainmenu and settings.general.use_binds then
-		sampAddChatMessage('[AS Helper] {ffffff}Чтоб открыть меню хелпера нажмите ' .. message_color_hex .. getNameKeysFrom(settings.general.bind_mainmenu) .. ' {ffffff}или введите команду ' .. message_color_hex .. '/hh', message_color)
+		sampAddChatMessage('[AS Helper] {ffffff}Чтоб открыть меню хелпера нажмите ' .. message_color_hex .. getNameKeysFrom(settings.general.bind_mainmenu) .. ' {ffffff}или введите команду ' .. message_color_hex .. '/sh', message_color)
 	else
-		sampAddChatMessage('[AS Helper] {ffffff}Чтоб открыть меню хелпера введите команду ' .. message_color_hex .. '/hh', message_color)
+		sampAddChatMessage('[AS Helper] {ffffff}Чтоб открыть меню хелпера введите команду ' .. message_color_hex .. '/sh', message_color)
 	end
 end
 function registerCommandsFrom(array)
@@ -2440,7 +2440,7 @@ imgui.OnFrame(
 											imgui.SetTooltip(u8"Отключить систему биндов")
 										end
 										imgui.Separator()
-										imgui.CenterText(u8'Открытие главного меню хелпера (аналог /hh):')
+										imgui.CenterText(u8'Открытие главного меню хелпера (аналог /sh):')
 										local width = imgui.GetWindowWidth()
 										local calc = imgui.CalcTextSize(getNameKeysFrom(settings.general.bind_mainmenu))
 										imgui.SetCursorPosX( width / 2 - calc.x / 2 )
