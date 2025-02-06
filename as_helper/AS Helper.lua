@@ -1308,7 +1308,6 @@ local servers = {
 	{name = 'Mobile I', number = '101'},
 	{name = 'Vice City', number = '200'},
 }
-
 function getARZServerNumber()
 	local server = 0
 	for _, s in ipairs(servers) do
@@ -1328,85 +1327,6 @@ function getARZServerName(number)
 		end
 	end
 	return server
-end
-function check(id, message)
-    if (message:rlower():find('авто') or message:rlower():find('кар') or message:rlower():find('машину')) and not message:rlower():find('карту')  then
-        get_lic_time(message)
-        givelic(id, 'авто')
-    end
-    if message:rlower():find('мото') or message:rlower():find('моцик') then
-        get_lic_time(message)
-        givelic(id, 'мото')
-    end
-    if message:rlower():find('полет') or message:rlower():find('самик') or message:rlower():find('самолет') or message:rlower():find('верт') then
-        get_lic_time()
-        givelic(id, 'полеты')
-    end
-    if message:rlower():find('рыба') or message:rlower():find('рыбы')then
-        get_lic_time(message)
-        givelic(id, 'рыбалка')
-    end
-    if message:rlower():find('лодка') or message:rlower():find('лодку') or message:rlower():find('водный') then
-        get_lic_time(message)
-        givelic(id, 'водный')
-    end
-    if message:rlower():find('ган') or message:rlower():find('оружие') or message:rlower():find('оружку') then
-        get_lic_time(message)
-        givelic(id, 'оружие')
-    end
-    if message:rlower():find('охота') or message:rlower():find('охоту') then
-        get_lic_time(message)
-        givelic(id, 'охота')
-    end
-    if message:rlower():find('охота') or message:rlower():find('охоту') then
-        get_lic_time(message)
-        givelic(id, 'охота')
-    end
-    if message:rlower():find('клады') or message:rlower():find('раскопки') then
-        get_lic_time(message)
-        givelic(id, 'раскопки')
-    end
-    if message:rlower():find('такси') then
-        get_lic_time(message)
-        givelic(id, 'такси')
-    end
-    if message:rlower():find('механик') or message:rlower():find(' мех') then
-        get_lic_time(message)
-        givelic(id, 'механик')
-    end
-end
-function get_lic_time(message)
-    license_time = 1
-    if message ~= nil and message ~= '' then
-        if message:find('2') then
-            license_time = 2
-        elseif message:find('3') then
-            license_time = 3
-        end
-    end
-end
-function givelic(id, type)
-	if isParamSampID(id) then
-		local x, y, z = getCharCoordinates(PLAYER_PED)
-		local result, ped = sampGetCharHandleBySampPlayerId(id)
-		if result then
-			local xx, yy, zz = getCharCoordinates(ped)
-			local dist = getDistanceBetweenCoords3d(x,y,z,xx,yy,zz)
-			if dist >= 2.5 then
-				sampAddChatMessage('[AS Helper] {ffffff}Не удалось выдать игроку ' .. message_color_hex .. sampGetPlayerNickname(id) .. ' {ffffff}лицензию на ' .. message_color_hex .. type .. "{ffffff}, причина: игрок далеко", message_color)
-			else
-				sampAddChatMessage('[AS Helper] {ffffff}Выдаю игроку ' .. message_color_hex .. sampGetPlayerNickname(id) .. ' {ffffff}лицензию на ' .. message_color_hex .. type, message_color)
-				license_type = type
-				givelic_bool = true
-				sampSendChat('/givelicense ' .. id)
-			end
-		else
-			sampAddChatMessage('[AS Helper] {ffffff}Не удалось выдать игроку ' .. message_color_hex .. sampGetPlayerNickname(id) .. ' {ffffff}лицензию на ' .. message_color_hex .. type .. "{ffffff}, причина: игрок далеко", message_color)
-		end
-		
-	else
-		sampAddChatMessage('[AS Helper] {ffffff}Не удалось выдать игроку ' .. message_color_hex .. sampGetPlayerNickname(id) .. ' {ffffff}лицензию на ' .. message_color_hex .. type .. "{ffffff}, причина: неверный ID", message_color)
-	end
 end
 function sampev.onServerMessage(color,text)
 	--sampAddChatMessage('color = ' .. color .. ' , text = '..text,-1)
