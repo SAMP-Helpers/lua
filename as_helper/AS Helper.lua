@@ -3,7 +3,7 @@
 script_name("AS Helper")
 script_description('Cross-platform script helper for AutoSchool')
 script_author("MTG MODS")
-script_version("3.0")
+script_version("4.0")
 
 require('lib.moonloader')
 require ('encoding').default = 'CP1251'
@@ -21,7 +21,6 @@ local default_settings = {
 		auto_clicker = true,
 		rp_chat = true,
 		rp_gun = true,
-		auto_lic = false,
 		auto_uval = false,
 		moonmonet_theme_enable = true,
 		moonmonet_theme_color = 15310604,
@@ -168,12 +167,12 @@ local default_settings = {
 		{ note_name = 'Зарплата в организации', note_text = 'Почему ваша зп может быть меньше, чем указано:&- Если у вас есть выговор то у вас будет -20 процентов зп&- Из-за фикса экономики (от разрабов) у вас будет -10 процентов зп&&Как повысить свою зарплату:&- Вступите в фулл семью с флагом чтобы иметь +7 процентов зп &( на 20 сервере это наша семья Martelli )&- Получите \"Военный билет\" чтобы иметь +15 процентов зп&- Купите охранника на \"зп фракции\" чтобы иметь до +25 процентов зп&- Повышайтесь на ранг повыше', deleted = false  },
 	},
 	commands = {
-		{ cmd = 'zd' , description = 'Привествие игрока' , text = 'Здраствуйте, я {my_ru_nick} - {fraction_rank} {fraction_tag}&Чем я могу Вам помочь?', arg = '{arg_id}' , enable = true , waiting = '1.500', bind = "{}" },
-		{ cmd = 'go' , description = 'Позвать игрока за собой' , text = 'Хорошо {get_ru_nick({arg_id})}, следуйте за мной.', arg = '{arg_id}' , enable = true, waiting = '1.500', bind = "{}"   },
+		{ cmd = 'zd' , description = 'Привествие игрока' , text = 'Здраствуйте, я {my_ru_nick} - {fraction_rank} {fraction_tag}&Чем я могу Вам помочь? Если нужна лицензия - скажите тип и срок', arg = '{arg_id}' , enable = true , waiting = '1.500', bind = "{}" },
+		{ cmd = 'go', description = 'Позвать игрока за собой', text = 'Хорошо {get_ru_nick({arg_id})}, следуйте за мной.', arg = '{arg_id}', enable = true, waiting = '1.500', bind = "{}"},
 		{ cmd = 'time' , description = 'Посмотреть время' ,  text = '/me взглянул{sex} на свои часы с гравировкой MTG MODS и посмотрел{sex} время&/time&/do На часах видно время {get_time}.' , arg = '' , enable = true, waiting = '1.500' , bind = "{}" },
+		{ cmd = 'gl' , description = 'Выдача лицензии игроку' , text = '/me взял{sex} со стола бланк на получение лицензии и заполнил{sex} его&/do Спустя некоторое время бланк на получение лицензии был заполнен.&/me распечатав лицензию передал{sex} её человеку напротив&/givelicense {arg_id}&Вот ваша лицензия, всего Вам хорошего!&/n {get_nick({arg_id})}, введите команду /offer чтобы получить лицензию!', arg = '{arg_id}' , enable = true, waiting = '1.500', bind = "{}"   },
 		{ cmd = 'prices' , description = 'Ознакомить игрока с ценами' , text = '/todo Сейчас я скажу вам цены на лицензии*доставая изпод стойки бланк с ценами&/do Бланк с ценами всех лицензий в руках.&/me подвинул{sex} бланк поближе к себе и начал{sex} читать цены&На автомобиль: 1 месяц - ${price_avto1}, 2 месяца - ${price_avto2}, 3 месяца - ${price_avto3}&На мото: 1 месяц - ${price_moto1}, 2 месяца - ${price_moto2}, 3 месяца - ${price_moto3}&На водный: 1 месяц - ${price_swim1}, 2 месяца - ${price_swim2}, 3 месяца - ${price_swim3}&На полёты: 1 месяц - ${price_fly1}&На оружие: 1 месяц - ${price_gun1}, 2 месяца - ${price_gun2}, 3 месяца - ${price_gun3}&На охоту: 1 месяц - ${price_hunt1}, 2 месяца - ${price_hunt2}, 3 месяца - ${price_hunt3}&На рыбалку: 1 месяц - ${price_fish1}, 2 месяца - ${price_fish2}, 3 месяца - ${price_fish3}&На клады: 1 месяц - ${price_klad1}, 2 месяца - ${price_klad2}, 3 месяца - ${price_klad3}&На такси: 1 месяц - ${price_taxi1}, 2 месяца - ${price_taxi2}, 3 месяца - ${price_taxi3}&На механика: 1 месяц - ${price_mexa1}, 2 месяца - ${price_mexa2}, 3 месяца - ${price_mexa3}&/todo Вот такие у нас цены*убирая бланк с ценами' , arg = '' , enable = true , waiting = '1.500' , bind = "{}"},
-		{ cmd = 'medka' , description = 'Запросить медкарту для проверки' , text = 'Чтобы получить эту лицензию, покажите мне вашу мед.карту&/n {get_nick({arg_id})}, введите команду /showmc {my_id} чтобы показать мне медкарту&{pause}&/me берет от человека напротив медкарту и осматривает её&/todo Все отлично*отдавая медкарту обратно владельцу' , arg = '{arg_id}' , enable = true , waiting = '1.500' , bind = "{}"},
-		{ cmd = 'givelic' , description = 'Выдача лицензии игроку' , text = '/me взял{sex} со стола бланк на получение лицензии и заполнил{sex} его&/do Спустя некоторое время бланк на получение лицензии был заполнен.&/me распечатав лицензию передал{sex} её человеку напротив&/givelicense {arg_id}&{pause}&Вот ваша лицензия, всего Вам хорошего!', arg = '{arg_id}' , enable = true, waiting = '1.500', bind = "{}"   },
+		{ cmd = 'medka' , description = 'Запросить медкарту для проверки' , text = 'Чтобы получить эту лицензию, покажите мне вашу мед.карту&/n {get_nick({arg_id})}, введите команду /showmc {my_id} чтобы показать мне медкарту&{pause}&/me берет от человека напротив медкарту и осматривает её&/todo Хорошо, забирайте*отдавая медкарту обратно владельцу' , arg = '{arg_id}' , enable = true , waiting = '1.500' , bind = "{}"},
 		{ cmd = 'exp' , description = 'Выгнать игрока из ЦЛ' ,  text = 'Вы больше не можете здесь находиться, я выгоняю вас из ЦЛ!&/me схватив человека ведёт к выходу из ЦЛ и закрывает за ним дверь&/expel {arg_id} Н.П.Ц.Л.' , arg = '{arg_id}' , enable = true , waiting = '1.500' , bind = "{}" },
 	},
 	commands_manage = {
@@ -558,6 +557,11 @@ local debug_mode = false
 
 local command_stop = false
 local command_pause = false
+
+local license_type = ''
+local license_time = 1
+
+local givelic_bool = false
 
 local auto_uval_checker = false
 ------------------------------------------- Main -----------------------------------------------------
@@ -1304,6 +1308,7 @@ local servers = {
 	{name = 'Mobile I', number = '101'},
 	{name = 'Vice City', number = '200'},
 }
+
 function getARZServerNumber()
 	local server = 0
 	for _, s in ipairs(servers) do
@@ -1324,8 +1329,93 @@ function getARZServerName(number)
 	end
 	return server
 end
+function check(id, message)
+    if (message:rlower():find('авто') or message:rlower():find('кар') or message:rlower():find('машину')) and not message:rlower():find('карту')  then
+        get_lic_time(message)
+        givelic(id, 'авто')
+    end
+    if message:rlower():find('мото') or message:rlower():find('моцик') then
+        get_lic_time(message)
+        givelic(id, 'мото')
+    end
+    if message:rlower():find('полет') or message:rlower():find('самик') or message:rlower():find('самолет') or message:rlower():find('верт') then
+        get_lic_time()
+        givelic(id, 'полеты')
+    end
+    if message:rlower():find('рыба') or message:rlower():find('рыбы')then
+        get_lic_time(message)
+        givelic(id, 'рыбалка')
+    end
+    if message:rlower():find('лодка') or message:rlower():find('лодку') or message:rlower():find('водный') then
+        get_lic_time(message)
+        givelic(id, 'водный')
+    end
+    if message:rlower():find('ган') or message:rlower():find('оружие') or message:rlower():find('оружку') then
+        get_lic_time(message)
+        givelic(id, 'оружие')
+    end
+    if message:rlower():find('охота') or message:rlower():find('охоту') then
+        get_lic_time(message)
+        givelic(id, 'охота')
+    end
+    if message:rlower():find('охота') or message:rlower():find('охоту') then
+        get_lic_time(message)
+        givelic(id, 'охота')
+    end
+    if message:rlower():find('клады') or message:rlower():find('раскопки') then
+        get_lic_time(message)
+        givelic(id, 'раскопки')
+    end
+    if message:rlower():find('такси') then
+        get_lic_time(message)
+        givelic(id, 'такси')
+    end
+    if message:rlower():find('механик') or message:rlower():find(' мех') then
+        get_lic_time(message)
+        givelic(id, 'механик')
+    end
+end
+function get_lic_time(message)
+    license_time = 1
+    if message ~= nil and message ~= '' then
+        if message:find('2') then
+            license_time = 2
+        elseif message:find('3') then
+            license_time = 3
+        end
+    end
+end
+function givelic(id, type)
+	if isParamSampID(id) then
+		local x, y, z = getCharCoordinates(PLAYER_PED)
+		local result, ped = sampGetCharHandleBySampPlayerId(id)
+		if result then
+			local xx, yy, zz = getCharCoordinates(ped)
+			local dist = getDistanceBetweenCoords3d(x,y,z,xx,yy,zz)
+			if dist >= 2.5 then
+				sampAddChatMessage('[AS Helper] {ffffff}Не удалось выдать игроку ' .. message_color_hex .. sampGetPlayerNickname(id) .. ' {ffffff}лицензию на ' .. message_color_hex .. type .. "{ffffff}, причина: игрок далеко", message_color)
+			else
+				sampAddChatMessage('[AS Helper] {ffffff}Выдаю игроку ' .. message_color_hex .. sampGetPlayerNickname(id) .. ' {ffffff}лицензию на ' .. message_color_hex .. type, message_color)
+				license_type = type
+				givelic_bool = true
+				sampSendChat('/givelicense ' .. id)
+			end
+		else
+			sampAddChatMessage('[AS Helper] {ffffff}Не удалось выдать игроку ' .. message_color_hex .. sampGetPlayerNickname(id) .. ' {ffffff}лицензию на ' .. message_color_hex .. type .. "{ffffff}, причина: игрок далеко", message_color)
+		end
+		
+	else
+		sampAddChatMessage('[AS Helper] {ffffff}Не удалось выдать игроку ' .. message_color_hex .. sampGetPlayerNickname(id) .. ' {ffffff}лицензию на ' .. message_color_hex .. type .. "{ffffff}, причина: неверный ID", message_color)
+	end
+end
 function sampev.onServerMessage(color,text)
 	--sampAddChatMessage('color = ' .. color .. ' , text = '..text,-1)
+	if text:find('Ошибка(.+)У игрока уже есть такая лицензия сроком более чем (.+)') then
+		local one, two = text:match('Ошибка(.+)У игрока уже есть такая лицензия сроком более чем (.+)')
+		sampAddChatMessage('[AS Helper] {ffffff}У игрока уже есть такая лицензия сроком более чем ' .. two, message_color)
+		sampSendChat('У вас уже такая лицензия сроком более чем ' .. two)
+		return false
+	end
 	if (settings.general.auto_uval and tonumber(settings.player_info.fraction_rank_number) >= 9) then
 		if text:find("%[(.-)%] (.-) (.-)%[(.-)%]: (.+)") and color == 766526463 then -- /f /fb или /r /rb без тэга 
 			local tag, rank, name, playerID, message = string.match(text, "%[(.-)%] (.+) (.-)%[(.-)%]: (.+)")
@@ -1534,6 +1624,38 @@ function sampev.onSendCommand(text)
 	return {text}
 end	
 function sampev.onShowDialog(dialogid, style, title, button1, button2, text)
+	--sampAddChatMessage(text, -1)
+
+	if title:find('Продажа лицензии') and givelic_bool then
+        if license_type == 'авто' then
+            sampSendDialogResponse(dialogid, 1, 0, 0)
+        elseif license_type == 'мото' then
+            sampSendDialogResponse(dialogid, 1, 1, 0)
+        elseif license_type == 'полеты' then
+            sampSendDialogResponse(dialogid, 1, 2, 0)
+        elseif license_type == 'рыбалка' then
+            sampSendDialogResponse(dialogid, 1, 3, 0)
+        elseif license_type == 'водный' then
+            sampSendDialogResponse(dialogid, 1, 4, 0)
+        elseif license_type == 'оружие' then
+            sampSendDialogResponse(dialogid, 1, 5, 0)
+        elseif license_type == 'охота' then
+            sampSendDialogResponse(dialogid, 1, 6, 0)
+        elseif license_type == 'раскопки' then
+            sampSendDialogResponse(dialogid, 1, 7, 0)
+        elseif license_type == 'такси' then
+            sampSendDialogResponse(dialogid, 1, 8, 0)
+        elseif license_type == 'механик' then
+            sampSendDialogResponse(dialogid, 1, 9, 0)       
+        end
+        return false
+    end
+    if title:find('Выбор срока лицензий') and givelic_bool then
+        sampSendDialogResponse(dialogid, 1, license_time - 1, 0)
+        givelic_bool = false
+		isActiveCommand = false
+        return false
+    end
 
 	if text:find('Вы действительно хотите вызвать сотрудников полиции?') and settings.general.anti_trivoga then -- тревожная кнопка
 		sampSendDialogResponse(dialogid, 0, 0, 0)
@@ -1557,17 +1679,7 @@ function sampev.onShowDialog(dialogid, style, title, button1, button2, text)
 				settings.player_info.fraction_tag = "Неизвестно"
 			else
 				sampAddChatMessage('[AS Helper] {ffffff}Ваша организация обнаружена, это: '..settings.player_info.fraction, message_color)
-				if settings.player_info.fraction == 'Больница ЛС' or settings.player_info.fraction == 'Больница LS' then
-					settings.player_info.fraction_tag = 'ЛСМЦ'
-				elseif settings.player_info.fraction == 'Больница ЛВ' or settings.player_info.fraction == 'Больница LV' then
-					settings.player_info.fraction_tag = 'ЛВМЦ'
-				elseif settings.player_info.fraction == 'Больница СФ' or settings.player_info.fraction == 'Больница SF' then
-					settings.player_info.fraction_tag = 'СФМЦ'
-				elseif settings.player_info.fraction == 'Больница Jefferson' or settings.player_info.fraction == 'Больница Джефферсон' then
-					settings.player_info.fraction_tag = 'ДМЦ'
-				else
-					settings.player_info.fraction_tag = 'Medical Center'
-				end
+				settings.player_info.fraction_tag = 'ГЦЛ'
 				settings.deportament.dep_tag1 = '[' .. settings.player_info.fraction_tag .. ']'
 				input_dep_tag1 = imgui.new.char[32](u8(settings.deportament.dep_tag1))
 				input_fraction_tag = imgui.new.char[256](u8(settings.player_info.fraction_tag))
@@ -1681,7 +1793,6 @@ function sampev.onCreate3DText(id, color, position, distance, testLOS, attachedP
 		return false
 	end
 end
--- function OnShowCEFDialog(dialogid) end
 function onReceivePacket(id, bs)  
 	if isMonetLoader() then
 		if id == 220 and settings.general.auto_clicker then
@@ -1912,46 +2023,19 @@ imgui.OnFrame(
 					imgui.CenterText(fa.SITEMAP .. u8' Дополнительные функции')
 					imgui.Separator()
 					imgui.Columns(3)
-					imgui.CenterColumnText(u8"Анти Тревожная Кнопка")
-					imgui.SameLine(nil, 5) imgui.TextDisabled("[?]")
-					if imgui.IsItemHovered() then
-						imgui.SetTooltip(u8"Убирает тревожную кнопку которая находится за стойкой на 1 этаже\nТем самым вы не будете случайно вызывать МЮ из-за этой кнопки")
-					end
-					imgui.SetColumnWidth(-1, 230 * settings.general.custom_dpi)
-					imgui.NextColumn()
-					if settings.general.anti_trivoga then
-						imgui.CenterColumnText(u8'Включено')
-					else
-						imgui.CenterColumnText(u8'Отключено')
-					end
-					imgui.SetColumnWidth(-1, 250 * settings.general.custom_dpi)
-					imgui.NextColumn()
-					if settings.general.anti_trivoga then
-						if imgui.CenterColumnSmallButton(u8'Отключить##anti_trivoga') then
-							settings.general.anti_trivoga = false
-							save_settings()
-						end
-						else
-						if imgui.CenterColumnSmallButton(u8'Включить##anti_trivoga') then
-							settings.general.anti_trivoga = true
-							save_settings()
-						end
-					end
-					imgui.SetColumnWidth(-1, 100 * settings.general.custom_dpi)
-					imgui.Columns(1)
-					imgui.Separator()
-					imgui.Columns(3)
 					imgui.CenterColumnText(u8"RP Общение")
 					imgui.SameLine(nil, 5) imgui.TextDisabled("[?]")
 					if imgui.IsItemHovered() then
 						imgui.SetTooltip(u8"Все ваши сообщения в чат автоматически будут с заглавной буквы и с точкой в конце")
 					end
+					imgui.SetColumnWidth(-1, 230 * settings.general.custom_dpi)
 					imgui.NextColumn()
 					if settings.general.rp_chat then
 						imgui.CenterColumnText(u8'Включено')
 					else
 						imgui.CenterColumnText(u8'Отключено')
 					end
+					imgui.SetColumnWidth(-1, 250 * settings.general.custom_dpi)
 					imgui.NextColumn()
 					if settings.general.rp_chat then
 						if imgui.CenterColumnSmallButton(u8'Отключить##rp_chat') then
@@ -1964,6 +2048,7 @@ imgui.OnFrame(
 							save_settings()
 						end
 					end
+					imgui.SetColumnWidth(-1, 100 * settings.general.custom_dpi)
 					imgui.Columns(1)
 					imgui.Separator()
 					imgui.Columns(3)
@@ -1993,27 +2078,32 @@ imgui.OnFrame(
 					imgui.Columns(1)
 					imgui.Separator()
 					imgui.Columns(3)
-					imgui.CenterColumnText(u8"Автовыдача лицензий")
+					imgui.CenterColumnText(u8"Авто-выдача лицензий")
 					imgui.SameLine(nil, 5) imgui.TextDisabled("[?]")
 					if imgui.IsItemHovered() then
-						imgui.SetTooltip(u8'Автоматечески выдаёт лицензии игрокам, без вашего участия, даже в AFK\nИгроки должны написать в чат тип лицензии (частоиспользуемые фразы) и срок\nЕсли не напишут срок, а просто например "права", то автовыдача на 1 месяц')
+						imgui.SetTooltip(u8'Автоматечески выдаёт лицензии игрокам пока вы стоите за стойкой\nИгроки должны написать в чат тип лицензии (частоиспользуемые фразы) и срок\nЕсли не напишут срок, а просто например "права", то автовыдача на 1 месяц')
 					end
 					imgui.NextColumn()
-					if settings.general.auto_lic then
-						imgui.CenterColumnText(u8'Включено')
-					else
-						imgui.CenterColumnText(u8'Отключено')
-					end
+					imgui.CenterColumnText(u8'Отключено')
 					imgui.NextColumn()
-					if settings.general.auto_lic then
-						if imgui.CenterColumnSmallButton(u8'Отключить##auto_lic') then
-							settings.general.auto_lic = false
-							save_settings()
+					if imgui.CenterColumnSmallButton(u8'Включить##auto_lic') then
+						for i = 1, 10, 1 do
+							sampAddChatMessage('[AS Helper] {ffffff}Данная функция доступна только в платной версии хелпера! Покупать у MTG MODS', message_color)
 						end
-						else
-						if imgui.CenterColumnSmallButton(u8'Включить##auto_lic') then
-							-- settings.general.auto_lic = true
-							-- save_settings()
+					end
+					imgui.Columns(1)
+					imgui.Separator()
+					imgui.Columns(3)
+					imgui.CenterColumnText(u8"Авто-ремонт дорожых знаков")
+					imgui.SameLine(nil, 5) imgui.TextDisabled("[?]")
+					if imgui.IsItemHovered() then
+						imgui.SetTooltip(u8'Автоматически ремонтирует дорожные знаки которым нужен ремонт\nАвто-кликер в менюшке ремонта после взятия инструментов')
+					end
+					imgui.NextColumn()
+					imgui.CenterColumnText(u8'Отключено')
+					imgui.NextColumn()
+					if imgui.CenterColumnSmallButton(u8'Включить##auto_repair') then
+						for i = 1, 10, 1 do
 							sampAddChatMessage('[AS Helper] {ffffff}Данная функция доступна только в платной версии хелпера! Покупать у MTG MODS', message_color)
 						end
 					end
