@@ -3,7 +3,7 @@
 script_name("Hospital Helper")
 script_description('Cross-platform script helper for Medical Center')
 script_author("MTG MODS")
-script_version("4.0")
+script_version("4.1")
 
 require('lib.moonloader')
 require ('encoding').default = 'CP1251'
@@ -333,7 +333,7 @@ local FastMenuPlayers = imgui.new.bool()
 local FastHealMenu = imgui.new.bool()
 local heal_in_chat = false
 local heal_in_chat_player_id = nil
-local world_heal_in_chat = { 'вылечи', 'лечи', 'хил', 'лек', 'heal', 'hil', 'lek', 'табл',  'голова', 'лекни' , 'ktr', 'ktxb', 'ujkjdf' }
+local world_heal_in_chat = { 'вылечи', 'лечи', 'хил', 'лек', 'heal', 'hil', 'lek', 'табл', 'болит', 'голова', 'лекни' , 'ktr', 'ktxb', 'ujkjdf' }
 
 local NoteWindow = imgui.new.bool()
 local show_note_name = nil
@@ -1359,7 +1359,7 @@ function sampev.onServerMessage(color,text)
 		return false
 	end
 	if (auto_healme and text:find('Вы отправили предложение о лечении')) then
-		sampAddChatMessage('[Hospital Helper] {ffffff}Самохил будет через 7 секунд, ожидайте...', message_color)
+		--sampAddChatMessage('[Hospital Helper] {ffffff}Самохил будет через 7 секунд, ожидайте...', message_color)
 		sampSendChat('/offer')
 		return false
 	end
@@ -1740,6 +1740,8 @@ function sampev.onShowDialog(dialogid, style, title, button1, button2, text)
 						nickname = nick
 					end
 					table.insert(members_new, { nick = nickname, id = id, rank = rank, rank_number = rank_number, warns = warns, afk = afk, working = working})
+				else
+					
 				end
             end
             if line:match('Следующая страница') then
@@ -2794,7 +2796,6 @@ imgui.OnFrame(
 					imgui.OpenPopup(fa.PEN_TO_SQUARE .. u8' Создание заметки')	
 				end
 				if imgui.BeginPopupModal(fa.PEN_TO_SQUARE .. u8' Создание заметки', _, imgui.WindowFlags.NoCollapse  + imgui.WindowFlags.NoResize ) then
-					change_dpi()
 					if imgui.BeginChild('##999999', imgui.ImVec2(589 * settings.general.custom_dpi, 360 * settings.general.custom_dpi), true) then	
 						imgui.PushItemWidth(578 * settings.general.custom_dpi)
 						imgui.InputText(u8'##note_name', input_name_note, 256)
@@ -3595,9 +3596,8 @@ imgui.OnFrame(
 			imgui.OpenPopup(fa.CLOCK .. u8' Задержка (в секундах) ')
 		end
 		if imgui.BeginPopupModal(fa.CLOCK .. u8' Задержка (в секундах) ', _, imgui.WindowFlags.NoResize ) then
-			change_dpi()
 			imgui.PushItemWidth(200 * settings.general.custom_dpi)
-			imgui.SliderFloat(u8'##waiting', waiting_slider, 0.3, 5)
+			imgui.SliderFloat(u8'##waiting', waiting_slider, 0.5, 10)
 			imgui.Separator()
 			if imgui.Button(fa.CIRCLE_XMARK .. u8' Отмена', imgui.ImVec2(imgui.GetMiddleButtonX(2), 0)) then
 				waiting_slider = imgui.new.float(tonumber(change_waiting))	
@@ -3642,7 +3642,6 @@ imgui.OnFrame(
 			end
 		end
 		if imgui.BeginPopupModal(fa.KEYBOARD .. u8' Бинд для команды /' .. change_cmd, _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize  + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.AlwaysAutoResize) then
-			change_dpi()
 			local hotkeyObject = hotkeys[change_cmd .. "HotKey"]
 			if hotkeyObject then
 				imgui.CenterText(u8('Клавиша активации бинда:'))
