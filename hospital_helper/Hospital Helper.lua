@@ -3,7 +3,7 @@
 script_name("Hospital Helper")
 script_description('Cross-platform script helper for Medical Center')
 script_author("MTG MODS")
-script_version("4.1")
+script_version("4.2")
 
 require('lib.moonloader')
 require ('encoding').default = 'CP1251'
@@ -181,9 +181,10 @@ local default_settings = {
 		{ cmd = 'fmutes' , description = 'Выдать мут сотруднику (10 min)' , text = '/fmutes {arg_id} Н.П.Б.&/r Сотрудник {get_ru_nick({arg_id})} лишился права использовать рацию на 10 минут!' , arg = '{arg_id}', enable = true, waiting = '1.500' , bind = "{}"  },
 		{ cmd = 'funmute' , description = 'Снять мут сотруднику' , text = '/funmute {arg_id}&/r Сотрудник {get_ru_nick({arg_id})} теперь может пользоваться рацией!' , arg = '{arg_id}', enable = true, waiting = '1.500' , bind = "{}"  },
 		{ cmd = 'vig' , description = 'Выдача выговора cотруднику' , text = '/me достаёт из кармана свой телефон и заходит в базу данных {fraction_tag}&/me изменяет информацию о сотруднике {get_ru_nick({arg_id})} в базе данных {fraction_tag}&/me выходит с базы данных и убирает телефон обратно в карман&/fwarn {arg_id} {arg2}&/r Сотруднику {get_ru_nick({arg_id})} выдан выговор! Причина: {arg2}' , arg = '{arg_id} {arg2}', enable = true, waiting = '1.500'  , bind = "{}" },
-		{ cmd = 'unvig' , description = 'Снятие выговора cотруднику' , text = '/me достаёт из кармана свой телефон и заходит в базу данных {fraction_tag}&/me изменяет информацию о сотруднике {get_ru_nick({arg_id})} в базе данных {fraction_tag}&/me выходит с базы данных и убирает телефон обратно в карман&/unfwarn {arg_id}&/r Сотруднику {get_ru_nick({arg_id})} был снят выговор!' , arg = '{arg_id}', enable = true, waiting = '1.500' , bind = "{}"  },
+		{ cmd = 'unvig' , description = 'Снятие выговора cотруднику' , text = '/me достаёт из кармана свой телефон и заходит в базу данных {fraction_tag}&/me изменяет информацию о сотруднике {get_ru_nick({arg_id})} в базе данных {fraction_tag}&/me выходит с базы данных и убирает телефон обратно в карман&/unfwarn {arg_id}&/r Сотруднику {get_ru_nick({arg_id})} был снят выговор!' , arg = '{arg_id}', enable = true, waiting = '1.500' , bind = "{}"},
 		{ cmd = 'unv' , description = 'Увольнение игрока из фракции' , text = '/me достаёт из кармана свой телефон и заходит в базу данных {fraction_tag}&/me изменяет информацию о сотруднике {get_ru_nick({arg_id})} в базе данных {fraction_tag}&/me выходит с базы данных и убирает свой телефон обратно в карман&/uninvite {arg_id} {arg2}&/r Сотрудник {get_ru_nick({arg_id})} был уволен по причине: {arg2}' , arg = '{arg_id} {arg2}', enable = true, waiting = '1.500' , bind = "{}"  },
-		{ cmd = 'point' , description = 'Установить метку для сотрудников' , text = '/r Срочно выдвигайтесь ко мне, отправляю вам координаты...&/point' , arg = '', enable = true, waiting = '1.500', bind = "{}"  },
+		{ cmd = 'point' , description = 'Установить метку для сотрудников' , text = '/r Срочно выдвигайтесь ко мне, отправляю вам координаты...&/point' , arg = '', enable = true, waiting = '1.500', bind = "{}"},
+		{ cmd = 'govka' , description = 'Собеседование по госс.волне' , text = '/d [{fraction_tag}] - [Всем]: Занимаю государственную волну, просьба не перебивать!&/gov [{fraction_tag}]: Доброго времени суток, уважаемые жители нашего штата!&/gov [{fraction_tag}]: Сейчас проходит собеседование в организацию {fraction}}&/gov [{fraction_tag}]: Для вступления вам нужно иметь документы, жилье, и приехать к нам в холл.&/d [{fraction_tag}] - [Всем]: Освобождаю  государственную волну, спасибо что не перебивали.' , arg = '', enable = true, waiting = '1.300', bind = "{}"  },
 	}
 }
 
@@ -1287,12 +1288,16 @@ function sampGetPlayerIdByNickname(nick)
 	local id = nil
 	nick = tostring(nick)
 	local _, myid = sampGetPlayerIdByCharHandle(PLAYER_PED)
-	if nick == sampGetPlayerNickname(myid) then return myid end
+	if sampGetPlayerNickname(myid):find(nick) then return myid end
 	for i = 0, 999 do
-	    if sampIsPlayerConnected(i) and sampGetPlayerNickname(i) == nick then
+	    if sampIsPlayerConnected(i) and sampGetPlayerNickname(i):find(nick) then
 		   id = i
 		   break
 	    end
+	end
+	if id == nil then
+		sampAddChatMessage('[Hospital Helper] {ffffff}Ошибка: не удалось получить ID игрока!', message_color)
+		id = ''
 	end
 	return id
 end
@@ -1717,7 +1722,6 @@ function sampev.onShowDialog(dialogid, style, title, button1, button2, text)
 	end
 
 	if members_check and title:find('(.+)%(В сети: (%d+)%)') then -- мемберс 
-	
         local count = 0
         local next_page = false
         local next_page_i = 0
@@ -1740,8 +1744,21 @@ function sampev.onShowDialog(dialogid, style, title, button1, button2, text)
 						nickname = nick
 					end
 					table.insert(members_new, { nick = nickname, id = id, rank = rank, rank_number = rank_number, warns = warns, afk = afk, working = working})
-				else
-					
+				elseif line:find('%{90EE90%}') or line:find('(%d+ дней)') then
+					local color, nickname, id, rank_color, rank, rank_number, days, warns_color, warns, afk = string.match(line, "{(%x+)}([^%(]+)%((%d+)%)%s+{(%x+)}([^%(]+)%((%d+)%)%s+%((%d+)%s+дней%)%s+{(%x+)}(%d+)%s+%((%d+)%)%s+(%d+)%s+шт")
+					if color ~= nil and nickname ~= nil and id ~= nil and rank ~= nil and rank_number ~= nil and warns ~= nil and afk ~= nil then
+						local working = false
+						if color:find('FF3B3B') then
+							working = false
+						elseif color:find('FFFFFF') then
+							working = true
+						end
+						if nickname:find('%[%:(.+)%] (.+)') then
+							tag, nick = nickname:match('%[(.+)%] (.+)')
+							nickname = nick
+						end
+						table.insert(members_new, { nick = nickname, id = id, rank = rank, rank_number = rank_number .. ") (" .. days .. " дней", warns = warns, afk = afk, working = working})
+					end
 				end
             end
             if line:match('Следующая страница') then
@@ -3242,10 +3259,10 @@ imgui.OnFrame(
 		imgui.InputText(u8'##dep_input_text', input_dep_text, 256)
 		imgui.SameLine()
 		if imgui.Button(u8' Отправить ') then
-			sampSendChat('/d ' .. u8:decode(ffi.string(input_dep_tag1)) .. ' ' .. u8:decode(ffi.string(input_dep_fm)) .. ' ' ..  u8:decode(ffi.string(input_dep_tag2)) .. ' '  .. u8:decode(ffi.string(input_dep_text)))
+			sampSendChat('/d ' .. u8:decode(ffi.string(input_dep_tag1)) .. ' ' .. u8:decode(ffi.string(input_dep_fm)) .. ' ' ..  u8:decode(ffi.string(input_dep_tag2)) .. ': '  .. u8:decode(ffi.string(input_dep_text)))
 		end
 		imgui.Separator()
-		imgui.CenterText(u8'Предпросмотр: /d ' .. u8(u8:decode(ffi.string(input_dep_tag1))) .. ' ' .. u8(u8:decode(ffi.string(input_dep_fm))) .. ' ' ..  u8(u8:decode(ffi.string(input_dep_tag2))) .. ' '  .. u8(u8:decode(ffi.string(input_dep_text))) )
+		imgui.CenterText(u8'Предпросмотр: /d ' .. u8(u8:decode(ffi.string(input_dep_tag1))) .. ' ' .. u8(u8:decode(ffi.string(input_dep_fm))) .. ' ' ..  u8(u8:decode(ffi.string(input_dep_tag2))) .. ': '  .. u8(u8:decode(ffi.string(input_dep_text))) )
 		imgui.EndChild()
 		imgui.End()
     end
@@ -3770,7 +3787,7 @@ imgui.OnFrame(
 		end
 		imgui.SetNextWindowSize(imgui.ImVec2(600 * settings.general.custom_dpi, sizeYY * settings.general.custom_dpi), imgui.Cond.FirstUseEver)
 		--imgui.SetNextWindowSize(imgui.ImVec2(600 * settings.general.custom_dpi, 413 * settings.general.custom_dpi), imgui.Cond.FirstUseEver)
-		imgui.Begin(fa.BUILDING_SHIELD .. " " ..  u8(members_fraction) .. " - " .. #members .. u8' сотрудников онлайн', MembersWindow, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize )
+		imgui.Begin(fa.HOSPITAL .. " " ..  u8(members_fraction) .. " - " .. #members .. u8' сотрудников онлайн', MembersWindow, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize )
 		change_dpi()
 		for i, v in ipairs(members) do
 			imgui.Columns(3)
