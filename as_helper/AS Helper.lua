@@ -3,7 +3,7 @@
 script_name("AS Helper")
 script_description('Cross-platform script helper for AutoSchool')
 script_author("MTG MODS")
-script_version("4.0")
+script_version("4.1 FREE")
 
 require('lib.moonloader')
 require ('encoding').default = 'CP1251'
@@ -1262,12 +1262,16 @@ function sampGetPlayerIdByNickname(nick)
 	local id = nil
 	nick = tostring(nick)
 	local _, myid = sampGetPlayerIdByCharHandle(PLAYER_PED)
-	if nick == sampGetPlayerNickname(myid) then return myid end
+	if sampGetPlayerNickname(myid):find(nick) then return myid end
 	for i = 0, 999 do
-	    if sampIsPlayerConnected(i) and sampGetPlayerNickname(i) == nick then
+	    if sampIsPlayerConnected(i) and sampGetPlayerNickname(i):find(nick) then
 		   id = i
 		   break
 	    end
+	end
+	if id == nil then
+		sampAddChatMessage('[Hospital Helper] {ffffff}Ошибка: не удалось получить ID игрока!', message_color)
+		id = ''
 	end
 	return id
 end
@@ -2646,7 +2650,7 @@ imgui.OnFrame(
 					imgui.OpenPopup(fa.PEN_TO_SQUARE .. u8' Создание заметки')	
 				end
 				if imgui.BeginPopupModal(fa.PEN_TO_SQUARE .. u8' Создание заметки', _, imgui.WindowFlags.NoCollapse  + imgui.WindowFlags.NoResize ) then
-					change_dpi()
+			
 					if imgui.BeginChild('##999999', imgui.ImVec2(589 * settings.general.custom_dpi, 360 * settings.general.custom_dpi), true) then	
 						imgui.PushItemWidth(578 * settings.general.custom_dpi)
 						imgui.InputText(u8'##note_name', input_name_note, 256)
@@ -2923,7 +2927,7 @@ imgui.OnFrame(
 						imgui.OpenPopup(fa.TAG .. u8' Добавление нового тега##1')	
 					end
 					if imgui.BeginPopupModal(fa.TAG .. u8' Добавление нового тега##1', _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize) then
-						change_dpi()
+						
 						imgui.PushItemWidth(215 * settings.general.custom_dpi)
 						imgui.InputText('##input_dep_new_tag', input_dep_new_tag, 256) 
 						imgui.Separator()
@@ -2959,7 +2963,7 @@ imgui.OnFrame(
 			imgui.OpenPopup(fa.WALKIE_TALKIE .. u8' Частота рации /d')
 		end
 		if imgui.BeginPopupModal(fa.WALKIE_TALKIE .. u8' Частота рации /d', _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize) then
-			change_dpi()
+		
 			for i, tag in ipairs(settings.deportament.dep_fms) do
 				imgui.SameLine()
 				if imgui.Button(' ' .. u8(tag) .. ' ##' .. i) then
@@ -3061,7 +3065,7 @@ imgui.OnFrame(
 						imgui.OpenPopup(fa.TAG .. u8' Добавление нового тега##2')	
 					end
 					if imgui.BeginPopupModal(fa.TAG .. u8' Добавление нового тега##2', _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize) then
-						change_dpi()
+				
 						imgui.PushItemWidth(215 * settings.general.custom_dpi)
 						imgui.InputText('##input_dep_new_tag', input_dep_new_tag, 256) 
 						imgui.Separator()
@@ -3093,10 +3097,10 @@ imgui.OnFrame(
 		imgui.InputText(u8'##dep_input_text', input_dep_text, 256)
 		imgui.SameLine()
 		if imgui.Button(u8' Отправить ') then
-			sampSendChat('/d ' .. u8:decode(ffi.string(input_dep_tag1)) .. ' ' .. u8:decode(ffi.string(input_dep_fm)) .. ' ' ..  u8:decode(ffi.string(input_dep_tag2)) .. ' '  .. u8:decode(ffi.string(input_dep_text)))
+			sampSendChat('/d ' .. u8:decode(ffi.string(input_dep_tag1)) .. ' ' .. u8:decode(ffi.string(input_dep_fm)) .. ' ' ..  u8:decode(ffi.string(input_dep_tag2)) .. ': '  .. u8:decode(ffi.string(input_dep_text)))
 		end
 		imgui.Separator()
-		imgui.CenterText(u8'Предпросмотр: /d ' .. u8(u8:decode(ffi.string(input_dep_tag1))) .. ' ' .. u8(u8:decode(ffi.string(input_dep_fm))) .. ' ' ..  u8(u8:decode(ffi.string(input_dep_tag2))) .. ' '  .. u8(u8:decode(ffi.string(input_dep_text))) )
+		imgui.CenterText(u8'Предпросмотр: /d ' .. u8(u8:decode(ffi.string(input_dep_tag1))) .. ' ' .. u8(u8:decode(ffi.string(input_dep_fm))) .. ' ' ..  u8(u8:decode(ffi.string(input_dep_tag2))) .. ': '  .. u8(u8:decode(ffi.string(input_dep_text))) )
 		imgui.EndChild()
 		imgui.End()
     end
@@ -3133,7 +3137,7 @@ imgui.OnFrame(
 		end
 		if imgui.BeginPopupModal(fa.CLOCK .. u8' Задержка (в секундах) ', _, imgui.WindowFlags.NoResize ) then
 			imgui.PushItemWidth(200 * settings.general.custom_dpi)
-			imgui.SliderFloat(u8'##waiting', waiting_slider, 0.3, 5)
+			imgui.SliderFloat(u8'##waiting', waiting_slider, 0.3, 10)
 			imgui.Separator()
 			if imgui.Button(fa.CIRCLE_XMARK .. u8' Отмена', imgui.ImVec2(imgui.GetMiddleButtonX(2), 0)) then
 				waiting_slider = imgui.new.float(tonumber(change_waiting))	
@@ -3178,7 +3182,6 @@ imgui.OnFrame(
 			end
 		end
 		if imgui.BeginPopupModal(fa.KEYBOARD .. u8' Бинд для команды /' .. change_cmd, _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize  + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.AlwaysAutoResize) then
-			change_dpi()
 			local hotkeyObject = hotkeys[change_cmd .. "HotKey"]
 			if hotkeyObject then
 				imgui.CenterText(u8('Клавиша активации бинда:'))
@@ -3278,7 +3281,6 @@ imgui.OnFrame(
 			end
 		end
 		if imgui.BeginPopupModal(fa.TRIANGLE_EXCLAMATION .. u8' Ошибка сохранения команды!', _, imgui.WindowFlags.AlwaysAutoResize ) then
-			change_dpi()
 			if ffi.string(input_cmd):find('%W') then
 				imgui.BulletText(u8" В команде можно использовать только англ. буквы и/или цифры!")
 			elseif ffi.string(input_cmd) == '' then
