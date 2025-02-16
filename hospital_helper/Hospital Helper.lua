@@ -168,6 +168,7 @@ local default_settings = {
 		{ cmd = 'recept' , description = 'Выдача игроку рецептов' ,  text = 'Стоимость одного рецепта составляет ${price_recept}&Скажите сколько Вам требуется рецептов, после чего мы продолжим.&/n Внимание! В течении часа выдаётся максимум 5 рецептов!&{show_recept_menu}&Хорошо, сейчас я выдам вам рецепты.&/me достаёт из своего мед.кейса бланк для оформления рецептов и начает его заполнять&/me ставит на бланк рецепта печать {fraction_tag}&/do Бланк успешно заполнен.&/todo Вот, держите!*передавая бланк  рецепта человеку напротив&/recept {arg_id} {get_recepts}' , arg = '{arg_id}' , enable = true, waiting = '1.500' , bind = "{}" },
 		{ cmd = 'ant' , description = 'Выдача игроку антибиотиков' ,  text = 'Стоимость одного антибиотика составляет ${price_ant}&Скажите сколько Вам требуется антибиотиков, после чего мы продолжим.&/n Внимание! Вы можете купить от 1 до 20 антибитиков за один раз!&{show_ant_menu}&Хорошо, сейчас я выдам вам антибиотики.&/me открывает свой мед.кейс и достаёт из него пачку антибиотиков, после чего закрывает мед.кейс&/do Антибиотики находятся в руках.&/todo Вот держите, употребляйте их строго по рецепту!*передавая антибиотики человеку напротив&/antibiotik {arg_id} {get_ants}' , arg = '{arg_id}' , enable = true, waiting = '1.500' , bind = "{}" },
 		{ cmd = 'time' , description = 'Посмотреть время' ,  text = '/me взглянул{sex} на свои часы с гравировкой MTG MODS и посмотрел{sex} время&/time&/do На часах видно время {get_time}.' , arg = '' , enable = true, waiting = '1.500' , bind = "{}" },
+		{ cmd = 'siren' , description = 'Вкл/выкл мигалок в т/с' , text = '{switchCarSiren}', arg = '' , enable = true , waiting = '1.500', bind = "{}" },
 		{ cmd = 'exp' , description = 'Выгнать игрока из больницы' ,  text = 'Вы больше не можете здесь находиться, я выгоняю вас из больницы!&/me схватив человека ведёт к выходу из больницы и закрывает за ним дверь&/expel {arg_id} Н.П.Б.' , arg = '{arg_id}' , enable = true , waiting = '1.500' , bind = "{}" },
 	},
 	commands_manage = {
@@ -423,6 +424,21 @@ local tagReplacements = {
 	end,
 	get_rank = function ()
 		return giverank[0]
+	end,
+	switchCarSiren = function ()
+		if isCharInAnyCar(PLAYER_PED) then
+			local car = storeCarCharIsInNoSave(PLAYER_PED)
+			if getDriverOfCar(car) == PLAYER_PED then
+				switchCarSiren(car, not isCarSirenOn(car))
+				return '/me ' .. ( isCarSirenOn(car) and 'включает' or 'выключает') .. ' мигалки в своём транспортном средстве'
+			else
+				sampAddChatMessage('[Hospital Helper] {ffffff}Вы не за рулём!', 0xFF7E7E)
+				return (isCarSirenOn(car) and 'Выключи' or 'Врубай') .. ' мигалки!'
+			end
+		else
+			sampAddChatMessage('[Hospital Helper] {ffffff}Вы не в автомобиле!', 0xFF7E7E)
+			return "Кхм"
+		end
 	end,
 }
 local binder_tags_text = [[

@@ -3,7 +3,7 @@
 script_name("FD Helper")
 script_description('This is a Cross-platform Lua script helper for Arizona RP players who work in the Ministry of')
 script_author("MTG MODS")
-script_version("1.1")
+script_version("1.3")
 
 require('lib.moonloader')
 require('encoding').default = 'CP1251'
@@ -274,6 +274,7 @@ local commands = {
 		{ cmd = 'unvig' , description = 'Снятие выговора cотруднику' , text = '/me достаёт из кармана свой телефон и заходит в базу данных {fraction_tag}&/me изменяет информацию о сотруднике {get_ru_nick({arg_id})} в базе данных {fraction_tag}&/me выходит с базы данных и убирает телефон обратно в карман&/unfwarn {arg_id}&/r Сотруднику {get_ru_nick({arg_id})} был снят выговор!' , arg = '{arg_id}', enable = true, waiting = '1.500' , bind = "{}"   },
 		{ cmd = 'unv' , description = 'Увольнение игрока из фракции' , text = '/me достаёт из кармана свой телефон и заходит в базу данных {fraction_tag}&/me изменяет информацию о сотруднике {get_ru_nick({arg_id})} в базе данных {fraction_tag}&/me выходит с базы данных и убирает свой телефон обратно в карман&/uninvite {arg_id} {arg2}&/r Сотрудник {get_ru_nick({arg_id})} был уволен по причине: {arg2}' , arg = '{arg_id} {arg2}', enable = true, waiting = '1.500' , bind = "{}"   },
 		{ cmd = 'point' , description = 'Установить метку для сотрудников' , text = '/r Срочно выдвигайтесь ко мне, отправляю вам координаты...&/point' , arg = '', enable = true, waiting = '1.500' , bind = "{}"  },
+		{ cmd = 'govka' , description = 'Собеседование по госс.волне' , text = '/d [{fraction_tag}] - [Всем]: Занимаю государственную волну, просьба не перебивать!&/gov [{fraction_tag}]: Доброго времени суток, уважаемые жители нашего штата!&/gov [{fraction_tag}]: Сейчас проходит собеседование в организацию {fraction}}&/gov [{fraction_tag}]: Для вступления вам нужно иметь документы, жилье, и приехать к нам в холл.&/d [{fraction_tag}] - [Всем]: Освобождаю  государственную волну, спасибо что не перебивали.' , arg = '', enable = true, waiting = '1.300', bind = "{}"  },
 	}
 }
 local path_commands = configDirectory .. "/Commands.json"
@@ -642,7 +643,7 @@ local auto_uval_checker = false
 local dialogid_fires = -1
 local active_fire_locations = ''
 local active_fire_location = ''
-local active_fire_lvl = '1'
+local active_fire_lvl = '?'
 local isFireDialog = false
 local isFireZone = false
 
@@ -652,13 +653,13 @@ function getFireLocation(id)
 		if id == count then
 			local line2 = line:match('%].+%](.+){.+{.+{'):gsub("^%s+", ""):gsub("%s+$", "")
 			active_fire_location = line2 or 'пожар'
-			-- if line:find('%*%*%*') then
-			-- 	active_fire_lvl = 3
-			-- elseif line:find('%*%*') then
-			-- 	active_fire_lvl = 2
-			-- elseif line:find('%*') then
-			-- 	active_fire_lvl = 1
-			-- end
+			if line:find('%*%*%*') then
+				active_fire_lvl = 3
+			elseif line:find('%*%*') then
+				active_fire_lvl = 2
+			elseif line:find('%*') then
+				active_fire_lvl = 1
+			end
 			if settings.general.auto_doklad_1 then
 				sampSendChat('/r Докладывает ' .. tagReplacements.my_doklad_nick() .. ', выехал' .. tagReplacements.sex() .. ' на ' .. active_fire_location .. ' ' .. active_fire_lvl .. '-й степени')
 			end
@@ -1148,12 +1149,16 @@ function sampGetPlayerIdByNickname(nick)
 	local id = nil
 	nick = tostring(nick)
 	local _, myid = sampGetPlayerIdByCharHandle(PLAYER_PED)
-	if nick == sampGetPlayerNickname(myid) then return myid end
+	if sampGetPlayerNickname(myid):find(nick) then return myid end
 	for i = 0, 999 do
-	    if sampIsPlayerConnected(i) and sampGetPlayerNickname(i) == nick then
+	    if sampIsPlayerConnected(i) and sampGetPlayerNickname(i):find(nick) then
 		   id = i
 		   break
 	    end
+	end
+	if id == nil then
+		sampAddChatMessage('[FD Helper] {ffffff}Ошибка: не удалось получить ID игрока!', message_color)
+		id = ''
 	end
 	return id
 end
@@ -1897,7 +1902,7 @@ imgui.OnFrame(
 		imgui.Begin(fa.FIRE_EXTINGUISHER .. " FD Helper##main", MainWindow, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize )
 		change_dpi()
 		if imgui.BeginTabBar('пон') then	
-			if imgui.BeginTabItem(fa.HOUSE..u8' Главное меню') then
+			if imgui.BeginTabItem(fa.HOUSE..u8' Главное меню ') then
 				if imgui.BeginChild('##1', imgui.ImVec2(589 * settings.general.custom_dpi, 171 * settings.general.custom_dpi), true) then
 					imgui.CenterText(fa.USER_NURSE .. u8' Информация про сотрудника')
 					imgui.Separator()
@@ -2004,9 +2009,9 @@ imgui.OnFrame(
 					imgui.CenterColumnText(u8(settings.player_info.fraction_tag))
 					imgui.NextColumn()
 					if imgui.CenterColumnSmallButton(u8'Изменить##fraction_tag') then
-						imgui.OpenPopup(fa.BUILDING_SHIELD .. u8' Тэг организации##fraction_tag')
+						imgui.OpenPopup(fa.FIRE_EXTINGUISHER .. u8' Тэг организации##fraction_tag')
 					end
-					if imgui.BeginPopupModal(fa.BUILDING_SHIELD .. u8' Тэг организации##fraction_tag', _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize  ) then
+					if imgui.BeginPopupModal(fa.FIRE_EXTINGUISHER .. u8' Тэг организации##fraction_tag', _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize  ) then
 						if not isMonetLoader() then imgui.SetWindowFontScale(settings.general.custom_dpi) end
 						imgui.PushItemWidth(405 * settings.general.custom_dpi)
 						imgui.InputText(u8'##input_fraction_tag', input_fraction_tag, 256)
@@ -2220,7 +2225,7 @@ imgui.OnFrame(
 				
 				imgui.EndTabItem()
 			end
-			if imgui.BeginTabItem(fa.RECTANGLE_LIST..u8' Команды и отыгровки') then 
+			if imgui.BeginTabItem(fa.RECTANGLE_LIST..u8' Команды и отыгровки ') then 
 				if imgui.BeginTabBar('Tabs2') then
 					if imgui.BeginTabItem(fa.BARS..u8' Общие RP команды для всех') then 
 						if imgui.BeginChild('##1', imgui.ImVec2(589 * settings.general.custom_dpi, 303 * settings.general.custom_dpi), true) then
@@ -2607,16 +2612,16 @@ imgui.OnFrame(
 				end
 				imgui.EndTabItem()
 			end
-			if imgui.BeginTabItem(fa.MONEY_CHECK_DOLLAR .. u8' Премии за работу') then 
-				if imgui.BeginChild('##premium', imgui.ImVec2(590 * settings.general.custom_dpi, 362 * settings.general.custom_dpi), true) then
-					imgui.CenterText(fa.MONEY_CHECK_DOLLAR .. u8' Подсчёт действий для премии')
-					imgui.Separator()
-					imgui.CenterText(u8'Возможно будет в следущих обновлениях')
-					imgui.EndChild()
-				end
-			imgui.EndTabItem()
-			end
-			if imgui.BeginTabItem(fa.FILE_PEN..u8' Заметки') then 
+			-- if imgui.BeginTabItem(fa.MONEY_CHECK_DOLLAR .. u8' Премии за работу') then 
+			-- 	if imgui.BeginChild('##premium', imgui.ImVec2(590 * settings.general.custom_dpi, 362 * settings.general.custom_dpi), true) then
+			-- 		imgui.CenterText(fa.MONEY_CHECK_DOLLAR .. u8' Подсчёт действий для премии')
+			-- 		imgui.Separator()
+			-- 		imgui.CenterText(u8'Возможно будет в следущих обновлениях')
+			-- 		imgui.EndChild()
+			-- 	end
+			-- imgui.EndTabItem()
+			-- end
+			if imgui.BeginTabItem(fa.FILE_PEN..u8' Заметки (шпаргалки) ') then 
 			 	imgui.BeginChild('##1', imgui.ImVec2(589 * settings.general.custom_dpi, 330 * settings.general.custom_dpi), true)
 				imgui.Columns(2)
 				imgui.CenterColumnText(u8"Список всех ваших заметок/шпаргалок:")
@@ -2701,7 +2706,7 @@ imgui.OnFrame(
 					imgui.OpenPopup(fa.PEN_TO_SQUARE .. u8' Создание заметки')	
 				end
 				if imgui.BeginPopupModal(fa.PEN_TO_SQUARE .. u8' Создание заметки', _, imgui.WindowFlags.NoCollapse  + imgui.WindowFlags.NoResize ) then
-					if not isMonetLoader() then imgui.SetWindowFontScale(settings.general.custom_dpi) end
+					
 					if imgui.BeginChild('##999999', imgui.ImVec2(589 * settings.general.custom_dpi, 360 * settings.general.custom_dpi), true) then	
 						imgui.PushItemWidth(578 * settings.general.custom_dpi)
 						imgui.InputText(u8'##note_name', input_name_note, 256)
@@ -2723,7 +2728,7 @@ imgui.OnFrame(
 				end
 				imgui.EndTabItem()
 			end
-			if imgui.BeginTabItem(fa.GEAR..u8' Настройки') then 
+			if imgui.BeginTabItem(fa.GEAR..u8' Настройки скрипта') then 
 				imgui.BeginChild('##1', imgui.ImVec2(589 * settings.general.custom_dpi, 145 * settings.general.custom_dpi), true)
 				imgui.CenterText(fa.CIRCLE_INFO .. u8' Дополнительная информация про хелпер')
 				imgui.Separator()
@@ -2733,7 +2738,7 @@ imgui.OnFrame(
 				imgui.Separator()
 				imgui.Text(fa.BOOK ..u8" Гайд по использованию хелпера:")
 				imgui.SameLine()
-				if imgui.SmallButton('https://youtu.be/-q_5_2uWsc0') then
+				if imgui.SmallButton(u8'https://youtu.be/-q_5_2uWsc0') then
 					openLink('https://youtu.be/-q_5_2uWsc0')
 				end
 				imgui.Separator()
@@ -2986,7 +2991,7 @@ imgui.OnFrame(
 						imgui.OpenPopup(fa.TAG .. u8' Добавление нового тега##1')	
 					end
 					if imgui.BeginPopupModal(fa.TAG .. u8' Добавление нового тега##1', _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize) then
-						if not isMonetLoader() then imgui.SetWindowFontScale(settings.general.custom_dpi) end
+						
 						imgui.PushItemWidth(215 * settings.general.custom_dpi)
 						imgui.InputText('##input_dep_new_tag', input_dep_new_tag, 256) 
 						imgui.Separator()
@@ -3145,7 +3150,7 @@ imgui.OnFrame(
 						imgui.OpenPopup(fa.TAG .. u8' Добавление нового тега##2')	
 					end
 					if imgui.BeginPopupModal(fa.TAG .. u8' Добавление нового тега##2', _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize) then
-						if not isMonetLoader() then imgui.SetWindowFontScale(settings.general.custom_dpi) end
+						
 						imgui.PushItemWidth(215 * settings.general.custom_dpi)
 						imgui.InputText('##input_dep_new_tag', input_dep_new_tag, 256) 
 						imgui.Separator()
@@ -3177,10 +3182,10 @@ imgui.OnFrame(
 		imgui.InputText(u8'##dep_input_text', input_dep_text, 256)
 		imgui.SameLine()
 		if imgui.Button(u8' Отправить ') then
-			sampSendChat('/d ' .. u8:decode(ffi.string(input_dep_tag1)) .. ' ' .. u8:decode(ffi.string(input_dep_fm)) .. ' ' ..  u8:decode(ffi.string(input_dep_tag2)) .. ' '  .. u8:decode(ffi.string(input_dep_text)))
+			sampSendChat('/d ' .. u8:decode(ffi.string(input_dep_tag1)) .. ' ' .. u8:decode(ffi.string(input_dep_fm)) .. ' ' ..  u8:decode(ffi.string(input_dep_tag2)) .. ': '  .. u8:decode(ffi.string(input_dep_text)))
 		end
 		imgui.Separator()
-		imgui.CenterText(u8'Предпросмотр: /d ' .. u8(u8:decode(ffi.string(input_dep_tag1))) .. ' ' .. u8(u8:decode(ffi.string(input_dep_fm))) .. ' ' ..  u8(u8:decode(ffi.string(input_dep_tag2))) .. ' '  .. u8(u8:decode(ffi.string(input_dep_text))) )
+		imgui.CenterText(u8'Предпросмотр: /d ' .. u8(u8:decode(ffi.string(input_dep_tag1))) .. ' ' .. u8(u8:decode(ffi.string(input_dep_fm))) .. ' ' ..  u8(u8:decode(ffi.string(input_dep_tag2))) .. ': '  .. u8(u8:decode(ffi.string(input_dep_text))) )
 		imgui.EndChild()
 		imgui.End()
     end
@@ -3216,9 +3221,9 @@ imgui.OnFrame(
 			imgui.OpenPopup(fa.CLOCK .. u8' Задержка (в секундах) ')
 		end
 		if imgui.BeginPopupModal(fa.CLOCK .. u8' Задержка (в секундах) ', _, imgui.WindowFlags.NoResize ) then
-			if not isMonetLoader() then imgui.SetWindowFontScale(settings.general.custom_dpi) end
+			
 			imgui.PushItemWidth(200 * settings.general.custom_dpi)
-			imgui.SliderFloat(u8'##waiting', waiting_slider, 0.3, 5)
+			imgui.SliderFloat(u8'##waiting', waiting_slider, 0.3, 10)
 			imgui.Separator()
 			if imgui.Button(fa.CIRCLE_XMARK .. u8' Отмена', imgui.ImVec2(imgui.GetMiddleButtonX(2), 0)) then
 				waiting_slider = imgui.new.float(tonumber(change_waiting))	
@@ -3235,7 +3240,7 @@ imgui.OnFrame(
 			imgui.OpenPopup(fa.TAGS .. u8' Теги для использования в биндере')
 		end
 		if imgui.BeginPopupModal(fa.TAGS .. u8' Теги для использования в биндере', _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize  + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.AlwaysAutoResize ) then
-			if not isMonetLoader() then imgui.SetWindowFontScale(settings.general.custom_dpi) end
+			
 			imgui.Text(u8(binder_tags_text))
 			imgui.Separator()
 			if imgui.Button(fa.CIRCLE_XMARK .. u8' Закрыть', imgui.ImVec2(imgui.GetMiddleButtonX(1), 0)) then
@@ -3264,7 +3269,7 @@ imgui.OnFrame(
 			end
 		end
 		if imgui.BeginPopupModal(fa.KEYBOARD .. u8' Бинд для команды /' .. change_cmd, _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize  + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.AlwaysAutoResize) then
-			if not isMonetLoader() then imgui.SetWindowFontScale(settings.general.custom_dpi) end
+			
 			local hotkeyObject = hotkeys[change_cmd .. "HotKey"]
 			if hotkeyObject then
 				imgui.CenterText(u8('Клавиша активации бинда:'))
@@ -3470,7 +3475,7 @@ imgui.OnFrame(
     function() return GiveRankMenu[0] end,
     function(player)
 		imgui.SetNextWindowPos(imgui.ImVec2(sizeX / 2, sizeY / 2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
-		imgui.Begin(fa.BUILDING_SHIELD.." FD Helper##rank", GiveRankMenu, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize  + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.AlwaysAutoResize)
+		imgui.Begin(fa.FIRE_EXTINGUISHER.." FD Helper##rank", GiveRankMenu, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize  + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.AlwaysAutoResize)
 		if not isMonetLoader() then imgui.SetWindowFontScale(settings.general.custom_dpi) end
 		imgui.CenterText(u8'Выберите ранг для '.. sampGetPlayerNickname(player_id) .. ':')
 		imgui.PushItemWidth(250 * settings.general.custom_dpi)
@@ -3494,7 +3499,7 @@ imgui.OnFrame(
     function() return CommandStopWindow[0] end,
     function(player)
 		imgui.SetNextWindowPos(imgui.ImVec2(sizeX / 2, sizeY - 50 * settings.general.custom_dpi), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
-		imgui.Begin(fa.BUILDING_SHIELD .. " FD Helper##CommandStopWindow", _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize  + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.AlwaysAutoResize )
+		imgui.Begin(fa.FIRE_EXTINGUISHER .. " FD Helper##CommandStopWindow", _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize  + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.AlwaysAutoResize )
 		if not isMonetLoader() then imgui.SetWindowFontScale(settings.general.custom_dpi) end
 		if isMonetLoader() and isActiveCommand then
 			if imgui.Button(fa.CIRCLE_STOP..u8' Остановить отыгровку ') then
@@ -3512,7 +3517,7 @@ imgui.OnFrame(
     function() return CommandPauseWindow[0] end,
     function(player)
 		imgui.SetNextWindowPos(imgui.ImVec2(sizeX / 2, sizeY - 50 * settings.general.custom_dpi), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
-		imgui.Begin(fa.BUILDING_SHIELD.." FD Helper##CommandPauseWindow", _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize  + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.AlwaysAutoResize )
+		imgui.Begin(fa.FIRE_EXTINGUISHER.." FD Helper##CommandPauseWindow", _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize  + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.AlwaysAutoResize )
 		if not isMonetLoader() then imgui.SetWindowFontScale(settings.general.custom_dpi) end
 		if command_pause then
 			if imgui.Button(fa.CIRCLE_ARROW_RIGHT .. u8' Продолжить ', imgui.ImVec2(150 * settings.general.custom_dpi, 25 * settings.general.custom_dpi)) then
