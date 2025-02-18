@@ -3,7 +3,7 @@
 script_name("Justice Helper")
 script_description('This is a Cross-platform Lua script helper for Arizona RP players who work in the Ministry of Justice (PD and FBI) ??and the Ministry of Defense (Army)')
 script_author("MTG MODS")
-script_version("2.0 FREE")
+script_version("2.0 Free")
 
 require('lib.moonloader')
 require('encoding').default = 'CP1251'
@@ -4139,10 +4139,9 @@ imgui.OnFrame(
 							imgui.EndChild()
 						end
 						if imgui.Button(fa.CIRCLE_PLUS .. u8' Создать новую команду##new_cmd',imgui.ImVec2(imgui.GetMiddleButtonX(1), 0)) then
-
-							if #commands.commands >= 45 then
+							if #commands.commands >= 50 then
 								for i = 1, 10, 1 do
-									sampAddChatMessage('[Justice Helper] {ffffff}Лимит FREE версии на 45 команд, безлим в платной версии хелпера! Покупать у MTG MODS', message_color)
+									sampAddChatMessage('[Justice Helper] {ffffff}Лимит FREE версии на 50 команд, безлим в платной версии хелпера! Покупать у MTG MODS', message_color)
 								end
 							else
 								local new_cmd = {cmd = '', description = '', text = '', arg = '', enable = true, waiting = '1.500', bind = "{}" }
@@ -4365,9 +4364,9 @@ imgui.OnFrame(
 									save_settings()
 								end
 								if imgui.Checkbox(u8(' Отображение кнопки "Taser"'), checkbox_mobile_taser_button) then
-									for i = 1, 10, 1 do
-										sampAddChatMessage('[Justice Helper] {ffffff}Данная функция доступна только в платной версии хелпера! Покупать у MTG MODS', message_color)
-									end
+									settings.general.use_taser_menu = checkbox_mobile_taser_button[0]
+									TaserWindow[0] = settings.general.use_taser_menu
+									save_settings()
 								end
 							else
 								imgui.CenterText(fa.KEYBOARD .. u8(' Hotkeys'))
