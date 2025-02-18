@@ -2740,7 +2740,7 @@ local servers = {
 	{name = 'Payson', number = '15'},
 	{name = 'Gilbert', number = '16'},
 	{name = 'Show Low', number = '17'},
-	{name = 'CasaGrande', number = '18'},
+	{name = 'Casa Grande', number = '18'},
 	{name = 'Page', number = '19'},
 	{name = 'Sun City', number = '20'},
 	{name = 'Queen Creek', number = '21'},
