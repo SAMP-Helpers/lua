@@ -2762,7 +2762,7 @@ local servers = {
 function getARZServerNumber()
 	local server = 0
 	for _, s in ipairs(servers) do
-		if sampGetCurrentServerName():gsub('%-', ' '):find(s.name) then
+		if sampGetCurrentServerName():find(s.name) or sampGetCurrentServerName():gsub('%-', ' '):find(s.name) or sampGetCurrentServerName():gsub('-', ' '):find(s.name) then
 			server = s.number
 			break
 		end
