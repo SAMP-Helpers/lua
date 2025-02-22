@@ -2359,7 +2359,7 @@ imgui.OnFrame(
 						local random_number = tostring((math.random(0,50) + math.random(100,200)))
 						local random = 'live' .. random_number
 						sampAddChatMessage('[SMI Helper] {ffffff}Запускаю эфир "' .. live.name .. '" через временную команду /' .. random , message_color)
-						register_command(random, "", live.text, 1.500)
+						register_command(random, "", live.text, 4.000)
 						sampProcessChatInput("/" .. random)
 						sampUnregisterChatCommand(random)
 					end
