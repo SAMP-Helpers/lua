@@ -2815,8 +2815,13 @@ function check_update()
 					print("[Prison Helper] Текущая установленная версия:", thisScript().version)
 					print("[Prison Helper] Текущая версия в облаке:", uVer)
 					if thisScript().version ~= uVer then
-						sampAddChatMessage('[Prison Helper] {ffffff}Авто-обновления прямо из игры вырезаны в целях безопасности.', message_color)
-						sampAddChatMessage('[Prison Helper] {ffffff}Вручную скачать и посмотреть файл можно здесь https://github.com/Alexandr-Botovod/Prison_Helper',  message_color)
+						print(script_tag .. '  Доступно обновление!')
+						sampAddChatMessage(script_tag .. '  {ffffff}Доступно обновление!', message_color)
+						need_update_helper = true
+						updateUrl = uUrl
+						updateVer = uVer
+						updateInfoText = uText
+						UpdateWindow[0] = true
 					else
 						print(script_tag .. '  Обновление не нужно!')
 						sampAddChatMessage(script_tag .. '  {ffffff}Обновление не нужно, у вас актуальная версия!',
@@ -2836,8 +2841,13 @@ function check_update()
 					print("[Prison Helper] Текущая установленная версия:", thisScript().version)
 					print("[Prison Helper] Текущая версия в облаке:", uVer)
 					if thisScript().version ~= uVer then
-						sampAddChatMessage('[Prison Helper] {ffffff}Авто-обновления прямо из игры вырезаны в целях безопасности.', message_color)
-						sampAddChatMessage('[Prison Helper] {ffffff}Вручную скачать и посмотреть файл можно здесь https://github.com/Alexandr-Botovod/Prison_Helper',  message_color)
+						print(script_tag .. '  Доступно обновление!')
+						sampAddChatMessage(script_tag .. '  {ffffff}Доступно обновление!', message_color)
+						need_update_helper = true
+						updateUrl = uUrl
+						updateVer = uVer
+						updateInfoText = uText
+						UpdateWindow[0] = true
 					else
 						print(script_tag .. '  Обновление не нужно!')
 						sampAddChatMessage(script_tag .. '  {ffffff}Обновление не нужно, у вас актуальная версия!',
@@ -5148,18 +5158,18 @@ imgui.OnFrame(
 				imgui.BeginChild('##1', imgui.ImVec2(690 * MONET_DPI_SCALE, 180 * MONET_DPI_SCALE), true) -- Размеры вкладки "Настройки"
 				imgui.CenterText(fa.CIRCLE_INFO .. u8 ' Дополнительная информация про хелпер')
 				imgui.Separator()
-				imgui.Text(fa.CIRCLE_USER .. u8 " Разработчик данного хелпера: MTG MODS")
+				imgui.Text(fa.CIRCLE_USER .. u8 " Разработчики данного хелпера: ALEKSAND + MTG MODS")
 				imgui.Separator()
 				imgui.Text(fa.CIRCLE_INFO .. u8 " Установленная версия хелпера: " .. u8(thisScript().version))
-				imgui.SameLine()
-				if imgui.SmallButton(u8 'Проверить обновления') then
-					local result, check = pcall(check_update)
-					if not result then
-						sampAddChatMessage(
-							script_tag .. '  {ffffff}Произошла ошибка при попытке проверить наличие обновлений!',
-							message_color)
-					end
-				end
+				-- imgui.SameLine()
+				-- if imgui.SmallButton(u8 'Проверить обновления') then
+				-- 	local result, check = pcall(check_update)
+				-- 	if not result then
+				-- 		sampAddChatMessage(
+				-- 			script_tag .. '  {ffffff}Произошла ошибка при попытке проверить наличие обновлений!',
+				-- 			message_color)
+				-- 	end
+				-- end
 				imgui.Separator()
 				imgui.Text(fa.BOOK .. u8 " Гайд по использованию хелпера:")
 				imgui.SameLine()
@@ -6898,11 +6908,11 @@ function main()
 		JobInformationGeneralWindow[0] = true
 	end
 
-	local result, check = pcall(check_update)
-	if not result then
-		sampAddChatMessage('[Justice Helper] {ffffff}Произошла ошибка при попытке проверить наличие обновлений!',
-			message_color)
-	end
+	-- local result, check = pcall(check_update)
+	-- if not result then
+	-- 	sampAddChatMessage('[Justice Helper] {ffffff}Произошла ошибка при попытке проверить наличие обновлений!',
+	-- 		message_color)
+	-- end
 
 	while true do
 		wait(0)
