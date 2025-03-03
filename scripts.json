@@ -180,6 +180,15 @@
         "info": "Смена времени и погоды (/shelp)"
     },
     {
+        "name": "Offline Uninviter",
+        "ver": "1.0",
+        "author": "MTG MODS",
+        "link": "https://github.com/MTGMODS/lua_scripts/raw/refs/heads/main/off_uninvite/Offline%20Uninvite.lua",
+        "img": "https://media.discordapp.net/attachments/1119664359891800186/1226236887774265454/Screenshot_2024-04-06-18-06-07-284_com.arizona.game.jpg?ex=6748b618&is=67476498&hm=06f5ab0bbdc3be7cdb8a7d76143738a3de6959566351ba447d1408e54834ebdc&=&format=webp&width=1440&height=648",
+        "platform": "PC + MOBILE",
+        "info": "Чистка неактива фракции (/fcleaner)"
+    },
+    {
         "name": "MyAccent",
         "ver": "1.0",
         "author": "MTG MODS",
