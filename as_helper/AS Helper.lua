@@ -545,8 +545,6 @@ local spawncar_bool = false
 local vc_vize_bool = false
 local vc_vize_player_id = nil
 
-local clicked = false
-
 local message1
 local message2
 local message3
@@ -1006,46 +1004,46 @@ function get_players()
 	return playersInRange
 end
 function show_arz_notify(type, title, text, time)
-	if isMonetLoader() then
-		if type == 'info' then
-			type = 3
-		elseif type == 'error' then
-			type = 2
-		elseif type == 'success' then
-			type = 1
-		end
-		local bs = raknetNewBitStream()
-		raknetBitStreamWriteInt8(bs, 62)
-		raknetBitStreamWriteInt8(bs, 6)
-		raknetBitStreamWriteBool(bs, true)
-		raknetEmulPacketReceiveBitStream(220, bs)
-		raknetDeleteBitStream(bs)
-		local json = encodeJson({
-			styleInt = type,
-			title = title,
-			text = text,
-			duration = time
-		})
-		local interfaceid = 6
-		local subid = 0
-		local bs = raknetNewBitStream()
-		raknetBitStreamWriteInt8(bs, 84)
-		raknetBitStreamWriteInt8(bs, interfaceid)
-		raknetBitStreamWriteInt8(bs, subid)
-		raknetBitStreamWriteInt32(bs, #json)
-		raknetBitStreamWriteString(bs, json)
-		raknetEmulPacketReceiveBitStream(220, bs)
-		raknetDeleteBitStream(bs)
-	else
-		local str = ('window.executeEvent(\'event.notify.initialize\', \'["%s", "%s", "%s", "%s"]\');'):format(type, title, text, time)
-		local bs = raknetNewBitStream()
-		raknetBitStreamWriteInt8(bs, 17)
-		raknetBitStreamWriteInt32(bs, 0)
-		raknetBitStreamWriteInt32(bs, #str)
-		raknetBitStreamWriteString(bs, str)
-		raknetEmulPacketReceiveBitStream(220, bs)
-		raknetDeleteBitStream(bs)
-	end
+	-- if isMonetLoader() then
+	-- 	if type == 'info' then
+	-- 		type = 3
+	-- 	elseif type == 'error' then
+	-- 		type = 2
+	-- 	elseif type == 'success' then
+	-- 		type = 1
+	-- 	end
+	-- 	local bs = raknetNewBitStream()
+	-- 	raknetBitStreamWriteInt8(bs, 62)
+	-- 	raknetBitStreamWriteInt8(bs, 6)
+	-- 	raknetBitStreamWriteBool(bs, true)
+	-- 	raknetEmulPacketReceiveBitStream(220, bs)
+	-- 	raknetDeleteBitStream(bs)
+	-- 	local json = encodeJson({
+	-- 		styleInt = type,
+	-- 		title = title,
+	-- 		text = text,
+	-- 		duration = time
+	-- 	})
+	-- 	local interfaceid = 6
+	-- 	local subid = 0
+	-- 	local bs = raknetNewBitStream()
+	-- 	raknetBitStreamWriteInt8(bs, 84)
+	-- 	raknetBitStreamWriteInt8(bs, interfaceid)
+	-- 	raknetBitStreamWriteInt8(bs, subid)
+	-- 	raknetBitStreamWriteInt32(bs, #json)
+	-- 	raknetBitStreamWriteString(bs, json)
+	-- 	raknetEmulPacketReceiveBitStream(220, bs)
+	-- 	raknetDeleteBitStream(bs)
+	-- else
+	-- 	local str = ('window.executeEvent(\'event.notify.initialize\', \'["%s", "%s", "%s", "%s"]\');'):format(type, title, text, time)
+	-- 	local bs = raknetNewBitStream()
+	-- 	raknetBitStreamWriteInt8(bs, 17)
+	-- 	raknetBitStreamWriteInt32(bs, 0)
+	-- 	raknetBitStreamWriteInt32(bs, #str)
+	-- 	raknetBitStreamWriteString(bs, str)
+	-- 	raknetEmulPacketReceiveBitStream(220, bs)
+	-- 	raknetDeleteBitStream(bs)
+	-- end
 end
 local weapons = {
 	FIST = 0,
@@ -1715,60 +1713,6 @@ end
 function sampev.onCreate3DText(id, color, position, distance, testLOS, attachedPlayerId, attachedVehicleId, text_3d)
    if text_3d and text_3d:find('Òğåâîæíàÿ êíîïêà') and settings.general.anti_trivoga then -- óäàëåíèå òğåâîæíîé êíîïêè
 		return false
-	end
-end
-function onReceivePacket(id, bs)  
-	if isMonetLoader() then
-		if id == 220 and settings.general.auto_clicker then
-			local id = raknetBitStreamReadInt8(bs)
-			local _1 = raknetBitStreamReadInt8(bs)
-			local _2 = raknetBitStreamReadInt16(bs)
-			local _3 = raknetBitStreamReadInt32(bs)
-			-- àâòîìàòè÷åñêèé êëèê äëÿ ÌÎÁÀÉË "Êğóøåíèå ñàìîëåòà" è "Àâàğèÿ íà øîñå" (âçÿòî èç êîäà XRLM)
-			if _3 > 2 and _3 <= raknetBitStreamGetNumberOfUnreadBits(bs) then
-				local _4 = raknetBitStreamReadString(bs, _3)
-				if _4:find('{"progress":%d+,"text":"Äëÿ âçàèìîäåéñòâèÿ, íàæèìàéòå íà êíîïêó ïîñåğåäèíå"}') then
-					clicked = true
-				end
-			end
-		end
-	else
-		if id == 220 and settings.general.auto_clicker then
-			raknetBitStreamIgnoreBits(bs, 8)
-			if raknetBitStreamReadInt8(bs) == 17 then
-				raknetBitStreamIgnoreBits(bs, 32)
-				local cmd2 = raknetBitStreamReadString(bs, raknetBitStreamReadInt32(bs))
-
-				-- àâòîìàòè÷åñêèé êëèê äëÿ ÏÊ "Êğóøåíèå ñàìîëåòà" è "Àâàğèÿ íà øîñå" (âçÿòî èç êîäà Chapo)
-				local view = string.match(cmd2, "^window.executeEvent%('event%.setActiveView', [`']%[[\"%s]?(.-)[\"%s]?%][`']%);$")
-				if view ~= nil then
-					clicked = (view == "Clicker")
-				end
-
-				if cmd2:find('Îñíîâíàÿ ñòàòèñòèêà') and check_stats then -- /sme
-					sampAddChatMessage('[AS Helper] {ffffff}Îøèáêà, íå ìîãó ïîëó÷èòü äàííûå èç íîâîãî CEF äèàëîãà!', message_color)
-					sampAddChatMessage('[AS Helper] {ffffff}Âêëş÷èòå ñòàğûé (êëàñè÷åññêèé) âèä äèàëîãîâ â /settings - Êàñòîìèçàöèÿ èíòåğôåéñà', message_color)
-					run_code("window.executeEvent('cef.modals.closeModal', `[\"dialog\"]`);")
-				end
-				if cmd2:find('Âû äåéñòâèòåëüíî õîòèòå âûçâàòü ñîòğóäíèêîâ ïîëèöèè?') and settings.general.anti_trivoga then
-					sampAddChatMessage('[AS Helper] {ffffff}Âêëş÷èòå ñòàğûé (êëàñè÷åññêèé) âèä äèàëîãîâ â /settings - Êàñòîìèçàöèÿ èíòåğôåéñà', message_color)
-					run_code("window.executeEvent('cef.modals.closeModal', `[\"dialog\"]`);")
-					sampSendDialogResponse(sampGetCurrentDialogId(), 2, 0, 0)
-				end
-				
-			end
-		end
-	end
-end
-function onSendPacket(id, bs)
-	if id == 220 and isMonetLoader() and settings.general.auto_clicker then
-		-- àâòîìàòè÷åñêèé êëèê äëÿ ÌÎÁÀÉË "Êğóøåíèå ñàìîëåòà" è "Àâàğèÿ íà øîñå" (âçÿòî èç êîäà XRLM)
-		local id = raknetBitStreamReadInt8(bs)
-		local _1 = raknetBitStreamReadInt8(bs)
-		local _2 = raknetBitStreamReadInt8(bs)
-		if _1 == 66 and (_2 == 25 or _2 == 8) then
-			clicked = false
-		end
 	end
 end
 function change_dpi()
@@ -4083,42 +4027,6 @@ function main()
 			end
 		end
 
-		if clicked then
-			if isMonetLoader() then
-				local bs = raknetNewBitStream()
-				raknetBitStreamWriteInt8(bs, 220)
-				raknetBitStreamWriteInt8(bs, 63)
-				raknetBitStreamWriteInt8(bs, 25)
-				raknetBitStreamWriteInt32(bs, 0)
-				raknetBitStreamWriteInt8(bs, 255)
-				raknetBitStreamWriteInt8(bs, 255)
-				raknetBitStreamWriteInt8(bs, 255)
-				raknetBitStreamWriteInt8(bs, 255)
-				raknetBitStreamWriteInt32(bs, 0)
-				raknetSendBitStream(bs)
-				raknetDeleteBitStream(bs)
-				wait(10)
-			else
-				local cmd = "clickMinigame"
-				local bs = raknetNewBitStream()
-				raknetBitStreamWriteInt8(bs, 220)
-				raknetBitStreamWriteInt8(bs, 18)
-				raknetBitStreamWriteInt8(bs, #cmd)
-				raknetBitStreamWriteInt8(bs, 0)
-				raknetBitStreamWriteInt8(bs, 0)
-				raknetBitStreamWriteInt8(bs, 0)
-				raknetBitStreamWriteString(bs, cmd)
-				raknetBitStreamWriteInt32(bs, 0)
-				raknetBitStreamWriteInt8(bs, 0)
-				raknetBitStreamWriteInt8(bs, 0)
-				raknetSendBitStreamEx(bs, 1, 7, 1)
-				raknetDeleteBitStream(bs)
-				setGameKeyState(1, 255)
-				wait(10)
-				setGameKeyState(1, 0)
-			end
-		end
-		
 	end
 
 end
