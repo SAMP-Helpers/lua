@@ -658,13 +658,13 @@ function getFireLocation(id)
 		if id == count then
 			local line2 = line:match('%].+%](.+){.+{.+{'):gsub("^%s+", ""):gsub("%s+$", "")
 			active_fire_location = line2 or 'пожар'
-			if line:find('%*%*%*') then
-				active_fire_lvl = 3
-			elseif line:find('%*%*') then
-				active_fire_lvl = 2
-			elseif line:find('%*') then
-				active_fire_lvl = 1
-			end
+			-- if line:find('%*%*%*') then
+			-- 	active_fire_lvl = 3
+			-- elseif line:find('%*%*') then
+			-- 	active_fire_lvl = 2
+			-- elseif line:find('%*') then
+			-- 	active_fire_lvl = 1
+			-- end
 			if settings.general.auto_doklad_1 then
 				sampSendChat('/r ƒокладывает ' .. tagReplacements.my_doklad_nick() .. ', выехал' .. tagReplacements.sex() .. ' на ' .. active_fire_location .. ' ' .. active_fire_lvl .. '-й степени')
 			end
