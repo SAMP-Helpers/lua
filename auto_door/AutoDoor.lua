@@ -87,44 +87,44 @@ require("samp.events").onServerMessage = function(color,text)
 end
 
 function show_arz_notify(type, title, text, time)
-    if MONET_VERSION ~= nil then
-        if type == 'info' then
-            type = 3
-        elseif type == 'error' then
-            type = 2
-        elseif type == 'success' then
-            type = 1
-        end
-        local bs = raknetNewBitStream()
-        raknetBitStreamWriteInt8(bs, 62)
-        raknetBitStreamWriteInt8(bs, 6)
-        raknetBitStreamWriteBool(bs, true)
-        raknetEmulPacketReceiveBitStream(220, bs)
-        raknetDeleteBitStream(bs)
-        local json = encodeJson({
-            styleInt = type,
-            title = title,
-            text = text,
-            duration = time
-        })
-        local interfaceid = 6
-        local subid = 0
-        local bs = raknetNewBitStream()
-        raknetBitStreamWriteInt8(bs, 84)
-        raknetBitStreamWriteInt8(bs, interfaceid)
-        raknetBitStreamWriteInt8(bs, subid)
-        raknetBitStreamWriteInt32(bs, #json)
-        raknetBitStreamWriteString(bs, json)
-        raknetEmulPacketReceiveBitStream(220, bs)
-        raknetDeleteBitStream(bs)
-    else
-        local str = ('window.executeEvent(\'event.notify.initialize\', \'["%s", "%s", "%s", "%s"]\');'):format(type, title, text, time)
-        local bs = raknetNewBitStream()
-        raknetBitStreamWriteInt8(bs, 17)
-        raknetBitStreamWriteInt32(bs, 0)
-        raknetBitStreamWriteInt32(bs, #str)
-        raknetBitStreamWriteString(bs, str)
-        raknetEmulPacketReceiveBitStream(220, bs)
-        raknetDeleteBitStream(bs)
-    end
+    -- if MONET_VERSION ~= nil then
+    --     if type == 'info' then
+    --         type = 3
+    --     elseif type == 'error' then
+    --         type = 2
+    --     elseif type == 'success' then
+    --         type = 1
+    --     end
+    --     local bs = raknetNewBitStream()
+    --     raknetBitStreamWriteInt8(bs, 62)
+    --     raknetBitStreamWriteInt8(bs, 6)
+    --     raknetBitStreamWriteBool(bs, true)
+    --     raknetEmulPacketReceiveBitStream(220, bs)
+    --     raknetDeleteBitStream(bs)
+    --     local json = encodeJson({
+    --         styleInt = type,
+    --         title = title,
+    --         text = text,
+    --         duration = time
+    --     })
+    --     local interfaceid = 6
+    --     local subid = 0
+    --     local bs = raknetNewBitStream()
+    --     raknetBitStreamWriteInt8(bs, 84)
+    --     raknetBitStreamWriteInt8(bs, interfaceid)
+    --     raknetBitStreamWriteInt8(bs, subid)
+    --     raknetBitStreamWriteInt32(bs, #json)
+    --     raknetBitStreamWriteString(bs, json)
+    --     raknetEmulPacketReceiveBitStream(220, bs)
+    --     raknetDeleteBitStream(bs)
+    -- else
+    --     local str = ('window.executeEvent(\'event.notify.initialize\', \'["%s", "%s", "%s", "%s"]\');'):format(type, title, text, time)
+    --     local bs = raknetNewBitStream()
+    --     raknetBitStreamWriteInt8(bs, 17)
+    --     raknetBitStreamWriteInt32(bs, 0)
+    --     raknetBitStreamWriteInt32(bs, #str)
+    --     raknetBitStreamWriteString(bs, str)
+    --     raknetEmulPacketReceiveBitStream(220, bs)
+    --     raknetDeleteBitStream(bs)
+    -- end
 end

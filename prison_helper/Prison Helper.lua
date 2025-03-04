@@ -3563,58 +3563,58 @@ function sampev.onShowDialog(dialogid, style, title, button1, button2, text)
 	end
 end
 
-function onReceivePacket(id, bs)
-	if isMonetLoader() then
-		if id == 220 then
-			local id = raknetBitStreamReadInt8(bs)
-			local _1 = raknetBitStreamReadInt8(bs)
-			local _2 = raknetBitStreamReadInt16(bs)
-			local _3 = raknetBitStreamReadInt32(bs)
-			-- àâòîìàòè÷åñêèé êëèê äëÿ ÌÎÁÀÉË "Êğóøåíèå ñàìîëåòà" è "Àâàğèÿ íà øîñå" (âçÿòî èç êîäà XRLM)
-			if _3 > 2 and _3 <= raknetBitStreamGetNumberOfUnreadBits(bs) then
-				local _4 = raknetBitStreamReadString(bs, _3)
-				if _4:find('{"progress":%d+,"text":"Äëÿ âçàèìîäåéñòâèÿ, íàæèìàéòå íà êíîïêó ïîñåğåäèíå"}') and settings.general.auto_clicker_situation then
-					clicked = true
-				end
-			end
-		end
-	else
-		if id == 220 then
-			raknetBitStreamIgnoreBits(bs, 8)
-			if raknetBitStreamReadInt8(bs) == 17 then
-				raknetBitStreamIgnoreBits(bs, 32)
-				local cmd2 = raknetBitStreamReadString(bs, raknetBitStreamReadInt32(bs))
-				-- àâòîìàòè÷åñêèé êëèê äëÿ ÏÊ "Êğóøåíèå ñàìîëåòà" è "Àâàğèÿ íà øîñå" (âçÿòî èç êîäà Chapo)
-				local view = string.match(cmd2,
-					"^window.executeEvent%('event%.setActiveView', [`']%[[\"%s]?(.-)[\"%s]?%][`']%);$")
-				if view ~= nil and settings.general.auto_clicker_situation then
-					clicked = (view == "Clicker")
-				end
+-- function onReceivePacket(id, bs)
+-- 	if isMonetLoader() then
+-- 		if id == 220 then
+-- 			local id = raknetBitStreamReadInt8(bs)
+-- 			local _1 = raknetBitStreamReadInt8(bs)
+-- 			local _2 = raknetBitStreamReadInt16(bs)
+-- 			local _3 = raknetBitStreamReadInt32(bs)
+-- 			-- àâòîìàòè÷åñêèé êëèê äëÿ ÌÎÁÀÉË "Êğóøåíèå ñàìîëåòà" è "Àâàğèÿ íà øîñå" (âçÿòî èç êîäà XRLM)
+-- 			if _3 > 2 and _3 <= raknetBitStreamGetNumberOfUnreadBits(bs) then
+-- 				local _4 = raknetBitStreamReadString(bs, _3)
+-- 				if _4:find('{"progress":%d+,"text":"Äëÿ âçàèìîäåéñòâèÿ, íàæèìàéòå íà êíîïêó ïîñåğåäèíå"}') and settings.general.auto_clicker_situation then
+-- 					clicked = true
+-- 				end
+-- 			end
+-- 		end
+-- 	else
+-- 		if id == 220 then
+-- 			raknetBitStreamIgnoreBits(bs, 8)
+-- 			if raknetBitStreamReadInt8(bs) == 17 then
+-- 				raknetBitStreamIgnoreBits(bs, 32)
+-- 				local cmd2 = raknetBitStreamReadString(bs, raknetBitStreamReadInt32(bs))
+-- 				-- àâòîìàòè÷åñêèé êëèê äëÿ ÏÊ "Êğóøåíèå ñàìîëåòà" è "Àâàğèÿ íà øîñå" (âçÿòî èç êîäà Chapo)
+-- 				local view = string.match(cmd2,
+-- 					"^window.executeEvent%('event%.setActiveView', [`']%[[\"%s]?(.-)[\"%s]?%][`']%);$")
+-- 				if view ~= nil and settings.general.auto_clicker_situation then
+-- 					clicked = (view == "Clicker")
+-- 				end
 
-				if cmd2:find('Îñíîâíàÿ ñòàòèñòèêà') and check_stats then -- /jme
-					sampAddChatMessage(script_tag .. '  {ffffff}Îøèáêà, íå ìîãó ïîëó÷èòü äàííûå èç íîâîãî CEF äèàëîãà!',
-						message_color)
-					sampAddChatMessage(
-						script_tag ..
-						'  {ffffff}Âêëş÷èòå ñòàğûé (êëàñè÷åññêèé) âèä äèàëîãîâ â /settings - Êàñòîìèçàöèÿ èíòåğôåéñà',
-						message_color)
-					run_code("window.executeEvent('cef.modals.closeModal', `[\"dialog\"]`);")
-				end
-			end
-		end
-	end
-end
+-- 				if cmd2:find('Îñíîâíàÿ ñòàòèñòèêà') and check_stats then -- /jme
+-- 					sampAddChatMessage(script_tag .. '  {ffffff}Îøèáêà, íå ìîãó ïîëó÷èòü äàííûå èç íîâîãî CEF äèàëîãà!',
+-- 						message_color)
+-- 					sampAddChatMessage(
+-- 						script_tag ..
+-- 						'  {ffffff}Âêëş÷èòå ñòàğûé (êëàñè÷åññêèé) âèä äèàëîãîâ â /settings - Êàñòîìèçàöèÿ èíòåğôåéñà',
+-- 						message_color)
+-- 					run_code("window.executeEvent('cef.modals.closeModal', `[\"dialog\"]`);")
+-- 				end
+-- 			end
+-- 		end
+-- 	end
+-- end
 
-function onSendPacket(id, bs)
-	if id == 220 and isMonetLoader() then
-		local id = raknetBitStreamReadInt8(bs)
-		local _1 = raknetBitStreamReadInt8(bs)
-		local _2 = raknetBitStreamReadInt8(bs)
-		if _1 == 66 and (_2 == 25 or _2 == 8) and settings.general.auto_clicker_situation then
-			clicked = false
-		end
-	end
-end
+-- function onSendPacket(id, bs)
+-- 	if id == 220 and isMonetLoader() then
+-- 		local id = raknetBitStreamReadInt8(bs)
+-- 		local _1 = raknetBitStreamReadInt8(bs)
+-- 		local _2 = raknetBitStreamReadInt8(bs)
+-- 		if _1 == 66 and (_2 == 25 or _2 == 8) and settings.general.auto_clicker_situation then
+-- 			clicked = false
+-- 		end
+-- 	end
+-- end
 
 imgui.OnInitialize(function()
 	imgui.GetIO().IniFilename = ni

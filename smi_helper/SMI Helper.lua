@@ -963,46 +963,46 @@ function show_leader_fast_menu(id)
 	end
 end
 function show_arz_notify(type, title, text, time)
-	if isMonetLoader() then
-		if type == 'info' then
-			type = 3
-		elseif type == 'error' then
-			type = 2
-		elseif type == 'success' then
-			type = 1
-		end
-		local bs = raknetNewBitStream()
-		raknetBitStreamWriteInt8(bs, 62)
-		raknetBitStreamWriteInt8(bs, 6)
-		raknetBitStreamWriteBool(bs, true)
-		raknetEmulPacketReceiveBitStream(220, bs)
-		raknetDeleteBitStream(bs)
-		local json = encodeJson({
-			styleInt = type,
-			title = title,
-			text = text,
-			duration = time
-		})
-		local interfaceid = 6
-		local subid = 0
-		local bs = raknetNewBitStream()
-		raknetBitStreamWriteInt8(bs, 84)
-		raknetBitStreamWriteInt8(bs, interfaceid)
-		raknetBitStreamWriteInt8(bs, subid)
-		raknetBitStreamWriteInt32(bs, #json)
-		raknetBitStreamWriteString(bs, json)
-		raknetEmulPacketReceiveBitStream(220, bs)
-		raknetDeleteBitStream(bs)
-	else
-		local str = ('window.executeEvent(\'event.notify.initialize\', \'["%s", "%s", "%s", "%s"]\');'):format(type, title, text, time)
-		local bs = raknetNewBitStream()
-		raknetBitStreamWriteInt8(bs, 17)
-		raknetBitStreamWriteInt32(bs, 0)
-		raknetBitStreamWriteInt32(bs, #str)
-		raknetBitStreamWriteString(bs, str)
-		raknetEmulPacketReceiveBitStream(220, bs)
-		raknetDeleteBitStream(bs)
-	end
+	-- if isMonetLoader() then
+	-- 	if type == 'info' then
+	-- 		type = 3
+	-- 	elseif type == 'error' then
+	-- 		type = 2
+	-- 	elseif type == 'success' then
+	-- 		type = 1
+	-- 	end
+	-- 	local bs = raknetNewBitStream()
+	-- 	raknetBitStreamWriteInt8(bs, 62)
+	-- 	raknetBitStreamWriteInt8(bs, 6)
+	-- 	raknetBitStreamWriteBool(bs, true)
+	-- 	raknetEmulPacketReceiveBitStream(220, bs)
+	-- 	raknetDeleteBitStream(bs)
+	-- 	local json = encodeJson({
+	-- 		styleInt = type,
+	-- 		title = title,
+	-- 		text = text,
+	-- 		duration = time
+	-- 	})
+	-- 	local interfaceid = 6
+	-- 	local subid = 0
+	-- 	local bs = raknetNewBitStream()
+	-- 	raknetBitStreamWriteInt8(bs, 84)
+	-- 	raknetBitStreamWriteInt8(bs, interfaceid)
+	-- 	raknetBitStreamWriteInt8(bs, subid)
+	-- 	raknetBitStreamWriteInt32(bs, #json)
+	-- 	raknetBitStreamWriteString(bs, json)
+	-- 	raknetEmulPacketReceiveBitStream(220, bs)
+	-- 	raknetDeleteBitStream(bs)
+	-- else
+	-- 	local str = ('window.executeEvent(\'event.notify.initialize\', \'["%s", "%s", "%s", "%s"]\');'):format(type, title, text, time)
+	-- 	local bs = raknetNewBitStream()
+	-- 	raknetBitStreamWriteInt8(bs, 17)
+	-- 	raknetBitStreamWriteInt32(bs, 0)
+	-- 	raknetBitStreamWriteInt32(bs, #str)
+	-- 	raknetBitStreamWriteString(bs, str)
+	-- 	raknetEmulPacketReceiveBitStream(220, bs)
+	-- 	raknetDeleteBitStream(bs)
+	-- end
 end
 function run_code(code)
     local bs = raknetNewBitStream();
@@ -1539,24 +1539,6 @@ function sampev.onShowDialog(dialogid, style, title, button1, button2, text)
 			return false
 		end
 	end 
-end
--- function OnShowCEFDialog(dialogid) end
-function onReceivePacket(id, bs)  
-	if id == 220 then
-        raknetBitStreamIgnoreBits(bs, 8)
-        if raknetBitStreamReadInt8(bs) == 17 then
-            raknetBitStreamIgnoreBits(bs, 32)
-            local cmd2 = raknetBitStreamReadString(bs, raknetBitStreamReadInt32(bs))
-
-        
-            if cmd2:find('Основная статистика') and check_stats then -- /hme
-                sampAddChatMessage('[SMI Helper] {ffffff}Ошибка, не могу получить данные из нового CEF диалога!', message_color)
-                sampAddChatMessage('[SMI Helper] {ffffff}Включите старый (класичесский) вид диалогов в /settings - Кастомизация интерфейса', message_color)
-                run_code("window.executeEvent('cef.modals.closeModal', `[\"dialog\"]`);")
-            end
-            
-        end
-    end
 end
 
 imgui.OnInitialize(function()
