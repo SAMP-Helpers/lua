@@ -1419,7 +1419,7 @@ function sampev.onShowDialog(dialogid, style, title, button1, button2, text)
 	end
 
 	if spawncar_bool and title:find('$') and text:find('Спавн транспорта') then -- спавн транспорта
-		sampSendDialogResponse(dialogid, 2, 3, 0)
+		sampSendDialogResponse(dialogid, 1, 3, 0)
 		spawncar_bool = false
 		return false 
 	end
