@@ -3,7 +3,7 @@
 script_name("Justice Helper")
 script_description('This is a Cross-platform Lua script helper for Arizona RP players who work in the Ministry of Justice (PD and FBI) ??and the Ministry of Defense (Army)')
 script_author("MTG MODS")
-script_version("2.0 Free")
+script_version("2.1 Free")
 
 require('lib.moonloader')
 require('encoding').default = 'CP1251'
@@ -38,7 +38,6 @@ local default_settings = {
 		auto_time = false,
 		auto_clicker_situation = false,
 		auto_documentation = false,
-		use_form_su = false,
 		moonmonet_theme_enable = true,
 		moonmonet_theme_color = 40703,
 		mobile_fastmenu_button = true,
@@ -276,6 +275,125 @@ function save_notes()
     end
 end
 load_notes()
+-------------------------------------------- JSON RP GUNS ---------------------------------------------
+local rp_guns = {
+    {id = 0, name = 'кулаки', enable = true, rpTake = 2},
+    {id = 1, name = 'кастеты', enable = true, rpTake = 2},
+    {id = 2, name = 'клюшку для гольфа', enable = true, rpTake = 1},
+    {id = 3, name = 'дубинку', enable = true, rpTake = 3},
+    {id = 4, name = 'острый нож', enable = true, rpTake = 3},
+    {id = 5, name = 'биту', enable = true, rpTake = 1},
+    {id = 6, name = 'лопату', enable = true, rpTake = 1},
+    {id = 7, name = 'кий', enable = true, rpTake = 1},
+    {id = 8, name = 'катану', enable = true, rpTake = 1},
+    {id = 9, name = 'бензопилу', enable = true, rpTake = 1},
+    {id = 10, name = 'дидло', enable = true, rpTake = 2},
+    {id = 11, name = 'дидло', enable = true, rpTake = 2},
+    {id = 12, name = 'вибратор', enable = true, rpTake = 2},
+    {id = 13, name = 'вибратор', enable = true, rpTake = 2},
+    {id = 14, name = 'букет цветов', enable = true, rpTake = 1},
+    {id = 15, name = 'трость', enable = true, rpTake = 1},
+    {id = 16, name = 'осколочную гранату', enable = true, rpTake = 3},
+    {id = 17, name = 'дымовую гранату', enable = true, rpTake = 3},
+    {id = 18, name = 'коктейль Молотова', enable = true, rpTake = 3},
+    {id = 22, name = 'пистолет Colt45', enable = true, rpTake = 4},
+    {id = 23, name = "электрошокер Taser-X26P", enable = true, rpTake = 4},
+    {id = 24, name = 'пистолет Desert Eagle', enable = true, rpTake = 4},
+    {id = 25, name = 'дробовик', enable = true, rpTake = 1},
+    {id = 26, name = 'обрез', enable = true, rpTake = 1},
+    {id = 27, name = 'улучшенный обрез', enable = true, rpTake = 1},
+    {id = 28, name = 'пистолет-пулемёт Micro Uzi', enable = true, rpTake = 4},
+    {id = 29, name = 'пистолет-пулемёт MP5', enable = true, rpTake = 4},
+    {id = 30, name = 'автомат AK-47', enable = true, rpTake = 1},
+    {id = 31, name = 'автомат M4', enable = true, rpTake = 1},
+    {id = 32, name = 'пистолет-пулемёт Tec-9', enable = true, rpTake = 4},
+    {id = 33, name = 'винтовку Rifle', enable = true, rpTake = 1},
+    {id = 34, name = 'снайперскую винтовку Rifle', enable = true, rpTake = 1},
+    {id = 35, name = 'ручную противотанковую ракету', enable = true, rpTake = 1},
+    {id = 36, name = 'устройство для запуска ракет', enable = true, rpTake = 1},
+    {id = 37, name = 'огнемёт', enable = true, rpTake = 1},
+    {id = 38, name = 'миниган', enable = true, rpTake = 1},
+    {id = 39, name = 'динамит', enable = true, rpTake = 3},
+    {id = 40, name = 'детонатор', enable = true, rpTake = 3},
+    {id = 41, name = 'перцовый балончик', enable = true, rpTake = 2},
+    {id = 42, name = 'огнетушитель', enable = true, rpTake = 1},
+    {id = 43, name = 'фотоапарат', enable = true, rpTake = 2},
+    {id = 44, name = 'прибор ночного видения', enable = true, rpTake = 2},
+    {id = 45, name = 'тепловизор', enable = true, rpTake = 2},
+    {id = 46, name = 'ручной парашут', enable = true, rpTake = 1},
+    -- gta sa damage reason
+    {id = 49, name = 'автомобиль', rpTake = 1},
+    {id = 50, name = 'лопасти вертолёта', rpTake = 1},
+    {id = 51, name = 'бомбу', rpTake = 1},
+    {id = 54, name = 'коллизию', rpTake = 1},
+	-- ARZ CUSTOM GUN
+    {id = 71, name = 'пистолет Desert Eagle Steel', enable = true, rpTake = 4},
+    {id = 72, name = 'пистолет Desert Eagle Gold', enable = true, rpTake = 4},
+    {id = 73, name = 'пистолет Glock Gradient', enable = true, rpTake = 4},
+    {id = 74, name = 'пистолет Desert Eagle Flame', enable = true, rpTake = 4},
+    {id = 75, name = 'пистолет Python Royal', enable = true, rpTake = 4},
+    {id = 76, name = 'пистолет Python Silver', enable = true, rpTake = 4},
+    {id = 77, name = 'автомат AK-47 Roses', enable = true, rpTake = 1},
+    {id = 78, name = 'автомат AK-47 Gold', enable = true, rpTake = 1},
+    {id = 79, name = 'пулемёт M249 Graffiti', enable = true, rpTake = 1},
+    {id = 80, name = 'золотую Сайгу', enable = true, rpTake = 1},
+    {id = 81, name = 'пистолет-пулемёт Standart', enable = true, rpTake = 4},
+    {id = 82, name = 'пулемёт M249', enable = true, rpTake = 1},
+    {id = 83, name = 'пистолет-пулемёт Skorp', enable = true, rpTake = 4},
+    {id = 84, name = 'автомат AKS-74 камуфляжный', enable = true, rpTake = 1},
+    {id = 85, name = 'автомат AK-47 камуфляжный', enable = true, rpTake = 1},
+    {id = 86, name = 'дробовик Rebecca', enable = true, rpTake = 1},
+    {id = 87, name = 'портальную пушку', enable = true, rpTake = 1},
+    {id = 88, name = 'ледяной меч', enable = true, rpTake = 1},
+    {id = 89, name = 'портальную пушку', enable = true, rpTake = 4},
+    {id = 90, name = 'оглушающую гранату', enable = true, rpTake = 3},
+    {id = 91, name = 'ослепляющую гранату', enable = true, rpTake = 3},
+    {id = 92, name = 'снайперскую винтовку McMillian TAC-50', enable = true, rpTake = 1}
+}
+local rpTakeNames = {{"из-за спины", "за спину"}, {"из кармана", "в карман"}, {"из пояса", "на пояс"}, {"из кобуры", "в кобуру"}}  
+local path_rp_guns = configDirectory .. "/rp_guns.json"
+function load_rp_guns()
+	if doesFileExist(path_rp_guns) then
+		local file, errstr = io.open(path_rp_guns, 'r')
+        if file then
+            local contents = file:read('*a')
+            file:close()
+			if #contents == 0 then
+				print('[Justice Helper] Не удалось открыть файл с рп ганами!')
+				print('[Justice Helper] Причина: этот файл пустой')
+			else
+				local result, loaded = pcall(decodeJson, contents)
+				if result then
+					rp_guns = loaded
+					print('[Justice Helper] Рп ганы инициализированы!')
+				else
+					print('[Justice Helper] Не удалось открыть файл с с рп ганами!')
+					print('[Justice Helper] Причина: Не удалось декодировать json (ошибка в файле)')
+				end
+			end
+        else
+			print('[Justice Helper] Не удалось открыть файл с rp ганами!')
+			print('[Justice Helper] Причина: ')
+        end
+	else
+		print('[Justice Helper] Не удалось открыть файл с с рп ганами!')
+		print('[Justice Helper] Причина: этого файла нету в папке '..configDirectory)
+	end
+end
+function save_rp_guns()
+    local file, errstr = io.open(path_rp_guns, 'w')
+    if file then
+        local result, encoded = pcall(encodeJson, rp_guns)
+        file:write(result and encoded or "")
+        file:close()
+		print('[Justice Helper] Рп ганы сохранены!')
+        return result
+    else
+        print('[Justice Helper] Не удалось сохранить рп ганы, ошибка: ', errstr)
+        return false
+    end
+end
+load_rp_guns()
 -------------------------------------------- JSON SMART UK ---------------------------------------------
 local smart_uk = {}
 local path_uk = configDirectory .. "/SmartUK.json"
@@ -910,7 +1028,6 @@ local ImItemsPatroolCode = imgui.new['const char*'][#combo_patrool_code_list](co
 
 local SumMenuWindow = imgui.new.bool()
 local input_sum = imgui.new.char[128]()
-local checkbox_sum = imgui.new.bool(settings.general.use_form_su)
 local form_su = ''
 
 local TsmMenuWindow = imgui.new.bool()
@@ -925,6 +1042,13 @@ local FastPieMenu = imgui.new.bool()
 local FastMenuButton = imgui.new.bool()
 local FastMenuPlayers = imgui.new.bool()
 local MegafonWindow = imgui.new.bool()
+
+local RPWeaponWindow = imgui.new.bool()
+local ComboTags2 = imgui.new.int()
+local item_list2 = {u8'Спина', u8'Карман', u8'Пояс', u8'Кобура'}
+local ImItems2 = imgui.new['const char*'][#item_list2](item_list2)
+local input_weapon_name = imgui.new.char[256]()
+local input_weapon_name_search = imgui.new.char[256]()
 
 local NoteWindow = imgui.new.bool()
 local show_note_name = nil
@@ -2008,7 +2132,7 @@ function show_arz_notify(type, title, text, time)
 	-- else
 	-- 	local str = ('window.executeEvent(\'event.notify.initialize\', \'["%s", "%s", "%s", "%s"]\');'):format(type, title, text, time)
 	-- 	local bs = raknetNewBitStream()
-	-- 	raknetBitStreamWriteInt8(bs, 17)
+	-- 	raknetBitStreamWriteInt8(bs, 18)
 	-- 	raknetBitStreamWriteInt32(bs, 0)
 	-- 	raknetBitStreamWriteInt32(bs, #str)
 	-- 	raknetBitStreamWriteString(bs, str)
@@ -2059,201 +2183,53 @@ function sampGetPlayerIdByNickname(nick)
 	end
 	return id
 end
-local weapons = {
-	FIST = 0,
-	BRASSKNUCKLES = 1,
-	GOLFCLUB = 2,
-	NIGHTSTICK = 3,
-	KNIFE = 4,
-	BASEBALLBAT = 5,
-	SHOVEL = 6,
-	POOLCUE = 7,
-	KATANA = 8,
-	CHAINSAW = 9,
-	PURPLEDILDO = 10,
-	WHITEDILDO = 11,
-	WHITEVIBRATOR = 12,
-	SILVERVIBRATOR = 13,
-	FLOWERS = 14,
-	CANE = 15,
-	GRENADE = 16,
-	TEARGAS = 17,
-	MOLOTOV = 18,
-	COLT45 = 22,
-	SILENCED = 23,
-	DESERTEAGLE = 24,
-	SHOTGUN = 25,
-	SAWNOFFSHOTGUN = 26,
-	COMBATSHOTGUN = 27,
-	UZI = 28,
-	MP5 = 29,
-	AK47 = 30,
-	M4 = 31,
-	TEC9 = 32,
-	RIFLE = 33,
-	SNIPERRIFLE = 34,
-	ROCKETLAUNCHER = 35,
-	HEATSEEKER = 36,
-	FLAMETHROWER = 37,
-	MINIGUN = 38,
-	SATCHELCHARGE = 39,
-	DETONATOR = 40,
-	SPRAYCAN = 41,
-	FIREEXTINGUISHER = 42,
-	CAMERA = 43,
-	NIGHTVISION = 44,
-	THERMALVISION = 45,
-	PARACHUTE = 46,
-	WEAPON_VEHICLE = 49,
-	HELI = 50,
-	BOMB = 51,
-	COLLISION = 54,
-	-- ARZ CUSTOM GUN
-	DEAGLE_STEEL = 71,
-	DEAGLE_GOLD = 72,
-	GLOCK_GRADIENT = 73,
-	DEAGLE_FLAME = 74,
-	PYTHON_ROYAL = 75,
-	PYTHON_SILVER = 76,
-	AK47_ROSES = 77,
-	AK47_GOLD = 78,
-	M249_GRAFFITI = 79,
-	SAIGA_GOLD = 80,
-	PPSH_STANDART = 81,
-	M249_STANDART = 82,
-	SKORP_STANDART = 83,
-	AKS74_CAMOUFLAGE1 = 84,
-	AK47_CAMOUFLAGE1 = 85,
-	REBECCA_SHOTGUN = 86,
-	OBJ58_PORTALGUN = 87,
-	ICE_SWORD = 88,
-	PORTALGUN = 89,
-	SOUND_GRENADE = 90,
-	EYE_GRENADE = 91,
-	MCMILLIAN_TAC50 = 92
-}
-local id = weapons
-weapons.names = {
-	[id.FIST] = 'кулаки',
-	[id.BRASSKNUCKLES] = 'кастеты',
-	[id.GOLFCLUB] = 'клюшку для гольфа',
-	[id.NIGHTSTICK] = 'дубинку',
-	[id.KNIFE] = 'острый нож',
-	[id.BASEBALLBAT] = 'биту',
-	[id.SHOVEL] = 'лопату',
-	[id.POOLCUE] = 'кий',
-	[id.KATANA] = 'катану',
-	[id.CHAINSAW] = 'бензопилу',
-	[id.PURPLEDILDO] = 'дидло',
-	[id.WHITEDILDO] = 'дидло',
-	[id.WHITEVIBRATOR] = 'вибратор',
-	[id.SILVERVIBRATOR] = 'вибратор',
-	[id.FLOWERS] = 'букет цветов',
-	[id.CANE] = 'трость',
-	[id.GRENADE] = 'осколочную гранату',
-	[id.TEARGAS] = 'дымовую гранату',
-	[id.MOLOTOV] = 'коктейль Молотова',
-	[id.COLT45] = 'пистолет Colt45',
-	[id.SILENCED] = "электрошокер Taser-X26P",
-	[id.DESERTEAGLE] = 'пистолет Desert Eagle',
-	[id.SHOTGUN] = 'дробовик',
-	[id.SAWNOFFSHOTGUN] = 'обрез',
-	[id.COMBATSHOTGUN] = 'улучшенный обрез',
-	[id.UZI] = 'пистолет-пулемёт Micro Uzi',
-	[id.MP5] = 'пистолет-пулемёт MP5',
-	[id.AK47] = 'автомат AK-47',
-	[id.M4] = 'автомат M4',
-	[id.TEC9] = 'пистолет-пулемёт Tec-9',
-	[id.RIFLE] = 'винтовку Rifle',
-	[id.SNIPERRIFLE] = 'снайперскую винтовку Rifle',
-	[id.ROCKETLAUNCHER] = 'ручную противотанковую ракету',
-	[id.HEATSEEKER] = 'устройство для запуска ракет',
-	[id.FLAMETHROWER] = 'огнемёт',
-	[id.MINIGUN] = 'миниган',
-	[id.SATCHELCHARGE] = 'динамит',
-	[id.DETONATOR] = 'детонатор',
-	[id.SPRAYCAN] = 'перцовый балончик',
-	[id.FIREEXTINGUISHER] = 'огнетушитель',
-	[id.CAMERA] = 'фотоапарат',
-	[id.NIGHTVISION] = 'прибор ночного видения',
-	[id.THERMALVISION] = 'тепловизор',
-	[id.PARACHUTE] = 'ручной парашут',
-	[id.WEAPON_VEHICLE] = 'автомобиль',
-	[id.HELI] = 'лопасти вертолёта',
-	[id.BOMB] = 'взрыв',
-	[id.COLLISION] = 'коллизию',
-	-- ARZ LAUNCHER GUNS
-	[id.DEAGLE_STEEL] = 'пистолет Desert Eagle Steel',
-	[id.DEAGLE_GOLD] = 'пистолет Desert Eagle Gold',
-	[id.GLOCK_GRADIENT] = 'пистолет Glock',
-	[id.DEAGLE_FLAME] = 'пистолет Desert Eagle Flame',
-	[id.PYTHON_ROYAL] = 'пистолет Colt Python',
-	[id.PYTHON_SILVER] = 'пистолет Colt Python Silver',
-	[id.AK47_ROSES] = 'автомат AK-47 Roses',
-	[id.AK47_GOLD] = 'автомат AK-47 Gold',
-	[id.M249_GRAFFITI] = 'пулемёт M249 Graffiti',	
-	[id.SAIGA_GOLD] = 'золотую Сайгу',
-	[id.PPSH_STANDART] = 'пистолет-пулемёт Standart',
-	[id.M249_STANDART] = 'пулемёт M249',
-	[id.SKORP_STANDART] = 'пистолет-пулемёт Skorp',
-	[id.AKS74_CAMOUFLAGE1] = 'автомат AKS-74 камуфляжный',
-	[id.AK47_CAMOUFLAGE1] = 'автомат AK-47 камуфляжный',
-	[id.REBECCA_SHOTGUN] = 'дробовик Rebecca',
-	[id.OBJ58_PORTALGUN] = 'портальную пушку',
-	[id.PORTALGUN] = 'портальную пушку',
-	[id.ICE_SWORD] = 'ледяной меч',
-	[id.SOUND_GRENADE] = 'оглушающую граната',
-	[id.EYE_GRENADE] = 'ослепляющую граната',
-	[id.MCMILLIAN_TAC50] = 'снайперскую винтовку McMillian TAC-50'
-}
-function weapons.get_name(id) 
-	return weapons.names[id]
-end
+
 local gunOn = {}
 local gunOff = {}
 local gunPartOn = {}
 local gunPartOff = {}
 local oldGun = nil
 local nowGun = 0
-local rpTakeNames = {{"из-за спины", "за спину"}, {"из кармана", "в карман"}, {"из пояса", "на пояс"}, {"из кобуры", "в кобуру"}}
-local rpTake = {
-	[2]=1, [5]=1, [6]=1, [7]=1, [8]=1, [9]=1, [14]=1, [15]=1, [25]=1, [26]=1, [27]=1, [28]=1, [29]=1, [30]=1, [31]=1, [32]=1, [33]=1, [34]=1, [35]=1, [36]=1, [37]=1, [38]=1, [42]=1, [77]=1, [78]=1, [78]=1, [79]=1, [80]=1, [81]=1, [82]=1, [83]=1, [84]=1, [85]=1, [86]=1, [92]=1, [87]=1, [88]=1, [49]=1, [50]=1, [51]=1, [54]=1, -- спина
-	[1]=2, [4]=2, [10]=2, [11]=2, [12]=2, [13]=2, [41]=2, [43]=2, [44]=2, [45]=2, [46]=2, -- карман
-	[16]=3, [17]=3, [18]=3, [39]=3, [40]=3, [90]=3, [91]=3, [3]=3,  -- пояс
-	[22]=4, [23]=4, [24]=4, [71]=4, [72]=4, [73]=4, [74]=4, [75]=4, [76]=4, [89]=4, -- кобура
-}
-for id, weapon in pairs(weapons.names) do
-	if (id == 3 or (id > 15 and id < 19) or (id == 90 or id == 91)) then -- 3 16 17 18 (for gunOn)
-		if settings.player_info.sex == "Мужчина" or settings.player_info.sex == "Неизвестно" then
-			gunOn[id] = 'снял'
-		elseif settings.player_info.sex == "Женщина" then
-			gunOn[id] = 'снялa'
-		end
-	else
-		if settings.player_info.sex == "Мужчина" or settings.player_info.sex == "Неизвестно" then
-			gunOn[id] = 'достал'
-		elseif settings.player_info.sex == "Женщина" then
-			gunOn[id] = 'досталa'
-		end
-	end
-	if (id == 3 or (id > 15 and id < 19) or (id > 38 and id < 41) or (id == 90 or id == 91)) then -- 3 16 17 18 39 40 (for gunOff)
-		if settings.player_info.sex == "Мужчина" or settings.player_info.sex == "Неизвестно" then
-			gunOff[id] = 'повесил'
-		elseif settings.player_info.sex == "Женщина" then
-			gunOff[id] = 'повесилa'
-		end
-	else
-		if settings.player_info.sex == "Мужчина" or settings.player_info.sex == "Неизвестно" then
-			gunOff[id] = 'убрал'
-		elseif settings.player_info.sex == "Женщина" then
-			gunOff[id] = 'убралa'
-		end
-	end
-	if id > 0 then
-		gunPartOn[id] = rpTakeNames[rpTake[id]][1]
-		gunPartOff[id] = rpTakeNames[rpTake[id]][2]
-	end
+
+function init_guns()
+    gunOn = {}
+    gunOff = {}
+    gunPartOn = {}
+    gunPartOff = {}
+    for _, weapon in ipairs(rp_guns) do
+        local id = weapon.id
+        local rpTakeType = rpTakeNames[tonumber(weapon.rpTake)]
+    
+        gunPartOn[id] = rpTakeType[1]
+        gunPartOff[id] = rpTakeType[2]
+    
+        if (id == 3 or (id > 15 and id < 19) or (id == 90 or id == 91)) then
+            gunOn[id] = (settings.player_info.sex == "Женщина") and "сняла" or "снял"
+        else
+            gunOn[id] = (settings.player_info.sex == "Женщина") and "достала" or "достал"
+        end
+    
+        if (id == 3 or (id > 15 and id < 19) or (id > 38 and id < 41) or (id == 90 or id == 91)) then
+            gunOff[id] = (settings.player_info.sex == "Женщина") and "повесила" or "повесил"
+        else
+            gunOff[id] = (settings.player_info.sex == "Женщина") and "убрала" or "убрал"
+        end
+    end
 end
+if settings.general.rp_gun then
+    init_guns()
+end
+function get_name_weapon(id) 
+    local name = 'оружие'
+    for index, value in ipairs(rp_guns) do
+        if tostring(id) == tostring(value.id) then
+            name = value.name
+            break
+        end
+    end
+	return name
+end
+
 function format_patrool_time(seconds)
     local hours = math.floor(seconds / 3600)
     local minutes = math.floor((seconds % 3600) / 60)
@@ -2770,7 +2746,7 @@ local servers = {
 	{name = 'Vice City', number = '200'},
 }
 function getARZServerNumber()
-	local server = 0
+	local server = "0"
 	for _, s in ipairs(servers) do
 		if sampGetCurrentServerName():find(s.name) or sampGetCurrentServerName():gsub('%-', ' '):find(s.name) or sampGetCurrentServerName():gsub('-', ' '):find(s.name) then
 			server = s.number
@@ -2958,11 +2934,13 @@ function downloadFileFromUrlToPath(url, path)
 					reload_script = true
 					thisScript():unload()
 				elseif download_smartuk then
-					sampAddChatMessage('[Justice Helper] {ffffff}Загрузка умной выдачи розыска для сервера ' .. getARZServerName(getARZServerNumber()) .. ' [' .. getARZServerNumber() ..  '] завершена успешно!',  message_color)
+					sampAddChatMessage('[Justice Helper] {ffffff}Загрузка умной выдачи розыска для сервера ' .. getARZServerName(getARZServerNumber()) .. '[' .. getARZServerNumber() ..  '] завершена успешно!',  message_color)
+					sampAddChatMessage('[Justice Helper] {ffffff}Для выдачи розыска используйте ' .. message_color_hex .. '/sum ID',  message_color)
 					download_smartuk = false
 					load_smart_uk()
 				elseif download_smartpdd then
-					sampAddChatMessage('[Justice Helper] {ffffff}Загрузка умной выдачи штрафов для сервера ' .. getARZServerName(getARZServerNumber()) .. ' [' .. getARZServerNumber() ..  '] завершена успешно!',  message_color)
+					sampAddChatMessage('[Justice Helper] {ffffff}Загрузка умной выдачи штрафов для сервера ' .. getARZServerName(getARZServerNumber()) .. '[' .. getARZServerNumber() ..  '] завершена успешно!',  message_color)
+					sampAddChatMessage('[Justice Helper] {ffffff}Для выдачи штрафов используйте ' .. message_color_hex .. '/tsm ID',  message_color)
 					download_smartpdd = false
 					load_smart_pdd()
 				elseif download_arzvehicles then
@@ -2983,11 +2961,14 @@ function downloadFileFromUrlToPath(url, path)
 					reload_script = true
 					thisScript():unload()
 				elseif download_smartuk then
-					sampAddChatMessage('[Justice Helper] {ffffff}Загрузка умной выдачи розыска для сервера ' .. getARZServerName(getARZServerNumber()) .. ' [' .. getARZServerNumber() ..  '] завершена успешно!',  message_color)
+					sampAddChatMessage('[Justice Helper] {ffffff}Загрузка умной выдачи розыска для сервера ' .. getARZServerName(getARZServerNumber()) .. '[' .. getARZServerNumber() ..  '] завершена успешно!',  message_color)
+					sampAddChatMessage('[Justice Helper] {ffffff}Для выдачи розыска используйте ' .. message_color_hex .. '/sum ID',  message_color)
+					
 					download_smartuk = false
 					load_smart_uk()
 				elseif download_smartpdd then
-					sampAddChatMessage('[Justice Helper] {ffffff}Загрузка умной выдачи штрафов для сервера ' .. getARZServerName(getARZServerNumber()) .. ' [' .. getARZServerNumber() ..  '] завершена успешно!',  message_color)
+					sampAddChatMessage('[Justice Helper] {ffffff}Загрузка умной выдачи штрафов для сервера ' .. getARZServerName(getARZServerNumber()) .. '[' .. getARZServerNumber() ..  '] завершена успешно!',  message_color)
+					sampAddChatMessage('[Justice Helper] {ffffff}Для выдачи штрафов используйте ' .. message_color_hex .. '/tsm ID',  message_color)
 					download_smartpdd = false
 					load_smart_pdd()
 				elseif download_arzvehicles then
@@ -3066,7 +3047,7 @@ function sampev.onSendTakeDamage(playerId,damage,weapon)
 		playerId2 = playerId1
 		playerId1 = playerId
 		if isParamSampID(playerId) and playerId1 ~= playerId2 and tonumber(playerId) ~= 0 and weapon then
-			local weapon_name = weapons.get_name(weapon)
+			local weapon_name = get_name_weapon(weapon)
 			if weapon_name then
 				sampAddChatMessage('[Justice Helper] {ffffff}Игрок ' .. sampGetPlayerNickname(playerId) .. '[' .. playerId .. '] напал на вас используя ' .. weapon_name .. '['.. weapon .. ']!', message_color)
 				--sampSendChat(' /rep Следите за ID ' .. playerId ..', напал на меня используя ' .. weapon_name)
@@ -3871,16 +3852,26 @@ imgui.OnFrame(
 						imgui.CenterColumnText(u8'Отключено')
 					end
 					imgui.NextColumn()
-					if settings.general.rp_gun then
-						if imgui.CenterColumnSmallButton(u8'Отключить##rp_gun') then
-							settings.general.rp_gun = false
+					if imgui.CenterColumnSmallButton(u8'Настроить##rp_gun') then
+						imgui.OpenPopup(fa.GUN .. u8' Настроить RP оружие##weapon_name')
+					end
+					if imgui.BeginPopupModal(fa.GUN .. u8' Настроить RP оружие##weapon_name', _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize + imgui.WindowFlags.AlwaysAutoResize ) then
+						change_dpi()
+						if imgui.Button((settings.general.rp_gun and u8'Отключить##rp_gun' or u8'Включить##rp_gun'), imgui.ImVec2(200 * settings.general.custom_dpi, 25 * settings.general.custom_dpi)) then
+							settings.general.rp_gun = not settings.general.rp_gun
 							save_settings()
+							imgui.CloseCurrentPopup()
 						end
-					else
-						if imgui.CenterColumnSmallButton(u8'Включить##rp_gun') then
-							settings.general.rp_gun = true
-							save_settings()
+						imgui.SameLine()
+						if imgui.Button(fa.GEAR .. u8' Настоить RP ганы', imgui.ImVec2(200 * settings.general.custom_dpi, 25 * settings.general.custom_dpi)) then
+							RPWeaponWindow[0] = true
+							if not settings.general.rp_gun then
+								settings.general.rp_gun = true
+								save_settings()
+							end
+							imgui.CloseCurrentPopup()
 						end
+						imgui.End()
 					end
 					imgui.Columns(1)
 					imgui.Separator()
@@ -4475,45 +4466,33 @@ imgui.OnFrame(
 					imgui.SetCursorPosY(100 * settings.general.custom_dpi)
 					imgui.SetCursorPosX(105 * settings.general.custom_dpi)
 					if imgui.Button(fa.DOWNLOAD .. u8' Загрузить ##smartuk') then
-						if getARZServerNumber() ~= 0 then
-							download_smartuk = true
-							downloadFileFromUrlToPath('https://github.com/MTGMODS/lua_scripts/raw/refs/heads/main/justice-helper/SmartUK/' .. getARZServerNumber() .. '/SmartUK.json', path_uk)
-							imgui.OpenPopup(fa.CIRCLE_INFO .. u8' Justice Helper - Оповещение##donwloadsmartuk')
-						else
-							imgui.OpenPopup(fa.CIRCLE_INFO .. u8' Justice Helper - Оповещение##nocloudsmartuk')
-						end
-					end
-					if imgui.BeginPopupModal(fa.CIRCLE_INFO .. u8' Justice Helper - Оповещение##nocloudsmartuk', _, imgui.WindowFlags.NoCollapse  + imgui.WindowFlags.NoResize) then
-						change_dpi()
-						imgui.CenterText(u8'В базе данных ещё нету умного розыска для вашего сервера!')
-						imgui.Separator()
-						imgui.CenterText(u8'Вы можете вручную заполнить его по кнопке "Отредактировать"')
-						imgui.CenterText(u8'Затем вы сможете поделиться им на нашем Discord и он будет загружен в базу данных')
-						imgui.Separator()
-						if imgui.Button(fa.CIRCLE_XMARK .. u8' Хорошо', imgui.ImVec2(550 * settings.general.custom_dpi, 25 * settings.general.custom_dpi)) then
-							imgui.CloseCurrentPopup()
-						end
-						imgui.EndPopup()
+						download_smartuk = true
+						downloadFileFromUrlToPath('https://github.com/MTGMODS/lua_scripts/raw/refs/heads/main/justice-helper/SmartUK/' .. getARZServerNumber() .. '/SmartUK.json', path_uk)
+						imgui.OpenPopup(fa.CIRCLE_INFO .. u8' Justice Helper - Оповещение##donwloadsmartuk')
 					end
 					if imgui.BeginPopupModal(fa.CIRCLE_INFO .. u8' Justice Helper - Оповещение##donwloadsmartuk', _, imgui.WindowFlags.NoCollapse  + imgui.WindowFlags.NoResize) then
 						if download_smartuk then
 							change_dpi()
-							imgui.CenterText(u8'Если вы видите это окно значит идёт скачивание умного розыска для ' .. getARZServerNumber() .. u8' сервера!')
-							imgui.CenterText(u8'После заверешения загрузки это окно пропадёт и вы увидите сообщение в чате!')
+							imgui.CenterText(u8'Идёт скачивание умного розыска для сервера ' .. getARZServerName(getARZServerNumber()) .. "[" .. getARZServerNumber() .. ']')
+							imgui.CenterText(u8'После успешной загрузки менюшка пропадёт и вы увидите сообщение в чате про завершение.')
 							imgui.Separator()
-							imgui.CenterText(u8'Если же ничего не происходит, значит произошла ошибка скачивания SmartUK.json')
-							imgui.CenterText(u8'Возможно в базе данных нету файла именно для вашего сервера!')
-							imgui.Separator()
-							imgui.CenterText(u8'В этом случае вы можете вручную заполнить его по кнопке "Отредактировать"')
-							imgui.CenterText(u8'Затем вы сможете поделиться им на нашем Discord и он будет загружен в базу данных')
-							imgui.CenterText(u8'Вам надо будет скинуть файл SmartUK.json , который находиться по пути:')
+							imgui.CenterText(u8'Если прошло больше 10 секунд и ничего не происходит, значит произошла ошибка скачивания!')
+							imgui.CenterText(u8'Способы решения ошибки автоматического скачивания умного розыска:')
+							imgui.CenterText(u8'1) Вы можете вручную заполнить розыск по кнопке "Отредактировать"')
+							imgui.CenterText(u8'2) Вы можете скачать готовый файлик розыска из облака (кнопка) и закинуть его по по пути:')
 							imgui.CenterText(u8(path_uk))
 							imgui.Separator()
 						else
+							MainWindow[0] = false
 							imgui.CloseCurrentPopup()
 						end
-						if imgui.Button(fa.CIRCLE_INFO .. u8' Хорошо', imgui.ImVec2(550 * settings.general.custom_dpi, 25 * settings.general.custom_dpi)) then
+						if imgui.Button(fa.CIRCLE_XMARK .. u8' Закрыть', imgui.ImVec2(300 * settings.general.custom_dpi, 25 * settings.general.custom_dpi)) then
 							imgui.CloseCurrentPopup()
+						end
+						imgui.SameLine()
+						if imgui.Button(fa.CIRCLE_PLAY .. u8' Открыть облако', imgui.ImVec2(300 * settings.general.custom_dpi, 25 * settings.general.custom_dpi)) then
+							openLink('https://github.com/MTGMODS/lua_scripts/tree/main/justice-helper/SmartUK/')
+							MainWindow[0] = false
 						end
 						imgui.EndPopup()
 					end
@@ -4522,8 +4501,6 @@ imgui.OnFrame(
 					if imgui.Button(fa.PEN_TO_SQUARE .. u8' Отредактировать ##smartuk') then
 						imgui.OpenPopup(fa.STAR .. u8' Система умного розыска##smartuk')
 					end
-					imgui.SetCursorPosY(250 * settings.general.custom_dpi)
-					imgui.CenterText(u8('Использование: /sum [ID игрока]'))
 					if imgui.BeginPopupModal(fa.STAR .. u8' Система умного розыска##smartuk', _, imgui.WindowFlags.NoCollapse  + imgui.WindowFlags.NoResize ) then
 						change_dpi()
 						imgui.BeginChild('##smartukedit', imgui.ImVec2(589 * settings.general.custom_dpi, 360 * settings.general.custom_dpi), true)
@@ -4633,11 +4610,10 @@ imgui.OnFrame(
 								if imgui.Button(fa.CIRCLE_PLUS .. u8' Добавить новый подпункт', imgui.ImVec2(imgui.GetMiddleButtonX(2), 25 * settings.general.custom_dpi)) then
 									input_smartuk_text = imgui.new.char[8192](u8(''))
 									input_smartuk_lvl = imgui.new.char[256](u8(''))
-									input_smartuk_reason = imgui.new.char[256](u8(''))
+									input_smartuk_reason = imgui.new.char[8192](u8(''))
 									imgui.OpenPopup(fa.CIRCLE_PLUS .. u8(' Добавление нового подпункта'))
 								end
 								if imgui.BeginPopupModal(fa.CIRCLE_PLUS .. u8(' Добавление нового подпункта'), _, imgui.WindowFlags.NoCollapse  + imgui.WindowFlags.NoResize) then
-									change_dpi()
 									if imgui.BeginChild('##smartukedititeminput', imgui.ImVec2(489 * settings.general.custom_dpi, 155 * settings.general.custom_dpi), true) then	
 										imgui.CenterText(u8'Название подпункта:')
 										imgui.PushItemWidth(478 * settings.general.custom_dpi)
@@ -4647,7 +4623,7 @@ imgui.OnFrame(
 										imgui.InputText(u8'##input_smartuk_lvl', input_smartuk_lvl, 256)
 										imgui.CenterText(u8'Причина для выдачи розыска:')
 										imgui.PushItemWidth(478 * settings.general.custom_dpi)
-										imgui.InputText(u8'##input_smartuk_reason', input_smartuk_reason, 256)
+										imgui.InputText(u8'##input_smartuk_reason', input_smartuk_reason, 8192)
 										imgui.EndChild()
 									end	
 									if imgui.Button(fa.CIRCLE_XMARK .. u8' Отмена', imgui.ImVec2(imgui.GetMiddleButtonX(2), 0)) then
@@ -4683,7 +4659,6 @@ imgui.OnFrame(
 							imgui.OpenPopup(fa.CIRCLE_PLUS .. u8' Добавление нового пункта')
 						end
 						if imgui.BeginPopupModal(fa.CIRCLE_PLUS .. u8' Добавление нового пункта', _, imgui.WindowFlags.NoCollapse  + imgui.WindowFlags.NoResize) then
-							change_dpi()
 							imgui.CenterText(u8('Введите название/номер пункта и нажмите "Сохранить"'))
 							imgui.PushItemWidth(500 * settings.general.custom_dpi)
 							imgui.InputText(u8'##input_smartuk_name', input_smartuk_name, 8192)
@@ -4707,6 +4682,9 @@ imgui.OnFrame(
 						end
 						imgui.EndPopup()
 					end
+					imgui.SetCursorPosY(250 * settings.general.custom_dpi)
+					imgui.CenterText(u8('Использование: /sum [ID игрока]'))
+					
 					imgui.EndChild()
 				end
 				imgui.SameLine()
@@ -4716,45 +4694,33 @@ imgui.OnFrame(
 					imgui.SetCursorPosY(105 * settings.general.custom_dpi)
 					imgui.SetCursorPosX(105 * settings.general.custom_dpi)
 					if imgui.Button(fa.DOWNLOAD .. u8' Загрузить ##smartpdd') then
-						if getARZServerNumber() ~= 0 then
-							download_smartpdd = true
-							downloadFileFromUrlToPath('https://github.com/MTGMODS/lua_scripts/raw/refs/heads/main/justice-helper/SmartPDD/' .. getARZServerNumber() .. '/SmartPDD.json', path_pdd)
-							imgui.OpenPopup(fa.CIRCLE_INFO .. u8' Justice Helper - Оповещение##donwloadsmartpdd')
-						else
-							imgui.OpenPopup(fa.CIRCLE_INFO .. u8' Justice Helper - Оповещение##nocloudsmartpdd')
-						end
-					end
-					if imgui.BeginPopupModal(fa.CIRCLE_INFO .. u8' Justice Helper - Оповещение##nocloudsmartpdd', _, imgui.WindowFlags.NoCollapse  + imgui.WindowFlags.NoResize) then
-						change_dpi()
-						imgui.CenterText(u8'В базе данных ещё нету умных штрафов для вашего сервера!')
-						imgui.Separator()
-						imgui.CenterText(u8'Вы можете вручную заполнить его по кнопке "Отредактировать"')
-						imgui.CenterText(u8'Затем вы сможете поделиться им на нашем Discord и он будет загружен в базу данных')
-						imgui.Separator()
-						if imgui.Button(fa.CIRCLE_XMARK .. u8' Хорошо', imgui.ImVec2(550 * settings.general.custom_dpi, 25 * settings.general.custom_dpi)) then
-							imgui.CloseCurrentPopup()
-						end
-						imgui.EndPopup()
+						download_smartpdd = true
+						downloadFileFromUrlToPath('https://github.com/MTGMODS/lua_scripts/raw/refs/heads/main/justice-helper/SmartPDD/' .. getARZServerNumber() .. '/SmartPDD.json', path_pdd)
+						imgui.OpenPopup(fa.CIRCLE_INFO .. u8' Justice Helper - Оповещение##donwloadsmartpdd')
 					end
 					if imgui.BeginPopupModal(fa.CIRCLE_INFO .. u8' Justice Helper - Оповещение##donwloadsmartpdd', _, imgui.WindowFlags.NoCollapse  + imgui.WindowFlags.NoResize) then
-						change_dpi()
 						if download_smartpdd then
-							imgui.CenterText(u8'Если вы видите это окно значит идёт скачивание умных штрафов для ' .. getARZServerNumber() .. u8' сервера!')
-							imgui.CenterText(u8'После заверешения загрузки это окно пропадёт и вы увидите сообщение в чате!')
+							change_dpi()
+							imgui.CenterText(u8'Идёт скачивание умных штрафов для сервера ' .. getARZServerName(getARZServerNumber()) .. "[" .. getARZServerNumber() .. ']')
+							imgui.CenterText(u8'После успешной загрузки менюшка пропадёт и вы увидите сообщение в чате про завершение.')
 							imgui.Separator()
-							imgui.CenterText(u8'Если же ничего не происходит, значит произошла ошибка скачивания SmartPDD.json')
-							imgui.CenterText(u8'Возможно в базе данных нету файла именно для вашего сервера!')
-							imgui.Separator()
-							imgui.CenterText(u8'В этом случае вы можете вручную заполнить его по кнопке "Отредактировать"')
-							imgui.CenterText(u8'Затем вы сможете поделиться им на нашем Discord и он будет загружен в базу данных')
-							imgui.CenterText(u8'Вам надо будет скинуть файл SmartPDD.json , который находиться по пути:')
+							imgui.CenterText(u8'Если прошло больше 10 секунд и ничего не происходит, значит произошла ошибка скачивания!')
+							imgui.CenterText(u8'Способы решения ошибки автоматического скачивания умного розыска:')
+							imgui.CenterText(u8'1) Вы можете вручную заполнить штрафы по кнопке "Отредактировать"')
+							imgui.CenterText(u8'2) Вы можете скачать готовый файлик штрафов из облака (кнопка) и закинуть его по по пути:')
 							imgui.CenterText(u8(path_pdd))
 							imgui.Separator()
 						else
+							MainWindow[0] = false
 							imgui.CloseCurrentPopup()
 						end
-						if imgui.Button(fa.CIRCLE_INFO .. u8' Хорошо', imgui.ImVec2(550 * settings.general.custom_dpi, 25 * settings.general.custom_dpi)) then
+						if imgui.Button(fa.CIRCLE_XMARK .. u8' Закрыть', imgui.ImVec2(300 * settings.general.custom_dpi, 25 * settings.general.custom_dpi)) then
 							imgui.CloseCurrentPopup()
+						end
+						imgui.SameLine()
+						if imgui.Button(fa.CIRCLE_PLAY .. u8' Открыть облако', imgui.ImVec2(300 * settings.general.custom_dpi, 25 * settings.general.custom_dpi)) then
+							openLink('https://github.com/MTGMODS/lua_scripts/tree/main/justice-helper/SmartPDD/')
+							MainWindow[0] = false
 						end
 						imgui.EndPopup()
 					end
@@ -4870,23 +4836,23 @@ imgui.OnFrame(
 									imgui.EndChild()
 								end
 								if imgui.Button(fa.CIRCLE_PLUS .. u8' Добавить новый подпункт##smartpdd', imgui.ImVec2(imgui.GetMiddleButtonX(2), 25 * settings.general.custom_dpi)) then
-									input_smartpdd_text = imgui.new.char[256](u8(''))
+									input_smartpdd_text = imgui.new.char[8192](u8(''))
 									input_smartpdd_amount = imgui.new.char[256](u8(''))
-									input_smartpdd_reason = imgui.new.char[256](u8(''))
+									input_smartpdd_reason = imgui.new.char[8192](u8(''))
 									imgui.OpenPopup(fa.CIRCLE_PLUS .. u8(' Добавление нового подпункта##smartpdd'))
 								end
 								if imgui.BeginPopupModal(fa.CIRCLE_PLUS .. u8(' Добавление нового подпункта##smartpdd'), _, imgui.WindowFlags.NoCollapse  + imgui.WindowFlags.NoResize) then
-									change_dpi()
+		
 									if imgui.BeginChild('##smartpddedititeminput', imgui.ImVec2(489 * settings.general.custom_dpi, 155 * settings.general.custom_dpi), true) then	
 										imgui.CenterText(u8'Название подпункта:')
 										imgui.PushItemWidth(478 * settings.general.custom_dpi)
-										imgui.InputText(u8'##input_smartpdd_text', input_smartpdd_text, 256)
+										imgui.InputText(u8'##input_smartpdd_text', input_smartpdd_text, 8192)
 										imgui.CenterText(u8'Сумма штрафа (цифры без каких либо символов):')
 										imgui.PushItemWidth(478 * settings.general.custom_dpi)
 										imgui.InputText(u8'##input_smartpdd_amount', input_smartpdd_amount, 256)
 										imgui.CenterText(u8'Причина для выдачи штрафа:')
 										imgui.PushItemWidth(478 * settings.general.custom_dpi)
-										imgui.InputText(u8'##input_smartpdd_reason', input_smartpdd_reason, 256)
+										imgui.InputText(u8'##input_smartpdd_reason', input_smartpdd_reason, 8192)
 										imgui.EndChild()
 									end	
 									if imgui.Button(fa.CIRCLE_XMARK .. u8' Отмена', imgui.ImVec2(imgui.GetMiddleButtonX(2), 0)) then
@@ -4918,14 +4884,13 @@ imgui.OnFrame(
 						end
 						imgui.EndChild()
 						if imgui.Button(fa.CIRCLE_XMARK .. u8' Добавить пункт', imgui.ImVec2(imgui.GetMiddleButtonX(2), 0)) then
-							input_smartpdd_name = imgui.new.char[256](u8(''))
+							input_smartpdd_name = imgui.new.char[8192](u8(''))
 							imgui.OpenPopup(fa.CIRCLE_PLUS .. u8' Добавление нового пункта##smartpdd')
 						end
 						if imgui.BeginPopupModal(fa.CIRCLE_PLUS .. u8' Добавление нового пункта##smartpdd', _, imgui.WindowFlags.NoCollapse  + imgui.WindowFlags.NoResize) then
-							change_dpi()
 							imgui.CenterText(u8('Введите название/номер пункта и нажмите "Сохранить"'))
 							imgui.PushItemWidth(500 * settings.general.custom_dpi)
-							imgui.InputText(u8'##input_smartpdd_name', input_smartpdd_name, 256)
+							imgui.InputText(u8'##input_smartpdd_name', input_smartpdd_name, 8192)
 							imgui.CenterText(u8'Обратите внимание, вы не сможете изменить его в дальнейшем!')
 							if imgui.Button(fa.CIRCLE_XMARK .. u8' Отмена', imgui.ImVec2(imgui.GetMiddleButtonX(2), 0)) then
 								imgui.CloseCurrentPopup()
@@ -4949,8 +4914,7 @@ imgui.OnFrame(
 					imgui.SetCursorPosY(250 * settings.general.custom_dpi)
 					imgui.CenterText(u8('Использование: /tsm [ID игрока]'))
 					imgui.EndChild()
-				end
-				
+				end	
 				imgui.CenterText(u8'Облачные розыск/штрафы устарели? Сообщите модерам розыска на нашем Discord сервере.')
 			imgui.EndTabItem()
 			end
@@ -6393,6 +6357,115 @@ imgui.OnFrame(
 )
 
 imgui.OnFrame(
+    function() return RPWeaponWindow[0] end,
+    function(player)
+        imgui.SetNextWindowPos(imgui.ImVec2(sizeX / 2, sizeY / 2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
+        imgui.SetNextWindowSize(imgui.ImVec2(600 * settings.general.custom_dpi, 425 * settings.general.custom_dpi), imgui.Cond.FirstUseEver)
+        imgui.Begin(fa.GUN .. u8" RP отыгровка оружия##rpgun_menu", RPWeaponWindow, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize)
+		change_dpi()
+
+        -- imgui.CenterText(u8('Система RP отыгровки оружия: ') .. (settings.general.rp_gun and u8('включена.') or u8('отключена.')))
+        
+        -- local buttonText = settings.general.rp_gun and u8('Отключить') or u8('Включить')
+        -- if imgui.CenterButton(buttonText) then
+        --     settings.general.rp_gun = not settings.general.rp_gun
+        --     save_settings()
+        -- end
+        imgui.PushItemWidth(580 * settings.general.custom_dpi)
+        imgui.InputTextWithHint(u8'##inputsearch_weapon_name', u8('Введите чтоб начать поиск оружия по ID или названию...'), input_weapon_name_search, 256) 
+        imgui.Separator()
+        imgui.Columns(3)
+        imgui.CenterColumnText(u8"Работоспособность")
+        imgui.SetColumnWidth(-1, 150 * settings.general.custom_dpi)
+        imgui.NextColumn()
+        imgui.CenterColumnText(u8"ID оружия и название оружия")
+        imgui.SetColumnWidth(-1, 300 * settings.general.custom_dpi)
+        imgui.NextColumn()
+        imgui.CenterColumnText(u8"Расположение")
+        imgui.SetColumnWidth(-1, 150 * settings.general.custom_dpi)
+        imgui.Columns(1)
+        imgui.Separator()
+        for index, value in ipairs(rp_guns) do
+
+            if u8:decode(ffi.string(input_weapon_name_search)) == '' or value.name:rupper():find(u8:decode(ffi.string(input_weapon_name_search)):rupper()) or value.id == tonumber(u8:decode(ffi.string(input_weapon_name_search)))  then
+
+                imgui.Columns(3)
+                if value.enable then
+                    if imgui.CenterColumnSmallButton(fa.SQUARE_CHECK .. u8' Включено##' .. index, imgui.ImVec2(imgui.GetMiddleButtonX(5), 0)) then
+                        value.enable = not value.enable
+                        save_rp_guns()
+                    end
+                else
+                    if imgui.CenterColumnSmallButton(fa.SQUARE .. u8' Отключено##' .. index, imgui.ImVec2(imgui.GetMiddleButtonX(5), 0)) then
+                        value.enable = not value.enable
+                        save_rp_guns()
+                    end
+                end
+                imgui.NextColumn()
+                imgui.CenterColumnText('[' .. value.id .. '] ' .. u8(value.name))
+                imgui.SameLine()
+                if imgui.SmallButton(fa.PEN_TO_SQUARE .. '##weapon_name' .. index) then
+                    imgui.StrCopy(input_weapon_name, u8(value.name))
+                    imgui.OpenPopup(fa.GUN .. u8' Название оружия##weapon_name' .. index)
+                end
+                if imgui.BeginPopupModal(fa.GUN .. u8' Название оружия##weapon_name' .. index, _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize + imgui.WindowFlags.AlwaysAutoResize ) then
+                    imgui.PushItemWidth(400 * settings.general.custom_dpi)
+                    imgui.InputText(u8'##weapon_name', input_weapon_name, 256) 
+                    if imgui.Button(fa.CIRCLE_XMARK .. u8' Отмена', imgui.ImVec2(200 * settings.general.custom_dpi, 25 * settings.general.custom_dpi)) then
+                        imgui.CloseCurrentPopup()
+                    end
+                    imgui.SameLine()
+                    if imgui.Button(fa.FLOPPY_DISK .. u8' Сохранить', imgui.ImVec2(200 * settings.general.custom_dpi, 25 * settings.general.custom_dpi)) then
+                        for i = 1, 10, 1 do
+							sampAddChatMessage('[Justice Helper] {ffffff}Данная функция доступна только в платной версии хелпера! Покупать у MTG MODS', message_color)
+						end
+                        imgui.CloseCurrentPopup()
+                    end
+                    imgui.End()
+                end
+                imgui.NextColumn()
+                local position = ''
+                if value.rpTake == 1 then
+                    position = 'Спина'
+                elseif value.rpTake == 2 then
+                    position = 'Карман'
+                elseif value.rpTake == 3 then
+                    position = 'Пояс'
+                elseif value.rpTake == 4 then
+                    position = 'Кобура'
+                end
+                imgui.CenterColumnText(u8(position))
+                imgui.SameLine()
+                if imgui.SmallButton(fa.PEN_TO_SQUARE .. '##weapon_position' .. index) then
+					ComboTags2[0] = value.rpTake - 1
+                    imgui.OpenPopup(fa.GUN .. u8' Расположение оружия##weapon_name' .. index)
+                end
+                if imgui.BeginPopupModal(fa.GUN .. u8' Расположение оружия##weapon_name' .. index, _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize + imgui.WindowFlags.AlwaysAutoResize ) then
+                    imgui.PushItemWidth(400 * settings.general.custom_dpi)
+                    imgui.Combo(u8'##' .. index, ComboTags2, ImItems2, #item_list2)
+                    if imgui.Button(fa.CIRCLE_XMARK .. u8' Отмена', imgui.ImVec2(200 * settings.general.custom_dpi, 25 * settings.general.custom_dpi)) then
+                        imgui.CloseCurrentPopup()
+                    end
+                    imgui.SameLine()
+                    if imgui.Button(fa.FLOPPY_DISK .. u8' Сохранить', imgui.ImVec2(200 * settings.general.custom_dpi, 25 * settings.general.custom_dpi)) then
+                        for i = 1, 10, 1 do
+							sampAddChatMessage('[Justice Helper] {ffffff}Данная функция доступна только в платной версии хелпера! Покупать у MTG MODS', message_color)
+						end
+                        imgui.CloseCurrentPopup()
+                    end
+                    imgui.End()
+                end
+                imgui.Columns(1)
+                imgui.Separator()
+
+            end
+
+        end
+        imgui.End()
+    end
+)
+
+imgui.OnFrame(
     function() return SumMenuWindow[0] end,
     function(player)
         imgui.SetNextWindowPos(imgui.ImVec2(sizeX / 2, sizeY / 2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
@@ -6400,22 +6473,8 @@ imgui.OnFrame(
         imgui.Begin(fa.STAR .. u8" Умная выдача розыска##sum_menu", SumMenuWindow, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize)
 		change_dpi()
 		if smart_uk ~= nil and isParamSampID(player_id) then
-			imgui.PushItemWidth(525 * settings.general.custom_dpi)
+			imgui.PushItemWidth(580 * settings.general.custom_dpi)
 			imgui.InputTextWithHint(u8'##input_sum', u8('Поиск статей (подпунктов) в главах (пунктах)'), input_sum, 128) 
-			imgui.SameLine()
-			if imgui.Button(fa.GEAR, imgui.ImVec2(50 * settings.general.custom_dpi, 25 * settings.general.custom_dpi)) then
-				imgui.OpenPopup(fa.STAR .. u8(' Настройка выдачи розыска'))
-			end
-			if imgui.BeginPopupModal(fa.STAR .. u8(' Настройка выдачи розыска'), _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize  ) then
-				if imgui.Checkbox(u8' Запрашивать выдачу розыска в /r (если ваш ранг недостаточен)', checkbox_sum) then
-					settings.general.use_form_su = checkbox_sum[0]
-					save_settings()
-				end
-				if imgui.Button(fa.CIRCLE_XMARK .. u8(' Закрыть'), imgui.ImVec2(imgui.GetMiddleButtonX(1), 25 * settings.general.custom_dpi)) then
-					imgui.CloseCurrentPopup()
-				end
-				imgui.EndPopup()
-			end
 			imgui.Separator()
 			local input_sum_decoded = u8:decode(ffi.string(input_sum))
 			for _, chapter in ipairs(smart_uk) do
@@ -6441,22 +6500,24 @@ imgui.OnFrame(
 								--imgui.PopStyleColor()
 								imgui.GetStyle().ButtonTextAlign = imgui.ImVec2(0.5, 0.5)
 								if imgui.BeginPopupModal(popup_id, nil, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize) then
-									imgui.Text(fa.USER .. u8' Игрок: ' .. u8(sampGetPlayerNickname(player_id)) .. ' [' .. player_id .. ']')
+									imgui.Text(fa.USER .. u8' Игрок: ' .. u8(sampGetPlayerNickname(player_id)) .. '[' .. player_id .. ']' .. ' [' .. sampGetPlayerScore(player_id) .. ' lvl]')
 									imgui.Text(fa.STAR .. u8' Уровень розыска: ' .. item.lvl)
 									imgui.Text(fa.COMMENT .. u8' Причина выдачи розыска: ' .. u8(item.reason))
 									imgui.Separator()
-									if imgui.Button(fa.CIRCLE_XMARK .. u8' Отмена', imgui.ImVec2(200 * settings.general.custom_dpi, 25 * settings.general.custom_dpi)) then
+									if imgui.Button(fa.CIRCLE_XMARK .. u8' Отмена', imgui.ImVec2(150 * settings.general.custom_dpi, 25 * settings.general.custom_dpi)) then
 										imgui.CloseCurrentPopup()
 									end
 									imgui.SameLine()
-									local text_button = settings.general.use_form_su and u8' Запросить розыск' or u8' Выдать розыск'
-									if imgui.Button(fa.STAR .. text_button, imgui.ImVec2(200 * settings.general.custom_dpi, 25 * settings.general.custom_dpi)) then
+									if imgui.Button(fa.STAR .. u8' Запросить розыск', imgui.ImVec2(150 * settings.general.custom_dpi, 25 * settings.general.custom_dpi)) then
 										SumMenuWindow[0] = false
-										if settings.general.use_form_su then
-											find_and_use_command('Прошу обьявить в розыск %{arg2%} степени дело N%{arg_id%}%. Причина%: %{arg3%}', player_id .. ' ' .. item.lvl .. ' ' .. item.reason)
-										else
-											find_and_use_command('/su {arg_id} {arg2} {arg3}', player_id .. ' ' .. item.lvl .. ' ' .. item.reason)
-										end
+										find_and_use_command('Прошу обьявить в розыск %{arg2%} степени дело N%{arg_id%}%. Причина%: %{arg3%}', player_id .. ' ' .. item.lvl .. ' ' .. item.reason)
+										imgui.CloseCurrentPopup()
+									end
+									imgui.SameLine()
+									local text_rank = ((settings.general.fraction == 'ФБР' or settings.general.fraction == 'FBI') and ' [4+]' or ' [5+]')
+									if imgui.Button(fa.STAR .. u8' Выдать розыск' .. text_rank, imgui.ImVec2(150 * settings.general.custom_dpi, 25 * settings.general.custom_dpi)) then
+										SumMenuWindow[0] = false
+										find_and_use_command('/su {arg_id} {arg2} {arg3}', player_id .. ' ' .. item.lvl .. ' ' .. item.reason)
 										imgui.CloseCurrentPopup()
 									end
 									imgui.EndPopup()
@@ -6509,7 +6570,7 @@ imgui.OnFrame(
 								
 								imgui.GetStyle().ButtonTextAlign = imgui.ImVec2(0.5, 0.5)
 								if imgui.BeginPopupModal(popup_id, nil, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize) then
-									imgui.Text(fa.USER .. u8' Игрок: ' .. u8(sampGetPlayerNickname(player_id)) .. ' [' .. player_id .. ']')
+									imgui.Text(fa.USER .. u8' Игрок: ' .. u8(sampGetPlayerNickname(player_id)) .. '[' .. player_id .. ']' .. ' [' .. sampGetPlayerScore(player_id) .. ' lvl]')
 									imgui.Text(fa.MONEY_CHECK_DOLLAR .. u8' Сумма штрафа: $' .. item.amount)
 									imgui.Text(fa.COMMENT .. u8' Причина выдачи штрафа: ' .. u8(item.reason))
 									imgui.Separator()
@@ -6870,17 +6931,17 @@ function main()
 			end
 		end 
 
-		if nowGun ~= getCurrentCharWeapon(PLAYER_PED) and settings.general.rp_gun then
+		if nowGun ~= getCurrentCharWeapon(PLAYER_PED) then
 			oldGun = nowGun
 			nowGun = getCurrentCharWeapon(PLAYER_PED)
-			if oldGun == 0 then
-				sampSendChat("/me " .. gunOn[nowGun] .. " " .. weapons.get_name(nowGun) .. " " .. gunPartOn[nowGun])
-			elseif nowGun == 0 then
-				sampSendChat("/me " .. gunOff[oldGun] .. " " .. weapons.get_name(oldGun) .. " " .. gunPartOff[oldGun])
-			else
-				sampSendChat("/me " .. gunOff[oldGun] .. " " .. weapons.get_name(oldGun) .. " " .. gunPartOff[oldGun] .. ", после чего " .. gunOn[nowGun] .. " " .. weapons.get_name(nowGun) .. " " .. gunPartOn[nowGun])
-			end
-		end
+            if oldGun == 0 and gunOn[nowGun] then
+                sampSendChat("/me " .. gunOn[nowGun] .. " " .. get_name_weapon(nowGun) .. " " .. gunPartOn[nowGun])
+            elseif nowGun == 0 and gunOff[oldGun] then
+                sampSendChat("/me " .. gunOff[oldGun] .. " " .. get_name_weapon(oldGun) .. " " .. gunPartOff[oldGun])
+            elseif gunOff[oldGun] and gunOn[nowGun] then
+                sampSendChat("/me " .. gunOff[oldGun] .. " " .. get_name_weapon(oldGun) .. " " .. gunPartOff[oldGun] .. ", после чего " .. gunOn[nowGun] .. " " .. get_name_weapon(nowGun) .. " " .. gunPartOn[nowGun])
+            end
+        end
 		
 		if ((os.date("%M", os.time()) == "55" and os.date("%S", os.time()) == "00") or (os.date("%M", os.time()) == "25" and os.date("%S", os.time()) == "00")) then
 			if sampGetPlayerColor(tagReplacements.my_id()) == 368966908 then
