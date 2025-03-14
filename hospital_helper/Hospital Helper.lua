@@ -1530,6 +1530,11 @@ function sampev.onServerMessage(color,text)
 		sampAddChatMessage('[Hospital Helper] {ffffff}111 Баланс | 60 Время | 911 МЮ | 912 МЗ | 913 Такси | 914 Мехи | 8828 Банк | 997 Дома', message_color)
 		return false
 	end
+	if text:find("Пациент (.+) вызывает врачей (.+)холл(.+)этаж") then
+		local nick = text:match("Пациент (.+) вызывает врачей (.+)холл(.+)этаж")
+		sampAddChatMessage('[Hospital Helper] {ffffff}Пациент ' .. nick .. ' вызывает врача в холл больницы!', message_color)
+		return false
+	end
 	if (text:find('Bogdan_Martelli') and getARZServerNumber():find('20')) or text:find('%[20%]Bogdan_Martelli') then
 		local lastColor = text:match("(.+){%x+}$")
    		if not lastColor then
