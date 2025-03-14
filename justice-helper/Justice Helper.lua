@@ -348,7 +348,7 @@ local rp_guns = {
     {id = 89, name = 'портальную пушку', enable = true, rpTake = 4},
     {id = 90, name = 'оглушающую гранату', enable = true, rpTake = 3},
     {id = 91, name = 'ослепляющую гранату', enable = true, rpTake = 3},
-    {id = 92, name = 'снайперскую винтовку McMillian TAC-50', enable = true, rpTake = 1}
+    --{id = 92, name = 'снайперскую винтовку McMillian TAC-50', enable = true, rpTake = 1}
 }
 local rpTakeNames = {{"из-за спины", "за спину"}, {"из кармана", "в карман"}, {"из пояса", "на пояс"}, {"из кобуры", "в кобуру"}}  
 local path_rp_guns = configDirectory .. "/rp_guns.json"
@@ -2220,14 +2220,28 @@ if settings.general.rp_gun then
     init_guns()
 end
 function get_name_weapon(id) 
-    local name = 'оружие'
-    for index, value in ipairs(rp_guns) do
-        if tostring(id) == tostring(value.id) then
-            name = value.name
-            break
+    for _, weapon in ipairs(rp_guns) do
+        if weapon.id == id then
+            return weapon.name
         end
     end
-	return name
+    return "оружие"
+end
+function isExistsWeapon(id) 
+    for _, weapon in ipairs(rp_guns) do
+        if weapon.id == id then
+            return true
+        end
+    end
+    return false
+end
+function isEnableWeapon(id) 
+    for _, weapon in ipairs(rp_guns) do
+        if weapon.id == id then
+            return weapon.enable
+        end
+    end
+    return false
 end
 
 function format_patrool_time(seconds)
@@ -5155,6 +5169,8 @@ imgui.OnFrame(
 						play_error_sound()
 						os.remove(path_uk)
 						os.remove(path_pdd)
+						os.remove(path_rp_guns)
+						os.remove(path_arzvehicles)
 						os.remove(path_notes)
 						os.remove(path_settings)
 						os.remove(path_commands)
@@ -5181,11 +5197,13 @@ imgui.OnFrame(
 						sampShowDialog(999999, message_color_hex .. "Justice Helper", "Вы успешно удалили Justice Helper из своего устройства.\nЕсли удаление связано с негативным опытом использования, и вы сталкивались с багами или проблемами, то\nсообщите мне что именно заставило вас удалить хелпер на нашем Discord сервере или на форуме BlastHack\n\nDiscord: https://discord.com/invite/qBPEYjfNhv\nBlastHack: https://www.blast.hk/threads/195388/\nTelegram @mtgmods\n\nЕсли что, вы можете заново скачать и установить хелпер в любой момент :)", "Закрыть", '', 0)
 						reload_script = true
 						os.remove(path_helper)
-						os.remove(path_settings)
-						os.remove(path_commands)
 						os.remove(path_uk)
 						os.remove(path_pdd)
+						os.remove(path_rp_guns)
+						os.remove(path_arzvehicles)
 						os.remove(path_notes)
+						os.remove(path_settings)
+						os.remove(path_commands)
 						thisScript():unload()
 					end
 					imgui.End()
@@ -6931,18 +6949,47 @@ function main()
 			end
 		end 
 
-		if nowGun ~= getCurrentCharWeapon(PLAYER_PED) then
+		if nowGun ~= getCurrentCharWeapon(PLAYER_PED) and settings.general.rp_gun then
 			oldGun = nowGun
 			nowGun = getCurrentCharWeapon(PLAYER_PED)
-            if oldGun == 0 and gunOn[nowGun] then
-                sampSendChat("/me " .. gunOn[nowGun] .. " " .. get_name_weapon(nowGun) .. " " .. gunPartOn[nowGun])
-            elseif nowGun == 0 and gunOff[oldGun] then
-                sampSendChat("/me " .. gunOff[oldGun] .. " " .. get_name_weapon(oldGun) .. " " .. gunPartOff[oldGun])
-            elseif gunOff[oldGun] and gunOn[nowGun] then
-                sampSendChat("/me " .. gunOff[oldGun] .. " " .. get_name_weapon(oldGun) .. " " .. gunPartOff[oldGun] .. ", после чего " .. gunOn[nowGun] .. " " .. get_name_weapon(nowGun) .. " " .. gunPartOn[nowGun])
-            end
+
+			if not isExistsWeapon(oldGun) then
+				sampAddChatMessage('[Justice Helper] {ffffff}Обнаружено новое оружие с ID ' .. message_color_hex .. oldGun .. '{ffffff}, даю ему имя "оружие" и расположение "спина".', message_color)
+				sampAddChatMessage('[Justice Helper] {ffffff}Изменить имя или расположение оружия вы можете в /jh - Главное меню - Режим RP отыгровки оружия - Настроить', message_color)
+				table.insert(rp_guns, {id = oldGun, name = "оружие", enable = true, rpTake = 1})
+				init_guns()
+				save_rp_guns()
+			elseif not isExistsWeapon(nowGun) then
+				sampAddChatMessage('[Justice Helper] {ffffff}Обнаружено новое оружие с ID ' .. message_color_hex .. nowGun .. '{ffffff}, даю ему имя "оружие" и расположение "спина".', message_color)
+				sampAddChatMessage('[Justice Helper] {ffffff}Изменить имя или расположение оружия вы можете в /jh - Главное меню - Режим RP отыгровки оружия - Настроить', message_color)
+				table.insert(rp_guns, {id = nowGun, name = "оружие", enable = true, rpTake = 1})
+				init_guns()
+				save_rp_guns()
+			end
+
+			if gunOff[oldGun] and gunOn[nowGun] then
+				if oldGun == 0 and nowGun == 0 then
+
+				elseif oldGun == 0 and not isEnableWeapon(nowGun) then
+					sampAddChatMessage('[Justice Helper] {ffffff}Поскольку вы отключити отыгровку для ' .. message_color_hex ..  get_name_weapon(nowGun) .. ' [' .. nowGun .. ']{ffffff}, игнорирую её', message_color)
+				elseif nowGun == 0 and not isEnableWeapon(oldGun) then
+					sampAddChatMessage('[Justice Helper] {ffffff}Поскольку вы отключити отыгровку для ' .. message_color_hex ..  get_name_weapon(oldGun) .. ' [' .. oldGun .. ']{ffffff}, игнорирую её', message_color)
+				elseif not isEnableWeapon(oldGun) and isEnableWeapon(nowGun) then
+					sampAddChatMessage('[Justice Helper] {ffffff}Поскольку вы отключити отыгровку для ' .. message_color_hex ..  get_name_weapon(oldGun) .. ' [' .. oldGun .. ']{ffffff}, игнорирую её', message_color)
+					sampSendChat("/me " .. gunOn[nowGun] .. " " .. get_name_weapon(nowGun) .. " " .. gunPartOn[nowGun])
+				elseif isEnableWeapon(oldGun) and not isEnableWeapon(nowGun) then
+					sampAddChatMessage('[Justice Helper] {ffffff}Поскольку вы отключити отыгровку для ' .. message_color_hex ..  get_name_weapon(nowGun) .. ' [' .. nowGun .. ']{ffffff}, игнорирую её', message_color)
+					sampSendChat("/me " .. gunOff[oldGun] .. " " .. get_name_weapon(oldGun) .. " " .. gunPartOff[oldGun])
+				elseif oldGun == 0 and gunOn[nowGun] then
+					sampSendChat("/me " .. gunOn[nowGun] .. " " .. get_name_weapon(nowGun) .. " " .. gunPartOn[nowGun])
+				elseif nowGun == 0 and gunOff[oldGun] then
+					sampSendChat("/me " .. gunOff[oldGun] .. " " .. get_name_weapon(oldGun) .. " " .. gunPartOff[oldGun])
+				else
+					sampSendChat("/me " .. gunOff[oldGun] .. " " .. get_name_weapon(oldGun) .. " " .. gunPartOff[oldGun] .. ", после чего " .. gunOn[nowGun] .. " " .. get_name_weapon(nowGun) .. " " .. gunPartOn[nowGun])
+				end
+			end
         end
-		
+
 		if ((os.date("%M", os.time()) == "55" and os.date("%S", os.time()) == "00") or (os.date("%M", os.time()) == "25" and os.date("%S", os.time()) == "00")) then
 			if sampGetPlayerColor(tagReplacements.my_id()) == 368966908 then
 				sampAddChatMessage('[Justice Helper] {ffffff}Через 5 минут будет PAYDAY. Наденьте форму чтобы не пропустить зарплату!', message_color)
