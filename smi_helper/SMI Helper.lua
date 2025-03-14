@@ -1449,6 +1449,7 @@ function sampev.onShowDialog(dialogid, style, title, button1, button2, text)
 	end
 
 	if members_check and title:find('(.+)%(В сети: (%d+)%)') then -- мемберс 
+	
         local count = 0
         local next_page = false
         local next_page_i = 0
@@ -1457,36 +1458,44 @@ function sampev.onShowDialog(dialogid, style, title, button1, button2, text)
         for line in text:gmatch('[^\r\n]+') do
             count = count + 1
             if not line:find('Ник') and not line:find('страница') then
-				--local color, nickname, id, rank, rank_number, warns, afk = string.match(line, '{(.+)}(.+)%((%d+)%)\t(.+)%((%d+)%)\t(%d+) %((%d+)')
-				local color, nickname, id, rank, rank_number, color2, warns, afk = string.match(line, "{(%x+)}([^%(]+)%((%d+)%)%s+([^%(]+)%((%d+)%)%s+{(%x+)}(%d+) %((%d)(.+)шт")
-				if color ~= nil and nickname ~= nil and id ~= nil and rank ~= nil and rank_number ~= nil and warns ~= nil and afk ~= nil then
-					local working = false
-					if color:find('FF3B3B') then
-						working = false
-					elseif color:find('FFFFFF') then
-						working = true
-					end
-					if nickname:find('%[%:(.+)%] (.+)') then
-						tag, nick = nickname:match('%[(.+)%] (.+)')
-						nickname = nick
-					end
-					table.insert(members_new, { nick = nickname, id = id, rank = rank, rank_number = rank_number, warns = warns, afk = afk, working = working})
-				elseif line:find('%{90EE90%}') or line:find('(%d+ дней)') then
-					local color, nickname, id, rank_color, rank, rank_number, days, warns_color, warns, afk = string.match(line, "{(%x+)}([^%(]+)%((%d+)%)%s+{(%x+)}([^%(]+)%((%d+)%)%s+%((%d+)%s+дней%)%s+{(%x+)}(%d+)%s+%((%d+)%)%s+(%d+)%s+шт")
+
+				line = line:gsub("{FFA500}%(Вы%)", "")
+				line = line:gsub(" %/ В деморгане", "")
+
+				--line = line:gsub("  ", "")
+				--local color, nickname, id, rank, rank_number, rank_time, warns, afk = string.match(line, "{(......)}(.+)%((%d+)%)(.+)%((%d+)%)(.+){FFFFFF}(%d+) %[%d+%] %/ (%d+) %d+ шт")
+
+				-- if nickname:find('%[%:(.+)%] (.+)') then
+				-- 	tag, nick = nickname:match('%[(.+)%] (.+)')
+				-- 	nickname = nick
+				-- end
+
+				if line:find('{FFA500}%(%d+.+%)') then
+					local color, nickname, id, rank, rank_number, color2, rank_time, warns, afk = string.match(line, "{(%x%x%x%x%x%x)}([%w_]+)%((%d+)%)%s*([^%(]+)%((%d+)%)%s*{(%x%x%x%x%x%x)}%(([^%)]+)%)%s*{FFFFFF}(%d+)%s*%[%d+%]%s*/%s*(%d+)%s*%d+ шт")
 					if color ~= nil and nickname ~= nil and id ~= nil and rank ~= nil and rank_number ~= nil and warns ~= nil and afk ~= nil then
 						local working = false
-						if color:find('FF3B3B') then
-							working = false
-						elseif color:find('FFFFFF') then
+						if color:find('90EE90') then
 							working = true
 						end
-						if nickname:find('%[%:(.+)%] (.+)') then
-							tag, nick = nickname:match('%[(.+)%] (.+)')
-							nickname = nick
+						if rank_time then
+							rank_number = rank_number .. ') (' .. rank_time
 						end
-						table.insert(members_new, { nick = nickname, id = id, rank = rank, rank_number = rank_number .. ") (" .. days .. " дней", warns = warns, afk = afk, working = working})
+						table.insert(members_new, { nick = nickname, id = id, rank = rank, rank_number = rank_number, warns = warns, afk = afk, working = working})
+					end
+				else
+					local color, nickname, id, rank, rank_number, rank_time, warns, afk = string.match(line, "{(%x%x%x%x%x%x)}%s*([^%(]+)%((%d+)%)%s*([^%(]+)%((%d+)%)%s*([^{}]+){FFFFFF}%s*(%d+)%s*%[%d+%]%s*/%s*(%d+)%s*%d+ шт")
+					if color ~= nil and nickname ~= nil and id ~= nil and rank ~= nil and rank_number ~= nil and warns ~= nil and afk ~= nil then
+						local working = false
+						if color:find('90EE90') then
+							working = true
+						end
+
+						table.insert(members_new, { nick = nickname, id = id, rank = rank, rank_number = rank_number, warns = warns, afk = afk, working = working})
 					end
 				end
+				
+				
+				
             end
             if line:match('Следующая страница') then
                 next_page = true
