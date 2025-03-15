@@ -2202,6 +2202,7 @@ local rpTake = {
 	[75] = 4,
 	[76] = 4,
 	[89] = 4, -- кобура
+	[93] = 4,
 }
 for id, weapon in pairs(weapons.names) do
 	if (id == 3 or (id > 15 and id < 19) or (id == 90 or id == 91)) then -- 3 16 17 18 (for gunOn)
