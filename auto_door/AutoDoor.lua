@@ -1,6 +1,6 @@
 script_name("AutoDoor")
 script_author("MTG MODS")
-script_version("6.0")
+script_version("7.0")
 script_description('Script for Auto Open doors and other objects...')
 
 require "lib.moonloader"
@@ -66,8 +66,22 @@ function AutoDoor()
             -- шлагбаумы и заборы
             elseif objModel == 968 or objModel == 975 or objModel == 1374 or objModel == 19912 or objModel == 988 or objModel == 19313 or objModel == 11327 or objModel == 19313 or objModel == 980 then
 				if distance < (isCharInAnyCar(PLAYER_PED) and 12 or 5) then
-                    active = true
-                    sampSendChat("/opengate")
+                    if isMonetLoader() then
+                        local bs = raknetNewBitStream()
+                        raknetBitStreamWriteInt8(bs, 220)
+                        raknetBitStreamWriteInt8(bs, 63)
+                        raknetBitStreamWriteInt8(bs, 8)
+                        raknetBitStreamWriteInt32(bs, 7)
+                        raknetBitStreamWriteInt32(bs, -1)
+                        raknetBitStreamWriteInt32(bs, 0)
+                        raknetBitStreamWriteString(bs, "")
+                        raknetSendBitStreamEx(bs, 1, 7, 1)
+                        raknetDeleteBitStream(bs)
+                    else
+                        setVirtualKeyDown(72, true)
+                        wait(50)
+                        setVirtualKeyDown(72, false)
+                    end
                     return
                 end
             end
@@ -80,10 +94,6 @@ require("samp.events").onServerMessage = function(color,text)
         show_arz_notify('error', 'AutoDoor', 'У вас нет доступа/ключа для этого обьекта!', 1500)
         return false
 	end
-    if text:find("Не флуди") and active then
-        active = false
-        return false
-    end
 end
 
 function show_arz_notify(type, title, text, time)
