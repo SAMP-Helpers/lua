@@ -348,7 +348,8 @@ local rp_guns = {
     {id = 89, name = 'портальную пушку', enable = true, rpTake = 4},
     {id = 90, name = 'оглушающую гранату', enable = true, rpTake = 3},
     {id = 91, name = 'ослепл€ющую гранату', enable = true, rpTake = 3},
-    --{id = 92, name = 'снайперскую винтовку McMillian TAC-50', enable = true, rpTake = 1}
+    {id = 92, name = 'снайперскую винтовку McMillian TAC-50', enable = true, rpTake = 1},
+	{id = 93, name = 'оглушающий пистолет', enable = true, rpTake = 4},
 }
 local rpTakeNames = {{"из-за спины", "за спину"}, {"из кармана", "в карман"}, {"из по€са", "на по€с"}, {"из кобуры", "в кобуру"}}  
 local path_rp_guns = configDirectory .. "/rp_guns.json"
