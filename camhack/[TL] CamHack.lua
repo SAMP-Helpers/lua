@@ -122,8 +122,8 @@ function restoreCameraJumpcut()
     local TheCamera = ffi.cast("void*", getAddress(0x4EA95E0))
     local CCamera__RestoreWithJumpCut = ffi.cast("void(*)(void*)", getAddress(0xFC8170))
     CCamera__RestoreWithJumpCut(TheCamera)
+    sampAddChatMessage('[CamHack] {ffffff}Ошибка, не удалось выйти с режима камеры, перезапустите игру!', message_color)
 end
-
 
 function IsHotkeyClicked(keys_id)
     local keysArray = json.decode(keys_id)
@@ -397,8 +397,12 @@ end
 
 function main()
     sampRegisterChatCommand("cmh", function ()
-        camhack_active = not camhack_active
-        sampAddChatMessage('[CamHack] {ffffff}' .. (camhack_active and 'Работает!' or 'Отключено!'), message_color)
+        settings.general.enable = not settings.general.enable
+        sampAddChatMessage('[CamHack] {ffffff}' .. (settings.general.enable and 'Работает!' or 'Отключено!'), message_color)
+        if settings.general.enable then
+            sampAddChatMessage('[CamHack] {ffffff}Активация: Alt + C | Дективация: Alt + V | Управление: WASD/Мышь/Space/Ctrl', message_color)
+        end
+        save_settings()
     end)
     -- lua_thread.create(function ()
     --     repeat wait(0) until sampIsLocalPlayerConnected() and isLocalPlayerSpawned()
