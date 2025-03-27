@@ -1,6 +1,6 @@
 script_name("AutoDoor")
 script_author("MTG MODS")
-script_version("7.0")
+script_version("8.0")
 script_description('Script for Auto Open doors and other objects...')
 
 require "lib.moonloader"
@@ -32,6 +32,25 @@ function main()
 
 end
 
+function sendKeyH()
+    if isCharInAnyCar(PLAYER_PED) then
+        setGameKeyState(18, 255)
+    else
+        sendClickKeySync(192)
+    end
+end
+
+function sendClickKeySync(key)
+    local data = allocateMemory(68)
+    local _, myId = sampGetPlayerIdByCharHandle(PLAYER_PED)
+    sampStorePlayerOnfootData(myId, data)
+
+    local weaponId = getCurrentCharWeapon(PLAYER_PED)
+    setStructElement(data, 36, 1, weaponId + tonumber(key), true)
+    sampSendOnfootData(data)
+    freeMemory(data)
+end
+
 function AutoDoor()
     for key, hObj in pairs(getAllObjects()) do
         if doesObjectExist(hObj) then
@@ -56,9 +75,10 @@ function AutoDoor()
                             raknetSendBitStreamEx(bs, 1, 7, 1)
                             raknetDeleteBitStream(bs)
                         else
-                            setVirtualKeyDown(72, true)
-                            wait(50)
-                            setVirtualKeyDown(72, false)
+                            -- setVirtualKeyDown(72, true)
+                            -- wait(50)
+                            -- setVirtualKeyDown(72, false)
+                            sendKeyH()
                         end
                         return
 					end
@@ -78,9 +98,10 @@ function AutoDoor()
                         raknetSendBitStreamEx(bs, 1, 7, 1)
                         raknetDeleteBitStream(bs)
                     else
-                        setVirtualKeyDown(72, true)
-                        wait(50)
-                        setVirtualKeyDown(72, false)
+                        -- setVirtualKeyDown(72, true)
+                        -- wait(50)
+                        -- setVirtualKeyDown(72, false)
+                        sendKeyH()
                     end
                     return
                 end
@@ -92,8 +113,65 @@ end
 require("samp.events").onServerMessage = function(color,text)
 	if (text:find("У вас нет ключей от данного шлагбаума") or text:find("У вас нет ключей от этого шлагбаума!") or  text:find("У вас нет ключей от этой двери!") or text:find("У вас нет ключей от данной двери")) then
         show_arz_notify('error', 'AutoDoor', 'У вас нет доступа/ключа для этого обьекта!', 1500)
-        return false
+        --return false
 	end
+end
+
+if not isMonetLoader() then
+    function samp_create_sync_data(sync_type, copy_from_player)
+        local ffi = require 'ffi'
+        local sampfuncs = require 'sampfuncs'
+
+        local raknet = require 'samp.raknet'
+        require 'samp.synchronization'
+
+        copy_from_player = copy_from_player or true
+        local sync_traits = {
+            player = {'PlayerSyncData', raknet.PACKET.PLAYER_SYNC, sampStorePlayerOnfootData},
+            vehicle = {'VehicleSyncData', raknet.PACKET.VEHICLE_SYNC, sampStorePlayerIncarData},
+            passenger = {'PassengerSyncData', raknet.PACKET.PASSENGER_SYNC, sampStorePlayerPassengerData},
+            aim = {'AimSyncData', raknet.PACKET.AIM_SYNC, sampStorePlayerAimData},
+            trailer = {'TrailerSyncData', raknet.PACKET.TRAILER_SYNC, sampStorePlayerTrailerData},
+            unoccupied = {'UnoccupiedSyncData', raknet.PACKET.UNOCCUPIED_SYNC, nil},
+            bullet = {'BulletSyncData', raknet.PACKET.BULLET_SYNC, nil},
+            spectator = {'SpectatorSyncData', raknet.PACKET.SPECTATOR_SYNC, nil}
+        }
+        local sync_info = sync_traits[sync_type]
+        local data_type = 'struct ' .. sync_info[1]
+        local data = ffi.new(data_type, {})
+        local raw_data_ptr = tonumber(ffi.cast('uintptr_t', ffi.new(data_type .. '*', data)))
+
+        if copy_from_player then
+            local copy_func = sync_info[3]
+            if copy_func then
+                local _, player_id
+                if copy_from_player == true then
+                    _, player_id = sampGetPlayerIdByCharHandle(PLAYER_PED)
+                else
+                    player_id = tonumber(copy_from_player)
+                end
+                copy_func(player_id, raw_data_ptr)
+            end
+        end
+
+        local func_send = function()
+            local bs = raknetNewBitStream()
+            raknetBitStreamWriteInt8(bs, sync_info[2])
+            raknetBitStreamWriteBuffer(bs, raw_data_ptr, ffi.sizeof(data))
+            raknetSendBitStreamEx(bs, sampfuncs.HIGH_PRIORITY, sampfuncs.UNRELIABLE_SEQUENCED, 1)
+            raknetDeleteBitStream(bs)
+        end
+
+        local mt = {
+            __index = function(t, index)
+                return data[index]
+            end,
+            __newindex = function(t, index, value)
+                data[index] = value
+            end
+        }
+        return setmetatable({send = func_send}, mt)
+    end
 end
 
 function show_arz_notify(type, title, text, time)
