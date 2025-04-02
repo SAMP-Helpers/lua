@@ -1,7 +1,7 @@
 /// <reference path=".config/sa.d.ts" />
 // CamHack by MTG MODS
-// https://discord.gg/mtg-mods-samp-1097643847774908526
-// https://www.blast.hk/threads/175690/
+// https://t.me/mtgmods
+// https://discord.gg/qBPEYjfNhv
 
 // GET KEYS ID: https://keycode-visualizer.netlify.app/
 // Use the "," symbol to use multiple keys
@@ -13,10 +13,10 @@ var LEFT = [65];                // A
 var RIGHT = [68];               // D
 var UP = [16];                  // Left Shift
 var DOWN = [17];                // Left Ctrl
-var ANGLE_UP = [38];            // ?
-var ANGLE_DOWN = [40];          // ?
-var ANGLE_LEFT = [37];          // ?
-var ANGLE_RIGHT = [39];         // ?
+var ANGLE_UP = [38];            // Arrow UP
+var ANGLE_DOWN = [40];          // Arrow Down
+var ANGLE_LEFT = [37];          // Arrow Left
+var ANGLE_RIGHT = [39];         // Arrow Right
 var SPEED_PLUS = [187];         // +
 var SPEED_MINUS = [189];        // -
 
