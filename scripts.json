@@ -28,7 +28,7 @@
     },
     {
         "name": "SMI Helper",
-        "ver": "3.0 Free",
+        "ver": "3.1 Free",
         "author": "MTG MODS",
         "link": "https://github.com/MTGMODS/lua_scripts/raw/refs/heads/main/smi_helper/SMI%20Helper.lua",
         "img": "https://cdn.discordapp.com/attachments/1119664359891800186/1281920647622037514/image.png?ex=674842a3&is=6746f123&hm=a42dcb87f5fb767acfde353095de6fd8d7264b08f9d7bb32f3898c69cf4376ec&",
@@ -82,7 +82,7 @@
     },
     {
         "name": "AutoDoor",
-        "ver": "8.0",
+        "ver": "9",
         "author": "MTG MODS",
         "link": "https://github.com/MTGMODS/lua_scripts/raw/refs/heads/main/auto_door/AutoDoor.lua",
         "img": "",

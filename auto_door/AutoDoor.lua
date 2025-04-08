@@ -1,6 +1,6 @@
 script_name("AutoDoor")
 script_author("MTG MODS")
-script_version("8.0")
+script_version(9)
 script_description('Script for Auto Open doors and other objects...')
 
 require "lib.moonloader"
