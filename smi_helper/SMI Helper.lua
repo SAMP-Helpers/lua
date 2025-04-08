@@ -3,7 +3,7 @@
 script_name("SMI Helper")
 script_description('Cross-platform script helper for Media Center (CNN)')
 script_author("MTG MODS")
-script_version("3.0 Free")
+script_version("3.1 Free")
 
 require('lib.moonloader')
 require ('encoding').default = 'CP1251'
@@ -1264,11 +1264,32 @@ function sampev.onServerMessage(color,text)
 			nick = ''
 		end
 		if sampGetPlayerIdByNickname(nick) == '' then
-			sampAddChatMessage('[SMI Helper]{ffffff} Поступило новое обьявление от игрока ' .. message_color_hex .. nick, message_color)
+			sampAddChatMessage('[SMI Helper]{ffffff} Поступило новое обьявление от маркетолога ' .. message_color_hex .. nick, message_color)
 		else
-			sampAddChatMessage('[SMI Helper]{ffffff} Поступило новое обьявление от игрока ' .. message_color_hex .. nick .. '[' .. sampGetPlayerIdByNickname(nick) .. ' id]', message_color)
+			sampAddChatMessage('[SMI Helper]{ffffff} Поступило новое обьявление от маркетолога ' .. message_color_hex .. nick .. '[' .. sampGetPlayerIdByNickname(nick) .. ']', message_color)
 		end
 		
+		return false
+	end
+	if text:find('На обработку объявлений пришло сообщение от руководства страховой компании%: (.+)') then
+		local nick = text:match('На обработку объявлений пришло сообщение от руководства страховой компании%: (.+)')
+		if nick == nil then
+			nick = ''
+		end
+		if sampGetPlayerIdByNickname(nick) == '' then
+			sampAddChatMessage('[SMI Helper]{ffffff} Поступило новое обьявление от руководства СТК, а именно игрок ' .. message_color_hex .. nick, message_color)
+		else
+			sampAddChatMessage('[SMI Helper]{ffffff} оступило новое обьявление от руководства СТК, а именно игрок ' .. message_color_hex .. nick .. '[' .. sampGetPlayerIdByNickname(nick) .. ']', message_color)
+		end
+		if not EditWindow[0] and settings.general.auto_lovlya_ads then
+			lovlya_ads_from_player = nick
+			sampSendChat('/newsredak')
+		end
+		return false
+	end
+	if text:find('%[Ошибка%] %{ffffff%}Это объявление уже редактирует (.+).') then
+		local nick = text:match('%[Ошибка%] %{ffffff%}Это объявление уже редактирует (.+).')
+		sampAddChatMessage('[SMI Helper] {ffffff}Это обьявление уже редактирует игрок ' .. message_color_hex  .. nick, message_color)
 		return false
 	end
 	if (text:find('Bogdan_Martelli%[%d+%]') and getARZServerNumber():find('20')) or text:find('%[20%]Bogdan_Martelli') then
@@ -1527,8 +1548,15 @@ function sampev.onShowDialog(dialogid, style, title, button1, button2, text)
 	if title:find('Редактирование') and text:find('Объявление от') and text:find('Сообщение') then
 		ad_dialog_id = dialogid
 		for line in text:gmatch("[^\n]+") do
-			if line:find('{FFFFFF}Объявление от%s+{FFD700}(.+),') then
-				ad_from = line:match('{FFFFFF}Объявление от%s+{FFD700}(.+),')
+			-- {FFFFFF}Объявление от {FFD700}руководства страховой компании Bogdan_Martelli, спустя 71cек.
+			-- {FFFFFF}Объявление от {FFD700}маркетолога Bogdan_Martelli (бизнеса №196 'Ларек с уличной едой'), спустя 8c.
+			-- {FFFFFF}Объявление от {FFD700}Bogdan_Martelli, спустя 2c.
+			if line:find('{FFFFFF}Объявление от {FFD700}маркетолога (.+) %(бизнес') then
+				ad_from = line:match('{FFFFFF}Объявление от {FFD700}маркетолога (.+) %(бизнес')
+			elseif line:find('{FFFFFF}Объявление от {FFD700}руководства страховой компании (.+),') then
+				ad_from = line:match('{FFFFFF}Объявление от {FFD700}руководства страховой компании (.+),')
+			elseif line:find('{FFFFFF}Объявление от {FFD700}(.+),') then
+				ad_from = line:match('{FFFFFF}Объявление от {FFD700}(.+),')
 			end
 			if line:find('{FFFFFF}Сообщение:%s+{33AA33}(.+)') then
 				ad_message = line:match('{FFFFFF}Сообщение:%s+{33AA33}(.+)')
@@ -2350,7 +2378,8 @@ imgui.OnFrame(
 						local random_number = tostring((math.random(0,50) + math.random(100,200)))
 						local random = 'live' .. random_number
 						sampAddChatMessage('[SMI Helper] {ffffff}Запускаю эфир "' .. live.name .. '" через временную команду /' .. random , message_color)
-						register_command(random, "", live.text, 4.000)
+						sampAddChatMessage('[SMI Helper] {ffffff}Задержка между строками 6 секунд (стандарт)', message_color)
+						register_command(random, "", live.text, 6.000)
 						sampProcessChatInput("/" .. random)
 						sampUnregisterChatCommand(random)
 					end
