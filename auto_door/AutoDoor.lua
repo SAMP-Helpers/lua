@@ -60,7 +60,7 @@ function AutoDoor()
 			local px, py, pz = getCharCoordinates(PLAYER_PED)
             local distance = getDistanceBetweenCoords3d(px, py, pz, ox, oy, oz)
             -- двери
-            if objModel == 1495 or objModel == 3089 or objModel == 1557 or objModel == 1808 or objModel == 19857 or objModel == 19302 or objModel == 2634 or objModel == 19303 then
+            if objModel == 1495 or objModel == 3089 or objModel == 1561 or objModel == 19938 or objModel == 1557 or objModel == 1808 or objModel == 19857 or objModel == 19302 or objModel == 2634 or objModel == 19303 then
                 if (objHeading > 179 and objHeading < 181) or (objHeading > 89 and objHeading < 91) or (objHeading > -1 and objHeading < 1) or (objHeading > 269 and objHeading < 271) then
 					if distance <= 2 then
                         if isMonetLoader() then
