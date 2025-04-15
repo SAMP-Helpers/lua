@@ -1,6 +1,6 @@
 script_name("Mimgui Scoreboard [by MTG MODS]")
 script_author("MTG MODS")
-script_version("1.2.0")
+script_version("1.3.0")
 
 require "lib.moonloader"
 local encoding = require('encoding')

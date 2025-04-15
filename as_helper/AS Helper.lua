@@ -3,7 +3,7 @@
 script_name("AS Helper")
 script_description('Cross-platform script helper for AutoSchool')
 script_author("MTG MODS")
-script_version("4.1 FREE")
+script_version("4.1 Free")
 
 require('lib.moonloader')
 require ('encoding').default = 'CP1251'
