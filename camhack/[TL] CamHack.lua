@@ -3,7 +3,7 @@ local lua_thread = require("lts")
 local json = require("cjson")
 local ffi = require("ffi")
 
-local message_color = 0x009EFF
+local message_color = 0x009EFFFF
 
 local camhack_active = false
 local camhack_speed = 0.2
@@ -110,20 +110,25 @@ function lockPlayerControl(bool)
     freezeCharPosition(playerPed, bool)
 end
 
-ffi.cdef[[
-    typedef unsigned __int64 uintptr_t;
-    uintptr_t GetModuleHandleA(const char* lpModuleName);
-]]
-function getAddress(offset)
-    local baseAddress = ffi.cast("uintptr_t", ffi.C.GetModuleHandleA(ffi.NULL))
-    return baseAddress + offset
-end
-function restoreCameraJumpcut()
-    local TheCamera = ffi.cast("void*", getAddress(0x4EA95E0))
-    local CCamera__RestoreWithJumpCut = ffi.cast("void(*)(void*)", getAddress(0xFC8170))
-    CCamera__RestoreWithJumpCut(TheCamera)
-    sampAddChatMessage('[CamHack] {ffffff}Ошибка, не удалось выйти с режима камеры, перезапустите игру!', message_color)
-end
+-- ffi.cdef[[
+--     typedef unsigned __int64 uintptr_t;
+--     uintptr_t GetModuleHandleA(const char* lpModuleName);
+-- ]]
+
+-- function getAddress(offset)
+--     local baseAddress = ffi.cast("uintptr_t", ffi.C.GetModuleHandleA(ffi.NULL))
+--     return baseAddress + offset
+-- end
+
+-- function restoreCameraJumpcut()
+--     local CCamera__RestoreWithJumpCut = ffi.cast("void(*)(uintptr_t)", getAddress(0xF961D0))(getAddress(0x4EA95E0))
+--     CCamera__RestoreWithJumpCut(TheCamera)   
+-- end
+
+
+
+
+-- sampAddChatMessage('[CamHack] {ffffff}Ошибка, не удалось выйти с режима камеры, перезапустите игру!', message_color)
 
 function IsHotkeyClicked(keys_id)
     local keysArray = json.decode(keys_id)
