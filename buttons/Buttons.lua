@@ -1,5 +1,4 @@
-script_name("Neona")
-script_description('Script for Neona')
+
 script_author("MTG MODS")
 script_version("1")
 
