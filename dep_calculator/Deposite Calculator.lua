@@ -1,6 +1,6 @@
 script_name("Deposite Caclulator")
 script_author("MTG MODS")
-script_version(3)
+script_version(5)
 
 require "lib.moonloader"
 require 'encoding'.default = 'CP1251'
@@ -8,20 +8,56 @@ local u8 = require 'encoding'.UTF8
 local ffi = require 'ffi'
 
 local inicfg = require 'inicfg'
-local my_ini = "DepositeCaclulator.ini"
+local my_ini = "Deposite_Caclulator.ini"
 local settings = inicfg.load({
 	general = {
 		my_deposite = 0,
 		my_rank = 0,
 		my_houses = 0,
 		my_vip = 0,
+		my_dep_lvl = 0,
 		my_insurance = 0,
 		my_lavka = 0,
 		my_gramota = 0,
-		fix = -5.791
+		fix = "nil" --5.791
     }
 }, my_ini)
 
+local def_bonus = { -- на случай если гитхаб недоступен, чтоб скрипт не умер
+	house_max_deposite = 6000000,
+	insurance = 15,
+	lavka = 12,
+	gramota_veterana = 7,
+	vip_profit = {
+		1500, -- no vip
+		1150, -- titan vip
+		800 -- premium vip
+	},
+	dep_lvl_max_dep = {
+		0,
+		20000000, -- 1
+		30000000, -- 2
+		50000000, -- 3
+		70000000, -- 4
+		100000000 -- 5
+	},
+	dep_lvl_bonus = {
+		0,  -- 0
+		5,  -- 1
+		10, -- 2
+		18, -- 3
+		26, -- 4
+		35  -- 5
+	},
+	fraction_rank = {
+		15, -- 1 - 3
+		25, -- 4 - 7
+		30  -- 8 - 10
+	}
+}
+local bonus = {}
+
+function isMonetLoader() return MONET_VERSION ~= nil end
 if MONET_DPI_SCALE == nil then MONET_DPI_SCALE = 1.0 end
 
 local fa = require('fAwesome6_solid')
@@ -33,6 +69,7 @@ local my_lavka = new.int(settings.general.my_lavka)
 local my_gramota = new.int(settings.general.my_gramota)
 local my_houses = new.int(settings.general.my_houses)
 local my_vip = new.int(settings.general.my_vip)
+local my_dep_lvl = new.int(settings.general.my_dep_lvl)
 local my_rank = new.int(settings.general.my_rank)
 local input_fix = new.char[256](u8(settings.general.fix))
 
@@ -48,7 +85,7 @@ function main()
 	if not isSampLoaded() or not isSampfuncsLoaded() then return end
     while not isSampAvailable() do wait(0) end 
 	
-	sampAddChatMessage('{ff0000}[INFO] {ffffff}Скрипт "Deposite Caclulator" загружен и готов к работе! Автор: MTG MODS | Версия: 3 | Используйте {00ccff}/deposite',-1)
+	sampAddChatMessage('{ff0000}[INFO] {ffffff}Скрипт "Deposite Caclulator" загружен и готов к работе! Автор: MTG MODS | Версия: 5 | Используйте {00ccff}/deposite',-1)
 	
 	sampRegisterChatCommand("deposite", function() 
 		check_stats = true 
@@ -64,59 +101,307 @@ function main()
 			sampAddChatMessage('{ff0000}[INFO] {ffffff}Используйте {00ccff}/deposite [значение]',-1)
 		end
 	end)
+
+	download_dep_bonuse_info()
 	
-	wait(-1)
+	-- wait(-1)
 	
 end	
 
 require("samp.events").onShowDialog = function(dialogid, style, title, button1, button2, text)
-	
-	if dialogid == 235 and check_stats then -- получение статистики
-		
+	if check_stats and title:find("Основная статистика") then
 		if text:find("{FFFFFF}Деньги на депозите: {B83434}%[(.+)%](.+){FFFFFF}Работа") then
 			local deposite = text:match("{FFFFFF}Деньги на депозите: {B83434}%[(.+)%](.+){FFFFFF}Работа")
 			settings.general.my_deposite = deposite:gsub("%D", "")
 			settings.general.my_deposite = math.floor(settings.general.my_deposite)
 			inicfg.save(settings, my_ini)
 		end
-		
 		if text:find("{FFFFFF}Должность: {B83434}(.+)%((%d+)%)") then
 			local rank, rank_number = text:match("{FFFFFF}Должность: {B83434}(.+)%((%d+)%)(.+)Уровень розыска")
 			my_rank[0] = tonumber(rank_number)
 			settings.general.my_rank = tonumber(rank_number)
 			inicfg.save(settings, my_ini)
 		end
-		
-		if text:find("{FFFFFF}Статус: {B83434}%[(.+)%](.+){FFFFFF}Супруг") then
-			local vip = text:match("{FFFFFF}Статус: {B83434}%[(.+)%](.+){FFFFFF}Супруг")
-			
+		if text:find("{FFFFFF}Статус: {B83434}%[(.+)%](.+){FFFFFF}Гражданство") then
+			local vip = text:match("{FFFFFF}Статус: {B83434}%[(.+)%](.+){FFFFFF}Гражданство")
 			if vip == 'Premium' then
-				my_vip[0] = 6
-			elseif vip == 'Titan' then
-				my_vip[0] = 5
-			elseif vip == 'Daimond' then
-				my_vip[0] = 4
-			elseif vip == 'Platinum' then
-				my_vip[0] = 3
-			elseif vip == 'Gold' then
 				my_vip[0] = 2
-			elseif vip == 'Bronze' then
+			elseif vip == 'Titan' then
 				my_vip[0] = 1
+			-- elseif vip == 'Daimond' then
+			-- 	my_vip[0] = 4
+			-- elseif vip == 'Platinum' then
+			-- 	my_vip[0] = 3
+			-- elseif vip == 'Gold' then
+			-- 	my_vip[0] = 2
+			-- elseif vip == 'Bronze' then
+			-- 	my_vip[0] = 1
 			elseif vip == 'Не имеется' then
 				my_vip[0] = 0
 			end
-			
 			settings.general.my_vip = my_vip[0]
 			inicfg.save(settings, my_ini)
-			
 		end
-		
-		sampSendDialogResponse(235, 0,0,0)
+		sampSendDialogResponse(dialogid, 0,0,0)
 		check_stats = false
 		return false
+	end
+end
+
+function getMyDeposite()
+	local deposit
+	if newdeposite_bool then
+		deposit = newdeposite
+	else
+		local matchResult = tostring(settings.general.my_deposite):match("(%d+)")
+		deposit = matchResult and tonumber(matchResult) or 0
+	end
+	return tonumber(deposit)
+end
+function getMaxDepositeBonusLVL()
+
+	return bonus.dep_lvl_max_dep[settings.general.my_dep_lvl+1]
+
+	-- if settings.general.my_dep_lvl == 0 then
+	-- 	return 0
+	-- elseif settings.general.my_dep_lvl == 1 then
+	-- 	return 20000000
+	-- elseif settings.general.my_dep_lvl == 2 then
+	-- 	return 30000000
+	-- elseif settings.general.my_dep_lvl == 3 then
+	-- 	return 50000000
+	-- elseif settings.general.my_dep_lvl == 4 then
+	-- 	return 70000000
+	-- elseif settings.general.my_dep_lvl == 5 then
+	-- 	return 100000000
+	-- end
+end
+function getMaxDeposite()
+	local max_deposite = 200000000 + (bonus.house_max_deposite * settings.general.my_houses) + getMaxDepositeBonusLVL()
+	return tonumber(max_deposite)
+end
+function getVipProfit()
 	
+	return bonus.vip_profit[tonumber(my_vip[0])+1]
+
+	-- local vip_bonus
+    -- if my_vip[0] == 0 then -- no vip
+	-- 	vip_bonus = 1500
+    -- -- elseif my_vip[0] == 1 then -- bronze vip
+	-- -- 	vip_bonus = 1400
+    -- -- elseif my_vip[0] == 2  then -- gold vip
+	-- -- 	vip_bonus = 1300
+    -- -- elseif my_vip[0] == 3 then -- platinum vip
+	-- -- 	vip_bonus = 1250
+    -- -- elseif my_vip[0] == 4 then -- daimond vip
+	-- -- 	vip_bonus = 1200
+    -- elseif my_vip[0] == 1 then -- titan vip
+	-- 	vip_bonus = 1150
+    -- elseif my_vip[0] == 2 then -- premium vip
+	-- 	vip_bonus = 800
+    -- end
+	-- return vip_bonus
+end
+function getPercentBonus()
+
+	local percent = 0
+
+	if my_insurance[0] == 1 then
+	    percent = percent + bonus.insurance
+	end
+
+	if my_rank[0] >= 1 and my_rank[0] <= 3 then
+		percent = percent + bonus.fraction_rank[1]
+	elseif my_rank[0] >= 4 and my_rank[0] <= 7 then
+		percent = percent + bonus.fraction_rank[2]
+	elseif my_rank[0] >= 8 and my_rank[0] <= 10 then
+		percent = percent + bonus.fraction_rank[3]
+	end
+
+	if my_lavka[0] == 1 then
+		percent = percent + bonus.lavka
+	end
+
+	if my_gramota[0] == 1 then
+		percent = percent + bonus.gramota_veterana
+	end
+
+	if my_dep_lvl[0] ~= 0 then
+		percent = percent + bonus.dep_lvl_bonus[tonumber(my_dep_lvl[0])+1]
 	end
 	
+	return tonumber(percent)
+
+end
+function getDeposite()
+	local deposite = getMyDeposite()
+	if tonumber(deposite) > getMaxDeposite() then
+		deposite = getMaxDeposite()
+	end
+	local my_deposite = deposite / getVipProfit()
+	local my_deposite_prefinal = my_deposite + (my_deposite / 100) * getPercentBonus()
+	local deposite_fix = 0
+	pcall(function()
+		deposite_fix = ( my_deposite_prefinal / 100 ) * tonumber(settings.general.fix)
+	end)
+	local final_deposite = my_deposite_prefinal - deposite_fix
+	return math.floor(final_deposite/2)
+end
+function gotoFullDeposite()
+	local currentDeposit = getMyDeposite()
+	if currentDeposit >= getMaxDeposite() then
+		return 0
+	end
+	local iterations = 0
+	while currentDeposit < getMaxDeposite() do
+		local my_deposite = currentDeposit / getVipProfit()
+		local my_deposite_bonus = my_deposite + (my_deposite / 100) * getPercentBonus()
+		local deposite_fix = 0
+		pcall(function()
+			deposite_fix = ( my_deposite_bonusl / 100 ) * tonumber(settings.general.fix)
+		end)
+		local final_deposite = math.floor((my_deposite_bonus - deposite_fix)/2)
+		currentDeposit = currentDeposit + final_deposite
+		iterations = iterations + 1
+	end
+
+	return iterations
+end
+function comma_value(n) -- эта функция полностю взята со скрипта MoneySeparator by Royan_Millans and YarikVL
+	local left,num,right = string.match(n,'^([^%d]*%d)(%d*)(.-)$')
+	return left..(num:reverse():gsub('(%d%d%d)','%1,'):reverse())..right
+end
+
+function download_dep_bonuse_info()
+	print('[Deposite Caclulator] Использую стандартные данные про бонусы от депозита!')
+	bonus = def_bonus
+	
+	print('[Deposite Caclulator] Пытаюсь с облака получить инфу про бонусы от депозита...')
+
+	local path = getWorkingDirectory():gsub('\\','/') .. "/сonfig/Deposite_Bonuse.json"
+	os.remove(path)
+	local url = 'https://github.com/MTGMODS/lua_scripts/raw/refs/heads/main/dep_calculator/Deposite%20Bonuse.json'
+
+	if isMonetLoader() then
+		local function downloadToFile(url, path, callback, progressInterval)
+			callback = callback or function() end
+			progressInterval = progressInterval or 0.1
+		
+			local effil = require("effil")
+			local progressChannel = effil.channel(0)
+		
+			local runner = effil.thread(function(url, path)
+			local http = require("socket.http")
+			local ltn = require("ltn12")
+		
+			local r, c, h = http.request({
+				method = "HEAD",
+				url = url,
+			})
+		
+			if c ~= 200 then
+				return false, c
+			end
+			local total_size = h["content-length"]
+		
+			local f = io.open(path, "wb")
+			if not f then
+				return false, "failed to open file"
+			end
+			local success, res, status_code = pcall(http.request, {
+				method = "GET",
+				url = url,
+				sink = function(chunk, err)
+				local clock = os.clock()
+				if chunk and not lastProgress or (clock - lastProgress) >= progressInterval then
+					progressChannel:push("downloading", f:seek("end"), total_size)
+					lastProgress = os.clock()
+				elseif err then
+					progressChannel:push("error", err)
+				end
+		
+				return ltn.sink.file(f)(chunk, err)
+				end,
+			})
+		
+			if not success then
+				return false, res
+			end
+		
+			if not res then
+				return false, status_code
+			end
+		
+			return true, total_size
+			end)
+			local thread = runner(url, path)
+		
+			local function checkStatus()
+			local tstatus = thread:status()
+			if tstatus == "failed" or tstatus == "completed" then
+				local result, value = thread:get()
+		
+				if result then
+				callback("finished", value)
+				else
+				callback("error", value)
+				end
+		
+				return true
+			end
+			end
+		
+			lua_thread.create(function()
+			if checkStatus() then
+				return
+			end
+		
+			while thread:status() == "running" do
+				if progressChannel:size() > 0 then
+				local type, pos, total_size = progressChannel:pop()
+				callback(type, pos, total_size)
+				end
+				wait(0)
+			end
+		
+			checkStatus()
+			end)
+		end
+		downloadToFile(url, path, function(type, pos, total_size)
+			if type == "finished" then
+				local result = readJsonFile(path)
+				if result then
+					bonus = result
+					print('[Deposite Caclulator] Информация успешно получена!')
+				end
+			end
+		end)
+	else
+		downloadUrlToFile(url, path, function(id, status)
+			if status == 6 then -- ENDDOWNLOADDATA
+				local result = readJsonFile(path)
+				if result then
+					bonus = result
+					print('[Deposite Caclulator] Информация успешно получена!')
+				end
+			end
+		end)
+	end
+	function readJsonFile(filePath)
+		if not doesFileExist(filePath) then
+			print("[Deposite Caclulator] Ошибка: Файл " .. filePath .. " не существует")
+			return nil
+		end
+		local file = io.open(filePath, "r")
+		local content = file:read("*a")
+		file:close()
+		local jsonData = decodeJson(content)
+		if not jsonData then
+			print("[Deposite Caclulator] Ошибка: Неверный формат JSON в файле " .. filePath)
+			return nil
+		end
+		return jsonData
+	end
 end
 
 imgui.OnInitialize(function()
@@ -124,13 +409,12 @@ imgui.OnInitialize(function()
 	fa.Init(14 * MONET_DPI_SCALE)
 	dark_theme()
 end)
-
 imgui.OnFrame(
     function() return MainWindow[0] end,
-    function(opyat_govnokog_exx)
+    function(main_window)
 	
 		imgui.SetNextWindowPos(imgui.ImVec2(sizeX / 2, sizeY / 2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
-		imgui.SetNextWindowSize(imgui.ImVec2(800 * MONET_DPI_SCALE, 475 * MONET_DPI_SCALE), imgui.Cond.FirstUseEver)
+		imgui.SetNextWindowSize(imgui.ImVec2(800 * MONET_DPI_SCALE, 510 * MONET_DPI_SCALE), imgui.Cond.FirstUseEver)
 		imgui.Begin(fa.LANDMARK.." Deposite Caclulator by MTG MODS", MainWindow, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize)
 		
 		if imgui.BeginChild('##1', imgui.ImVec2(790 * MONET_DPI_SCALE, 65 * MONET_DPI_SCALE), true) then
@@ -178,18 +462,18 @@ imgui.OnFrame(
 			imgui.Columns(1)
 			imgui.Separator()
 
-			imgui.CenterTextDisabled(u8('(реальная прибыль может отличаться в среднем на 5 процентов из-за фикса экономики!)'))
+			imgui.CenterTextDisabled(u8('(реальная прибыль может немного отличаться из-за настроек экономики сервера — определенного фикс-процента от ГА/КА)'))
 		
 		imgui.EndChild() end
 		
-		if imgui.BeginChild('##3', imgui.ImVec2(790 * MONET_DPI_SCALE, 265 * MONET_DPI_SCALE), true) then
+		if imgui.BeginChild('##3', imgui.ImVec2(790 * MONET_DPI_SCALE, 300 * MONET_DPI_SCALE), true) then
 			
 			imgui.CenterText(fa.CIRCLE_INFO .. u8' Укажите ваши условия, которые влияют на прибыль с депозита:')
 			
 			imgui.Separator()
 			
-			if imgui.CollapsingHeader(fa.CROWN .. u8' Ваш уровень игрового VIP статуса') then
-				local numButtons = 7
+			if imgui.CollapsingHeader(fa.CROWN .. u8' Ваш игровой VIP статус') then
+				local numButtons = 3
 				local buttonWidth = 100 * MONET_DPI_SCALE
 				local totalButtonWidth = buttonWidth * numButtons + imgui.GetStyle().ItemSpacing.x * (numButtons - 1)
 				local startPosX = (imgui.GetWindowWidth() - totalButtonWidth) / 2
@@ -202,17 +486,17 @@ imgui.OnFrame(
 					local label = ""
 					if i == 0 then
 						label = u8" Без VIP "
+					-- elseif i == 1 then
+					-- 	label = u8" Bronze VIP "
+					-- elseif i == 2 then
+					-- 	label = u8" Gold VIP "
+					-- elseif i == 3 then
+					-- 	label = u8" Platinum VIP "
+					-- elseif i == 4 then
+					-- 	label = u8" Diamond VIP "
 					elseif i == 1 then
-						label = u8" Bronze VIP "
-					elseif i == 2 then
-						label = u8" Gold VIP "
-					elseif i == 3 then
-						label = u8" Platinum VIP "
-					elseif i == 4 then
-						label = u8" Diamond VIP "
-					elseif i == 5 then
 						label = u8" Titan VIP "
-					elseif i == 6 then
+					elseif i == 2 then
 						label = u8" Premium VIP "
 					end
 
@@ -224,7 +508,39 @@ imgui.OnFrame(
 					end
 				end
 			end
+			if imgui.IsItemHovered() then
+				imgui.SetTooltip(u8'Уровень вашего VIP статуса существенно влияет на прибыль с депозита!\nPremium VIP даёт +50 процентов\nTitan VIP даёт +25 процентов')
+			end
+
 			imgui.Separator()
+
+			if imgui.CollapsingHeader(fa.PIGGY_BANK .. u8' Ваш уровень прокачиваемого депозита') then
+				local numButtons = 6
+				local buttonWidth = 100 * MONET_DPI_SCALE
+				local totalButtonWidth = buttonWidth * numButtons + imgui.GetStyle().ItemSpacing.x * (numButtons - 1)
+				local startPosX = (imgui.GetWindowWidth() - totalButtonWidth) / 2
+				imgui.SetCursorPosX(startPosX)
+				for i = 0, numButtons - 1 do
+					if i > 0 then
+						imgui.SameLine()
+					end
+
+					local label = " " .. i .. " ##dep_lvl"
+					
+					imgui.SetCursorPosX(startPosX + i * (buttonWidth + imgui.GetStyle().ItemSpacing.x))
+					if imgui.RadioButtonIntPtr(label, my_dep_lvl, i) then
+						my_dep_lvl[0] = i
+						settings.general.my_dep_lvl = my_dep_lvl[0]
+						inicfg.save(settings, my_ini)
+					end
+				end
+			end
+			if imgui.IsItemHovered() then
+				imgui.SetTooltip(u8'Уровень вашего депозита можно прокачивать в банке, каждый лвл (от 1 до 5) повышает прибыль')
+			end
+
+			imgui.Separator()
+
 			if imgui.CollapsingHeader(fa.HOUSE .. u8' Количество домов с улучшением депозита (ваших + тех в которые вы заселены)') then
 				for i = 0, 15 do
 					if i > 0 then
@@ -240,9 +556,11 @@ imgui.OnFrame(
 				
 			end
 			if imgui.IsItemHovered() then
-				imgui.SetTooltip(u8'Для каждого дома есть улучшение "Депозитные условия"\nДанное улучшение стоит $60,000,000\nУлучшенный дом повышает максимальный депозит на $6,000,000\nВы можете подселиться в такой дом, или купить его у игроков\nОбычно такие уже улучшенные дома игроки продают по ± $40,000,000')
+				imgui.SetTooltip(u8'Для каждого дома есть улучшение "Депозитные условия"\nДанное улучшение стоит $60,000,000\nУлучшенный дом повышает максимальный депозит на $6,000,000\nВы можете подселиться в такой дом, или купить его у игроков')
 			end
+
 			imgui.Separator()
+
 			if imgui.CollapsingHeader(fa.USER .. u8' Ваша порядковая должность в организации (номер ранга)') then
 				local numButtons = 11
 				local buttonWidth = 50 * MONET_DPI_SCALE
@@ -264,7 +582,12 @@ imgui.OnFrame(
 					end
 				end
 			end
+			if imgui.IsItemHovered() then
+				imgui.SetTooltip(u8'1 - 3 ранг даёт +15 процентов\n4 - 7 ранг даёт +25 процентов\n8 - 10 ранг даёт +30 процентов')
+			end
+
 			imgui.Separator()
+
 			if imgui.CollapsingHeader(fa.FILE_INVOICE_DOLLAR .. u8' Наличие у вас улучшения "Пенсионне Страхование"') then
 				local numButtons = 2
 				local buttonWidth = 100 * MONET_DPI_SCALE
@@ -301,8 +624,8 @@ imgui.OnFrame(
 			end
 
 			imgui.Separator()
-			
-			if imgui.CollapsingHeader(fa.BOX_ARCHIVE .. u8' Наличие у вас аксесуара "Элитная Лавка"') then
+
+			if imgui.CollapsingHeader(fa.BOX_ARCHIVE .. u8' Наличие у вас аксесуара "Элитная Лавка" / "Магическая Лавка" / "Рыбацкий Рюкзак"') then
 				local numButtons = 2
 				local buttonWidth = 100 * MONET_DPI_SCALE
 				local totalButtonWidth = buttonWidth * numButtons + imgui.GetStyle().ItemSpacing.x * (numButtons - 1)
@@ -334,11 +657,11 @@ imgui.OnFrame(
 				end
 			end
 			if imgui.IsItemHovered() then
-				imgui.SetTooltip(u8'Аксесуар "Элитная Лавка" даёт +12 процентов к депозиту')
+				imgui.SetTooltip(u8'Данный кксесуар даёт +12 процентов к депозиту')
 			end
-		
+
 			imgui.Separator()
-			
+
 			if imgui.CollapsingHeader(fa.FILE .. u8' Наличие у вас "Грамоты Ветерана"') then
 				imgui.PushItemWidth(50 * MONET_DPI_SCALE)
 				imgui.SetCursorPosX(imgui.GetWindowWidth() / 2 - 25 * MONET_DPI_SCALE)
@@ -373,12 +696,12 @@ imgui.OnFrame(
 				imgui.Separator()
 			end
 			if imgui.IsItemHovered() then
-				imgui.SetTooltip(u8'Грамота ветерана выдаётся за 400 отыганных часов в армиях\nДаёт такие бонусы:\n1. +11 процентов к зп во фракции\n2. +5 процентов к зп на любой работе (ЦЗ)\n3. +7 процентов к депозиту')
+				imgui.SetTooltip(u8'Грамота даёт +7 процентов к депозиту')
 			end
 
 			imgui.Separator()
 			
-			if imgui.CollapsingHeader(fa.CIRCLE_DOLLAR_TO_SLOT .. u8' Текущий процент фикса экономики') then
+			if imgui.CollapsingHeader(fa.CIRCLE_DOLLAR_TO_SLOT .. u8' Текущий процент фикса экономики (значение от ГА/КА, может быть от -25 до +25)') then
 				imgui.PushItemWidth(50 * MONET_DPI_SCALE)
 				imgui.SetCursorPosX(imgui.GetWindowWidth() / 2 - 25 * MONET_DPI_SCALE)
 				if imgui.InputText(u8'%##fix', input_fix, 256) then
@@ -387,9 +710,6 @@ imgui.OnFrame(
 				end
 				imgui.Separator()
 			end
-			if imgui.IsItemHovered() then
-				imgui.SetTooltip(u8'Узнать текущий процент фикса экономики вы можете из:\n- Discord: https://discord.gg/qBPEYjfNhv\n- BlastHack: https://www.blast.hk/threads/197531/')
-			end
 			
 		imgui.EndChild() end
 		
@@ -397,129 +717,6 @@ imgui.OnFrame(
 		
     end
 )
-
-function getMyDeposite()
-
-	local deposit
-	
-	if newdeposite_bool then
-		deposit = newdeposite
-	else
-		local matchResult = tostring(settings.general.my_deposite):match("(%d+)")
-		deposit = matchResult and tonumber(matchResult) or 0
-	end
-
-	return tonumber(deposit)
-end
-function getMaxDeposite()
-	local max_deposite = 200000000 + ( 6000000 * settings.general.my_houses )
-	return tonumber(max_deposite)
-end
-function getVipProfit()
-
-	local vip_bonus
-
-    if my_vip[0] == 0 then -- no vip
-		vip_bonus = 1500
-    elseif my_vip[0] == 1 then -- bronze vip
-		vip_bonus = 1400
-    elseif my_vip[0] == 2  then -- gold vip
-		vip_bonus = 1300
-    elseif my_vip[0] == 3 then -- platinum vip
-		vip_bonus = 1250
-    elseif my_vip[0] == 4 then -- daimond vip
-		vip_bonus = 1200
-    elseif my_vip[0] == 5 then -- titan vip
-		vip_bonus = 1150
-    elseif my_vip[0] == 6 then -- premium vip
-		vip_bonus = 800
-    end
-
-	return tonumber(vip_bonus)
-
-end
-function getPercentBonus()
-
-	local percent = 0
-
-	if my_insurance[0] == 1 then
-	    percent = percent + 15
-	end
-	
-	if my_rank[0] >= 1 and my_rank[0] <= 3 then
-		percent = percent + 15
-	elseif my_rank[0] >= 4 and my_rank[0] <= 7 then
-		percent = percent + 25
-	elseif my_rank[0] >= 8 and my_rank[0] <= 10 then
-		percent = percent + 30
-	end
-
-	if my_lavka[0] == 1 then
-		percent = percent + 12
-	end
-
-	if my_gramota[0] == 1 then
-		percent = percent + 7
-	end
-	
-	return tonumber(percent)
-
-end
-function getDeposite()
-
-	local deposite = getMyDeposite()
-
-	if tonumber(deposite) > getMaxDeposite() then
-		deposite = getMaxDeposite()
-	end
-
-	local my_deposite = deposite / getVipProfit()
-	local my_deposite_prefinal = my_deposite + (my_deposite / 100) * getPercentBonus()
-
-	local deposite_fix = 0
-	pcall(function()
-		deposite_fix = ( my_deposite_prefinal / 100 ) * tonumber(settings.general.fix)
-	end)
-	
-	local final_deposite = my_deposite_prefinal - deposite_fix
-
-	return math.floor(final_deposite/2)
-end
-function gotoFullDeposite()
-
-	local currentDeposit = getMyDeposite()
-
-	if currentDeposit >= getMaxDeposite() then
-		return 0
-	end
-
-	local iterations = 0
-
-	while currentDeposit < getMaxDeposite() do
-	
-		local my_deposite = currentDeposit / getVipProfit()
-		
-		local my_deposite_bonus = my_deposite + (my_deposite / 100) * getPercentBonus()
-		
-		local deposite_fix = 0
-		pcall(function()
-			deposite_fix = ( my_deposite_bonusl / 100 ) * tonumber(settings.general.fix)
-		end)
-
-		local final_deposite = math.floor((my_deposite_bonus - deposite_fix)/2)
-		
-		currentDeposit = currentDeposit + final_deposite
-		
-		iterations = iterations + 1
-		
-	end
-
-	return iterations
-end
-function comma_value(n) -- эта функция полностю взята со скрипта MoneySeparator by Royan_Millans and YarikVL
-	local left,num,right = string.match(n,'^([^%d]*%d)(%d*)(.-)$')
-	return left..(num:reverse():gsub('(%d%d%d)','%1,'):reverse())..right
-end
 function imgui.CenterColumnText(text)
     imgui.SetCursorPosX((imgui.GetColumnOffset() + (imgui.GetColumnWidth() / 2)) - imgui.CalcTextSize(text).x / 2)
     imgui.Text(text)

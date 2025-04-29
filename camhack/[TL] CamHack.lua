@@ -1,4 +1,5 @@
 require("ArizonaAPI")
+
 local lua_thread = require("lts")
 local json = require("cjson")
 local ffi = require("ffi")
@@ -109,26 +110,6 @@ load_settings()
 function lockPlayerControl(bool)
     freezeCharPosition(playerPed, bool)
 end
-
--- ffi.cdef[[
---     typedef unsigned __int64 uintptr_t;
---     uintptr_t GetModuleHandleA(const char* lpModuleName);
--- ]]
-
--- function getAddress(offset)
---     local baseAddress = ffi.cast("uintptr_t", ffi.C.GetModuleHandleA(ffi.NULL))
---     return baseAddress + offset
--- end
-
--- function restoreCameraJumpcut()
---     local CCamera__RestoreWithJumpCut = ffi.cast("void(*)(uintptr_t)", getAddress(0xF961D0))(getAddress(0x4EA95E0))
---     CCamera__RestoreWithJumpCut(TheCamera)   
--- end
-
-
-
-
--- sampAddChatMessage('[CamHack] {ffffff}Ошибка, не удалось выйти с режима камеры, перезапустите игру!', message_color)
 
 function IsHotkeyClicked(keys_id)
     local keysArray = json.decode(keys_id)
@@ -509,8 +490,7 @@ function onUpdate()
         elseif ((IsHotkeyClicked(settings.binds.activate)) and (not camhack_active)) then
             camhack_on()
         end 
-    end
-    
+    end  
 end
 
 function onExitScript()
