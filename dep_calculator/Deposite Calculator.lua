@@ -1,4 +1,4 @@
-script_name("Deposite Caclulator")
+script_name("Deposite Calсulator")
 script_author("MTG MODS")
 script_version(5)
 
@@ -8,7 +8,7 @@ local u8 = require 'encoding'.UTF8
 local ffi = require 'ffi'
 
 local inicfg = require 'inicfg'
-local my_ini = "Deposite_Caclulator.ini"
+local my_ini = "Deposite_Calсulator.ini"
 local settings = inicfg.load({
 	general = {
 		my_deposite = 0,
@@ -85,7 +85,7 @@ function main()
 	if not isSampLoaded() or not isSampfuncsLoaded() then return end
     while not isSampAvailable() do wait(0) end 
 	
-	sampAddChatMessage('{ff0000}[INFO] {ffffff}Скрипт "Deposite Caclulator" загружен и готов к работе! Автор: MTG MODS | Версия: 5 | Используйте {00ccff}/deposite',-1)
+	sampAddChatMessage('{ff0000}[INFO] {ffffff}Скрипт "Deposite Calculator" загружен и готов к работе! Автор: MTG MODS | Версия: 5 | Используйте {00ccff}/deposite',-1)
 	
 	sampRegisterChatCommand("deposite", function() 
 		check_stats = true 
@@ -273,10 +273,10 @@ function comma_value(n) -- эта функция полностю взята со скрипта MoneySeparator 
 end
 
 function download_dep_bonuse_info()
-	print('[Deposite Caclulator] Использую стандартные данные про бонусы от депозита!')
+	print('[Deposite Calculator] Использую стандартные данные про бонусы от депозита!')
 	bonus = def_bonus
 	
-	print('[Deposite Caclulator] Пытаюсь с облака получить инфу про бонусы от депозита...')
+	print('[Deposite Calculator] Пытаюсь с облака получить инфу про бонусы от депозита...')
 
 	local path = getWorkingDirectory():gsub('\\','/') .. "/config/Deposite_Bonuse.json"
 	os.remove(path)
@@ -373,7 +373,7 @@ function download_dep_bonuse_info()
 				local result = readJsonFile(path)
 				if result then
 					bonus = result
-					print('[Deposite Caclulator] Информация успешно получена!')
+					print('[Deposite Calculator] Информация успешно получена!')
 				end
 			end
 		end)
@@ -383,14 +383,14 @@ function download_dep_bonuse_info()
 				local result = readJsonFile(path)
 				if result then
 					bonus = result
-					print('[Deposite Caclulator] Информация успешно получена!')
+					print('[Deposite Calculator] Информация успешно получена!')
 				end
 			end
 		end)
 	end
 	function readJsonFile(filePath)
 		if not doesFileExist(filePath) then
-			print("[Deposite Caclulator] Ошибка: Файл " .. filePath .. " не существует")
+			print("[Deposite Calculator] Ошибка: Файл " .. filePath .. " не существует")
 			return nil
 		end
 		local file = io.open(filePath, "r")
@@ -398,7 +398,7 @@ function download_dep_bonuse_info()
 		file:close()
 		local jsonData = decodeJson(content)
 		if not jsonData then
-			print("[Deposite Caclulator] Ошибка: Неверный формат JSON в файле " .. filePath)
+			print("[Deposite Calculator] Ошибка: Неверный формат JSON в файле " .. filePath)
 			return nil
 		end
 		return jsonData
@@ -416,7 +416,7 @@ imgui.OnFrame(
 	
 		imgui.SetNextWindowPos(imgui.ImVec2(sizeX / 2, sizeY / 2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
 		imgui.SetNextWindowSize(imgui.ImVec2(800 * MONET_DPI_SCALE, 510 * MONET_DPI_SCALE), imgui.Cond.FirstUseEver)
-		imgui.Begin(fa.LANDMARK.." Deposite Caclulator by MTG MODS", MainWindow, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize)
+		imgui.Begin(fa.LANDMARK.." Deposite Calculator by MTG MODS", MainWindow, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize)
 		
 		if imgui.BeginChild('##1', imgui.ImVec2(790 * MONET_DPI_SCALE, 65 * MONET_DPI_SCALE), true) then
 			
