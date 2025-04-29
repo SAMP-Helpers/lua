@@ -278,7 +278,7 @@ function download_dep_bonuse_info()
 	
 	print('[Deposite Caclulator] ѕытаюсь с облака получить инфу про бонусы от депозита...')
 
-	local path = getWorkingDirectory():gsub('\\','/') .. "/сonfig/Deposite_Bonuse.json"
+	local path = getWorkingDirectory():gsub('\\','/') .. "/сonfig/Deposite Bonuse.json"
 	os.remove(path)
 	local url = 'https://github.com/MTGMODS/lua_scripts/raw/refs/heads/main/dep_calculator/Deposite%20Bonuse.json'
 
