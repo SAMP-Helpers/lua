@@ -278,9 +278,10 @@ function download_dep_bonuse_info()
 	
 	print('[Deposite Caclulator] ѕытаюсь с облака получить инфу про бонусы от депозита...')
 
-	local path = getWorkingDirectory():gsub('\\','/') .. "/сonfig/Deposite_Bonuse.json"
+	local path = getWorkingDirectory():gsub('\\','/') .. "/config/Deposite_Bonuse.json"
 	os.remove(path)
-	local url = 'https://github.com/MTGMODS/lua_scripts/raw/refs/heads/main/dep_calculator/Deposite_Bonuse.json'
+
+	local url = 'https://raw.githubusercontent.com/MTGMODS/lua_scripts/main/dep_calculator/Deposite_Bonuse.json'
 
 	if isMonetLoader() then
 		local function downloadToFile(url, path, callback, progressInterval)
