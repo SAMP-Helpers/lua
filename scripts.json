@@ -135,7 +135,7 @@
         "info": "Смена цвета прицела прямо в игре (/sight)"
     },
     {
-        "name": "DepositeCalculator",
+        "name": "Deposite Calculator",
         "ver": "3",
         "author": "MTG MODS",
         "link": "https://github.com/MTGMODS/lua_scripts/raw/refs/heads/main/dep_calculator/Deposite%20Calculator.lua",
