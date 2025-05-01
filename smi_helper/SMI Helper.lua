@@ -285,7 +285,7 @@ end
 if not settings.general.autofind_dpi then
 	print('[SMI Helper] Применение авто-размера менюшек...')
 	if isMonetLoader() then
-		settings.general.custom_dpi = settings.general.custom_dpi
+		settings.general.custom_dpi = MONET_DPI_SCALE
 	else
 		local base_width = 1366
 		local base_height = 768
