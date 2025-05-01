@@ -4936,7 +4936,7 @@ imgui.OnFrame(
 												end
 												imgui.SameLine()
 												if imgui.Button(fa.FLOPPY_DISK .. u8 ' Сохранить', imgui.ImVec2(imgui.GetMiddleButtonX(2), 0)) then
-													if u8:decode(ffi.string(input_smartRPTP_lvl)) ~= '' and not u8:decode(ffi.string(input_smartRPTP_lvl)):find('%D') and tonumber(u8:decode(ffi.string(input_smartRPTP_lvl))) >= 1 and tonumber(u8:decode(ffi.string(input_smartRPTP_lvl))) <= 6 and u8:decode(ffi.string(input_smartRPTP_text)) ~= '' and u8:decode(ffi.string(input_smartRPTP_reason)) ~= '' then
+													if u8:decode(ffi.string(input_smartRPTP_lvl)) ~= '' and not u8:decode(ffi.string(input_smartRPTP_lvl)):find('%D') and tonumber(u8:decode(ffi.string(input_smartRPTP_lvl))) >= 1 and tonumber(u8:decode(ffi.string(input_smartRPTP_lvl))) <= 10 and u8:decode(ffi.string(input_smartRPTP_text)) ~= '' and u8:decode(ffi.string(input_smartRPTP_reason)) ~= '' then
 														item.text = u8:decode(ffi.string(input_smartRPTP_text))
 														item.lvl = u8:decode(ffi.string(input_smartRPTP_lvl))
 														item.reason = u8:decode(ffi.string(input_smartRPTP_reason))
