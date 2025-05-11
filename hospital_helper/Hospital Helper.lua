@@ -541,7 +541,18 @@ if not isMonetLoader() then
 			end
 		end)
 
-		
+		HealMeHotKey = hotkey.RegisterHotKey('Healme', false, decodeJson(settings.general.bind_healme), function() 
+			if settings.general.use_binds then find_and_use_command('/heal {my_id}', 0) end
+		end)
+		FastHealHotKey = hotkey.RegisterHotKey('FastHeal Player', false, decodeJson(settings.general.bind_fastheal), function() 
+			if settings.general.use_binds then 
+				if heal_in_chat and heal_in_chat_player_id ~= nil and not sampIsDialogActive() and not sampIsChatInputActive() and not isPauseMenuActive() and not isSampfuncsConsoleActive() then
+					find_and_use_command("/heal {arg_id}", heal_in_chat_player_id)
+					heal_in_chat = false
+					heal_in_chat_player_id = nil
+				end
+			end
+		end)
 
 		CommandStopHotKey = hotkey.RegisterHotKey('Stop Command', false, decodeJson(settings.general.bind_command_stop), function() 
 			if settings.general.use_binds then 
