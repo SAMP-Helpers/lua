@@ -124,9 +124,12 @@ function getPlayerInfo(nickname, serverId)
     end
 
     if response.status_code == 200 then
-        local data = json.decode(u8:decode(response.text))
-		-- sampAddChatMessage('[Probiv] +', -1)
-        return data
+		local contents = u8:decode(response.text)
+		local result, loaded = pcall(decodeJson, contents)
+		if result then
+			return loaded
+		end
+        return nil
     elseif response.status_code == 422 then
         sampAddChatMessage('[Probiv] {ffffff}Ошибка 422: Никнейм не найден или введен с ошибкой.', message_color)
     elseif response.status_code == 401 then
