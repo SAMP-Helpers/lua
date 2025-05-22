@@ -115,7 +115,6 @@ end
 function getPlayerInfo(nickname, serverId)
     local url = string.format("https://api.depscian.tech/v2/player/find?nickname=%s&serverId=%s", nickname, serverId)
     local requests = require 'requests'
-    local json = require 'json'
 
     local response, err = requests.get{url = url, headers = {["X-API-Key"] = settings.general.probiv_api_key}}
     if not response then
