@@ -173,9 +173,9 @@ function main()
 			end
 		end
 		if isParamSampID(id) then
+			probiv = nil
 			imgui.StrCopy(input, sampGetPlayerNickname(id))
 			imgui.StrCopy(input_probiv, u8(settings.general.probiv_api_key))
-			probiv = nil
 			ProbivMenu[0] = true
 		else
 			sampAddChatMessage('[Probiv] {ffffff}Используйте /probiv [ID игрока]', message_color)
