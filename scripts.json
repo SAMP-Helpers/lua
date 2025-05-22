@@ -117,6 +117,15 @@
         "info": "Свободное управление камерой (/cmh)"
     },
     {
+        "name": "Probiv",
+        "ver": "1",
+        "author": "MTG MODS",
+        "link": "https://github.com/MTGMODS/lua_scripts/raw/refs/heads/main/probiv/Probiv.lua",
+        "img": "",
+        "platform": "PC + MOBILE",
+        "info": "Получение статы любого игрока (/probiv)"
+    },
+    {
         "name": "CarSnakeFix",
         "ver": "1.0",
         "author": "MTG MODS",
