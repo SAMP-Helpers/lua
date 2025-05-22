@@ -37,7 +37,7 @@ function save_settings()
         local result, encoded = pcall(encodeJson, settings)
         file:write(result and encoded or "")
         file:close()
-		print('[Probiv] Настройки хелпера сохранены!')
+		print('[Probiv by MTGMODS & DepsAPI] Настройки хелпера сохранены!')
         return result
     end
 end
@@ -45,7 +45,7 @@ load_settings()
 ---------------------------------------------------------------------------------------------------------
 function isMonetLoader() return MONET_VERSION ~= nil end
 if not settings.general.autofind_dpi then
-	print('[Probiv] Применение авто-размера менюшек...')
+	print('[Probiv by MTGMODS & DepsAPI] Применение авто-размера менюшек...')
 	if isMonetLoader() then
 		settings.general.custom_dpi = MONET_DPI_SCALE
 	else
@@ -56,8 +56,8 @@ if not settings.general.autofind_dpi then
 	settings.general.autofind_dpi = true
 	local format_dpi = tostring(settings.general.custom_dpi):match("^%d+%.%d%d%d")
 	settings.general.custom_dpi = tonumber(format_dpi)
-	print('[Probiv] Установлено значение: ' .. settings.general.custom_dpi)
-	print('[Probiv] Вы в любой момент можете изменить значение в настройках!')
+	print('[Probiv by MTGMODS & DepsAPI] Установлено значение: ' .. settings.general.custom_dpi)
+	print('[Probiv by MTGMODS & DepsAPI] Вы в любой момент можете изменить значение в настройках!')
 	save_settings()
 end
 if isMonetLoader() then
@@ -118,7 +118,7 @@ function getPlayerInfo(nickname, serverId)
 
     local response, err = requests.get{url = url, headers = {["X-API-Key"] = settings.general.probiv_api_key}}
     if not response then
-        sampAddChatMessage('[Probiv] {ffffff}Ошибка запроса: ' .. tostring(err), message_color)
+        sampAddChatMessage('[Probiv by MTGMODS & DepsAPI] {ffffff}Ошибка запроса: ' .. tostring(err), message_color)
         return nil
     end
 
@@ -130,13 +130,13 @@ function getPlayerInfo(nickname, serverId)
 		end
         return nil
     elseif response.status_code == 422 then
-        sampAddChatMessage('[Probiv] {ffffff}Ошибка 422: Никнейм не найден или введен с ошибкой.', message_color)
+        sampAddChatMessage('[Probiv by MTGMODS & DepsAPI] {ffffff}Ошибка 422: Никнейм не найден или введен с ошибкой.', message_color)
     elseif response.status_code == 401 then
-        sampAddChatMessage('[Probiv] {ffffff}Неверный API ключ.', message_color)
+        sampAddChatMessage('[Probiv by MTGMODS & DepsAPI] {ffffff}Неверный API ключ.', message_color)
     elseif response.status_code == 429 then
-        sampAddChatMessage('[Probiv] {ffffff}Превышен лимит запросов. Повторите чуть позже.', message_color)
+        sampAddChatMessage('[Probiv by MTGMODS & DepsAPI] {ffffff}Превышен лимит запросов. Повторите чуть позже.', message_color)
     else
-        sampAddChatMessage('[Probiv] {ffffff}Ошибка API: ' .. response.status_code, message_color)
+        sampAddChatMessage('[Probiv by MTGMODS & DepsAPI] {ffffff}Ошибка API: ' .. response.status_code, message_color)
     end
     return nil
 end
@@ -178,7 +178,7 @@ function main()
 			imgui.StrCopy(input_probiv, u8(settings.general.probiv_api_key))
 			ProbivMenu[0] = true
 		else
-			sampAddChatMessage('[Probiv] {ffffff}Используйте /probiv [ID игрока]', message_color)
+			sampAddChatMessage('[Probiv by MTGMODS & DepsAPI] {ffffff}Используйте /probiv [ID игрока]', message_color)
 		end
 	end)
 
@@ -200,7 +200,7 @@ imgui.OnFrame(
     function() return ProbivMenu[0] end,
     function(player)
 		imgui.SetNextWindowPos(imgui.ImVec2(sizeX / 2, sizeY / 2), imgui.Cond.Always, imgui.ImVec2(0.5, 0.5))
-		imgui.Begin(fa.BUILDING.." Probiv " .. fa.BUILDING .. '##probiv', ProbivMenu, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize  + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.AlwaysAutoResize)
+		imgui.Begin(fa.BUILDING.." Probiv by MTGMODS & DepsAPI " .. fa.BUILDING .. '##probiv', ProbivMenu, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize  + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.AlwaysAutoResize)
 		if not isMonetLoader() then imgui.SetWindowFontScale(settings.general.custom_dpi) end
 		if probiv ~= nil then
 			if imgui.BeginChild('##probiv_2', imgui.ImVec2(300 * settings.general.custom_dpi, 330 * settings.general.custom_dpi), true) then
