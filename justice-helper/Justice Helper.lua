@@ -3,7 +3,7 @@
 script_name("Justice Helper")
 script_description('This is a Cross-platform Lua script helper for Arizona RP players who work in the Ministry of Justice (PD and FBI) ??and the Ministry of Defense (Army)')
 script_author("MTG MODS")
-script_version("2.1 Free")
+script_version("2.1.1 Free")
 
 require('lib.moonloader')
 require('encoding').default = 'CP1251'
@@ -6639,6 +6639,28 @@ imgui.OnFrame(
         imgui.End()
     end
 )
+
+-- imgui.OnFrame(
+--     function() return NewHelperWindow[0] end,
+--     function(player)
+-- 		imgui.SetNextWindowPos(imgui.ImVec2(sizeX / 2, sizeY / 2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
+-- 		imgui.Begin(fa.CIRCLE_INFO .. u8" Оповещение##NewHelper", _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize + imgui.WindowFlags.AlwaysAutoResize )
+-- 		if not isMonetLoader() then change_dpi() end
+-- 		imgui.CenterText(u8'У вас сейчас установлена версия хелпера ' .. u8(tostring(thisScript().version)) .. ".")
+-- 		imgui.CenterText(u8'В базе данных найдена версия хелпера - ' .. u8(updateVer) .. ".")
+-- 		if imgui.Button(fa.CIRCLE_XMARK .. u8' Остаться на Justice ',  imgui.ImVec2(300 * settings.general.custom_dpi, 25 * settings.general.custom_dpi)) then
+-- 			UpdateWindow[0] = false
+-- 		end
+-- 		imgui.SameLine()
+-- 		if imgui.Button(fa.DOWNLOAD ..u8' Загрузить новое поколение хелпера',  imgui.ImVec2(300 * settings.general.custom_dpi, 25 * settings.general.custom_dpi)) then
+-- 			download_helper = true
+-- 			downloadFileFromUrlToPath(updateUrl, path_helper)
+-- 			UpdateWindow[0] = false
+-- 		end
+-- 		imgui.End()
+--     end
+-- )
+
 
 function imgui.CenterText(text)
     local width = imgui.GetWindowWidth()
