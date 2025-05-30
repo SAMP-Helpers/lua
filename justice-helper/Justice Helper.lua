@@ -1775,7 +1775,7 @@ function initialize_commands()
 				local max_lvl = (settings.player_info.fraction_tag == 'тап' or settings.player_info.fraction_tag == 'FBI') and 7 or 6
 				for i = max_lvl, 1, -1 do
 					sampSendChat('/wanted ' .. i)
-					wait(285)
+					wait(1000)
 				end
 				check_wanted = false
 				if #wanted_new == 0 then
