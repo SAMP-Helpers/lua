@@ -101,7 +101,8 @@ load_settings()
 function isMonetLoader() return MONET_VERSION ~= nil end
 if isMonetLoader() then
 	widgets = require('widgets')
-	gta = require('ffi').load('GTASA') 
+	local ffi = require('ffi')
+	gta = ffi.load('GTASA')
 	ffi.cdef[[ void _Z12AND_OpenLinkPKc(const char* link); ]]
 end
 if not isMonetLoader() and MONET_DPI_SCALE == nil then MONET_DPI_SCALE = 1.0 end
