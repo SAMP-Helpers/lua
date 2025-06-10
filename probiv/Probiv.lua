@@ -125,6 +125,7 @@ function getPlayerInfo(nickname, serverId)
     if response.status_code == 200 then
 		local contents = u8:decode(response.text)
 		local result, loaded = pcall(decodeJson, contents)
+		
 		if result then
 			return loaded
 		end
