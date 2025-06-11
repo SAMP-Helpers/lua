@@ -72,15 +72,6 @@
         "info": "Хелпер для сотрудников ТСР (тюрьмы) (/ph)"
     },
     {
-        "name": "Reconnect",
-        "ver": "1.0",
-        "author": "MonetLoader",
-        "link": "https://github.com/MTGMODS/lua_scripts/raw/refs/heads/main/reconnect/Reconnect.lua",
-        "img": "",
-        "platform": "MOBILE",
-        "info": "Перезаход на сервер командой /rec"
-    },
-    {
         "name": "AutoDoor",
         "ver": "9",
         "author": "MTG MODS",
