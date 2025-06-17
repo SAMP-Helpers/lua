@@ -10,7 +10,7 @@ function kick_players()
             reason_day = value.day
             sampSendChat('/uninviteoff ' .. value.nickname)
             printStringNow(index .. '/' .. #players_to_kick, 300)
-            wait(300)
+            wait(1000)
         end
         uninvite = false
     end)
