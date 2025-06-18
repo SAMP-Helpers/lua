@@ -1,4 +1,4 @@
-script_name("CamHack V4")
+script_name("CamHack V5")
 script_description('CamHack for MoonLoader / MonetLoader')
 script_author("MTG MODS")
 script_version(4)
@@ -60,7 +60,7 @@ function load_settings()
     end
     if not doesFileExist(path) then
         settings = default_settings
-		print('[CamHack V4] Файл с настройками не найден, использую стандартные настройки!')
+		print('[CamHack V5] Файл с настройками не найден, использую стандартные настройки!')
     else
         local file = io.open(path, 'r')
         if file then
@@ -68,19 +68,19 @@ function load_settings()
             file:close()
 			if #contents == 0 then
 				settings = default_settings
-				print('[CamHack V4] Не удалось открыть файл с настройками, использую стандартные настройки!')
+				print('[CamHack V5] Не удалось открыть файл с настройками, использую стандартные настройки!')
 			else
 				local result, loaded = pcall(decodeJson, contents)
 				if result then
 					settings = loaded
-					print('[CamHack V4] Настройки успешно загружены!')
+					print('[CamHack V5] Настройки успешно загружены!')
 				else
-					print('[CamHack V4] Не удалось открыть файл с настройками, использую стандартные настройки!')
+					print('[CamHack V5] Не удалось открыть файл с настройками, использую стандартные настройки!')
 				end
 			end
         else
             settings = default_settings
-			print('[CamHack V4] Не удалось открыть файл с настройками, использую стандартные настройки!')
+			print('[CamHack V5] Не удалось открыть файл с настройками, использую стандартные настройки!')
         end
     end
 end
@@ -92,7 +92,7 @@ function save_settings()
         file:close()
         return result
     else
-        print('[CamHack V4] Не удалось сохранить настройки скрипта, ошибка: ', errstr)
+        print('[CamHack V5] Не удалось сохранить настройки скрипта, ошибка: ', errstr)
         return false
     end
 end
@@ -212,13 +212,13 @@ end
 ------------------------------------------- Check PC/Mobile --------------------------------------------------
 function check()
 	if ((isMonetLoader()) and (settings.general.camhack_type == 1 or camhack_type[0] == 1)) then
-		sampAddChatMessage('{ff0000}[CamHack V4] {ffffff}Нельзя использовать Hotkeys на MonetLoader, изменяю на Joystick!',-1)
+		sampAddChatMessage('{ff0000}[CamHack V5] {ffffff}Нельзя использовать Hotkeys на MonetLoader, изменяю на Joystick!',-1)
 		settings.general.camhack_type = 2
 		camhack_type[0] = 2
 		save_settings()
 		return false
 	elseif ((not isMonetLoader()) and (settings.general.camhack_type == 2 or camhack_type[0] == 2 or settings.general.camhack_type == 3 or camhack_type[0] == 3)) then
-		sampAddChatMessage('{ff0000}[CamHack V4] {ffffff}Нельзя использовать Joystick на MoonLoader, изменяю на Hotkey!',-1)
+		sampAddChatMessage('{ff0000}[CamHack V5] {ffffff}Нельзя использовать Joystick на MoonLoader, изменяю на Hotkey!',-1)
 		settings.general.camhack_type = 1
 		camhack_type[0] = 1
 		save_settings()
@@ -380,8 +380,8 @@ function camhack_on()
 		lockPlayerControl(true)
 	end
 	camhack_active = true
-	if not isMonetLoader() and settings.general.hide_nick then
-		hidenicks(1)
+	if settings.general.hide_nick then
+		hidenicks(true)
 	end
 end
 function camhack_off()
@@ -396,8 +396,8 @@ function camhack_off()
 		lockPlayerControl(false)
 	end
 	camhack_enable_hud()
-	if not isMonetLoader() and settings.general.hide_nick then
-		hidenicks(0)
+	if settings.general.hide_nick then
+		hidenicks(false)
 	end
 end
 function camhack_update()
@@ -610,14 +610,14 @@ function camhack_right_down()
 end
 function camhack_speed_plus()
 	camhack_speed = camhack_speed + 0.01
-	printStringNow("[CamHack V4] Speed: ".. camhack_speed, 1000)
+	printStringNow("[CamHack V5] Speed: ".. camhack_speed, 1000)
 end
 function camhack_speed_minus()
 	camhack_speed = camhack_speed - 0.01
 	if camhack_speed < 0.01 then
 		camhack_speed = 0.01
 	end
-	printStringNow("[CamHack V4] Speed: " .. camhack_speed, 1000)
+	printStringNow("[CamHack V5] Speed: " .. camhack_speed, 1000)
 end
 function camhack_enable_hud()
 	displayRadar(true)
@@ -677,10 +677,35 @@ function openLink(link)
 		os.execute("explorer " .. link)
 	end
 end
-if not isMonetLoader() then
-	function hidenicks(status)
+
+function hidenicks(status)
+	if isMonetLoader() then
+		if status then
+			for k, v in ipairs(getAllChars()) do
+				local _, id = sampGetPlayerIdByCharHandle(v)
+				if _ then
+					local bs = raknetNewBitStream()
+					raknetBitStreamWriteInt16(bs, tonumber(id))
+					raknetBitStreamWriteInt8(bs, 0)
+					raknetEmulRpcReceiveBitStream(80, bs)
+					raknetDeleteBitStream(bs)
+				end
+			end
+		else
+			for k, v in ipairs(getAllChars()) do
+				local _, id = sampGetPlayerIdByCharHandle(v)
+				if _ then
+					local bs = raknetNewBitStream()
+					raknetBitStreamWriteInt16(bs, tonumber(id))
+					raknetBitStreamWriteInt8(bs, 1)
+					raknetEmulRpcReceiveBitStream(80, bs)
+					raknetDeleteBitStream(bs)
+				end
+			end
+		end
+	else
 		if pStSet and NTdist and NTwalls then
-			if status == 1 then
+			if status then
 				-- отключить видимость ников
 				mem.setfloat(pStSet + 39, 0.00001)
 				mem.setint8(pStSet + 47, 0)
@@ -694,13 +719,22 @@ if not isMonetLoader() then
 	end
 end
 
-require "samp.events".onSendAimSync = function () if camhack_active then return false end end
-require "samp.events".onPlayerChatBubble = function(player_id, color, distance, duration, message)
+require("samp.events").onShowPlayerNameTag = function(playerId, show)
+    if settings.general.hide_nick then
+        return false
+    end
+end
+require("samp.events").onSendAimSync = function()
+	if camhack_active then
+		return false
+	end
+end
+require("samp.events").onPlayerChatBubble = function(player_id, color, distance, duration, message)
 	if camhack_active and settings.general.chat_bubble then
 	  	return {player_id, color, 9999, duration, message}
 	end
 end
-require "samp.events".onSendSpawn = function()
+require("samp.events").onSendSpawn = function()
 	if not isMonetLoader() then
 		pStSet = sampGetServerSettingsPtr()
 		NTdist = mem.getfloat(pStSet + 39)
@@ -715,13 +749,13 @@ imgui.OnInitialize(function()
 	apply_dark_theme()
 end)
 
-local MainWindow = imgui.OnFrame(
+imgui.OnFrame(
     function() return MainWindow[0] end,
     function(player)
 		imgui.SetNextWindowPos(imgui.ImVec2(sizeX / 2, sizeY / 2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
-		imgui.SetNextWindowSize(imgui.ImVec2(300 * MONET_DPI_SCALE, 386	* MONET_DPI_SCALE), imgui.Cond.FirstUseEver)
-		imgui.Begin(fa.CAMERA.." CamHack V4 by MTG MODS##main_window", MainWindow, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize )
-		imgui.BeginChild('##1', imgui.ImVec2(289 * MONET_DPI_SCALE, 352 * MONET_DPI_SCALE), true)
+		imgui.SetNextWindowSize(imgui.ImVec2(300 * MONET_DPI_SCALE, 360	* MONET_DPI_SCALE), imgui.Cond.FirstUseEver)
+		imgui.Begin(fa.CAMERA.." CamHack by MTG MODS##main_window", MainWindow, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize )
+		imgui.BeginChild('##1', imgui.ImVec2(289 * MONET_DPI_SCALE, 325 * MONET_DPI_SCALE), true)
 		imgui.CenterText(fa.GEARS .. u8' Работоспособность:')
 		imgui.SameLine()
 		if settings.general.enable then
@@ -779,10 +813,11 @@ local MainWindow = imgui.OnFrame(
 		if camhack_type[0] == 1 then
 			imgui.SameLine()
 			if imgui.Button(fa.KEYBOARD .. u8' Настройка клавиш') then	
-				imgui.OpenPopup(fa.KEYBOARD .. u8' Настройка клавиш')
+				imgui.OpenPopup(fa.KEYBOARD .. u8' Настройка клавиш ' .. fa.KEYBOARD)
 			end
 		end
-		if imgui.BeginPopupModal(fa.KEYBOARD .. u8' Настройка клавиш', _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize  ) then
+		imgui.SetNextWindowPos(imgui.ImVec2(sizeX / 2, sizeY / 2), imgui.Cond.Always, imgui.ImVec2(0.5, 0.5))
+		if imgui.BeginPopupModal(fa.KEYBOARD .. u8' Настройка клавиш ' .. fa.KEYBOARD, _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize  ) then
 			imgui.SetWindowSizeVec2(imgui.ImVec2(600 * MONET_DPI_SCALE, 300 * MONET_DPI_SCALE))
 			imgui.Text(u8'Активация:')
 			imgui.SameLine()
@@ -854,7 +889,7 @@ local MainWindow = imgui.OnFrame(
 				save_settings()
 			end
 			imgui.Separator()
-			imgui.Text(u8'Увеличить скросоть:')
+			imgui.Text(u8'Увеличить скорость:')
 			imgui.SameLine()
 			if CamHackSpeedPlusHotKey:ShowHotKey() then
 				settings.binds.speed_plus = encodeJson(CamHackSpeedPlusHotKey:GetHotKey())
@@ -868,7 +903,7 @@ local MainWindow = imgui.OnFrame(
 				save_settings()
 			end
 			imgui.Separator()
-			imgui.Text(u8'Переключить видимость худа (вкл/выкл):')
+			imgui.Text(u8'Переключить видимость GTA худа (вкл/выкл):')
 			imgui.SameLine()
 			if CamHackHudHotKey:ShowHotKey() then
 				settings.binds.hud = encodeJson(CamHackHudHotKey:GetHotKey())
@@ -894,9 +929,14 @@ local MainWindow = imgui.OnFrame(
 		end
 		imgui.Separator()
 		imgui.CenterText(fa.CIRCLE_INFO .. u8' Инструкция по использованию:')
-		if imgui.Button(fa.FILE_LINES .. u8' Посмотреть',  imgui.ImVec2(imgui.GetMiddleButtonX(1), 25 * MONET_DPI_SCALE)) then
+		if imgui.Button(fa.FILE_LINES .. u8' Текст',  imgui.ImVec2(imgui.GetMiddleButtonX(2), 25 * MONET_DPI_SCALE)) then
 			imgui.OpenPopup(fa.CIRCLE_INFO .. u8' Инструкция по использованию')
 		end
+		imgui.SameLine()
+		if imgui.Button(fa.CAMERA.. u8' Видео-гайд',  imgui.ImVec2(imgui.GetMiddleButtonX(2), 25 * MONET_DPI_SCALE)) then
+			openLink('https://youtu.be/-wbJ9dXx8EM')
+		end
+		imgui.SetNextWindowPos(imgui.ImVec2(sizeX / 2, sizeY / 2), imgui.Cond.Always, imgui.ImVec2(0.5, 0.5))
 		if imgui.BeginPopupModal(fa.CIRCLE_INFO .. u8' Инструкция по использованию', _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize + imgui.WindowFlags.AlwaysAutoResize  ) then
 			if settings.general.camhack_type == 0 then
 				imgui.Text(u8'Активировать/деактивировать CamHack: /cam')
@@ -914,10 +954,10 @@ local MainWindow = imgui.OnFrame(
 				imgui.Text(u8'Вниз: ' .. getNameKeysFrom(settings.binds.down))
 				imgui.Text(u8'Повысить скорость: ' .. getNameKeysFrom(settings.binds.speed_plus))
 				imgui.Text(u8'Понизить скорость: ' .. getNameKeysFrom(settings.binds.speed_minus))
-				imgui.Text(u8'Переключить видимость худа: ' .. getNameKeysFrom(settings.binds.hud))
+				imgui.Text(u8'Переключить видимость GTA	 худа: ' .. getNameKeysFrom(settings.binds.hud))
 				imgui.Text(u8'')
 				imgui.Text(u8'P.S. Эти клавиши можно изменить на другие!')
-				imgui.Text(u8'Нажмите "Закрыть" и потом ""Настройка клавиш"')
+				imgui.Text(u8'Нажмите "Закрыть" и потом "Настройка клавиш"')
 			elseif settings.general.camhack_type == 2 or settings.general.camhack_type == 3 then
 				imgui.Text(u8'Активировать CamHack: виджет камеры (справа)')
 				imgui.Text(u8'Управление вперёд/назад/влево/вправо: джойстик')
@@ -935,81 +975,39 @@ local MainWindow = imgui.OnFrame(
 			imgui.End()
 		end
 		imgui.Separator()
-		imgui.CenterText(fa.EYE .. u8' Дополнительные функции:')
-		if imgui.Button(fa.SLIDERS .. u8' Настроить',  imgui.ImVec2(imgui.GetMiddleButtonX(1), 25 * MONET_DPI_SCALE)) then
-			imgui.OpenPopup(fa.EYE .. u8' Дополнительные функции')
+		imgui.CenterText(fa.EYE .. u8' Функции в режиме камеры:')
+		imgui.SameLine(nil, 5) imgui.TextDisabled("[?]")
+		if imgui.IsItemHovered() then
+			imgui.SetTooltip(u8("Данные функции являються разрешенными, но\nзлоупотребление ради получения преимущества грозит баном!\n\nПоэтому по стандарту в скрипте эти функции отключены.\n\nПеред включением уточните данный вопрос у администрации..."))
 		end
-		if imgui.BeginPopupModal(fa.EYE .. u8' Дополнительные функции', _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize) then
-			imgui.CenterText(fa.TRIANGLE_EXCLAMATION ..  u8' ВНИМАНИЕ ' .. fa.TRIANGLE_EXCLAMATION)
-			imgui.CenterText(u8'Данные функции являються разрешенными, но:')
-			imgui.CenterText(u8'Злоупотребление ради получения преимущества грозит баном!')
-			imgui.CenterText(u8'Поэтому по стандарту в скрипте эти функции отключены.')
-			imgui.CenterText(u8'Перед включением уточните данный вопрос у администрации...')
-			imgui.Separator()
-			if not isMonetLoader() then
-				imgui.CenterText(fa.ID_CARD ..  u8' Отображение ников в режиме камеры:')
-				imgui.SameLine()
-				if not settings.general.hide_nick then
-					if imgui.SmallButton(fa.TOGGLE_ON .. '##nick') then
-						settings.general.hide_nick = true
-						save_settings()
-					end
-					if imgui.IsItemHovered() then
-						imgui.SetTooltip(u8"Отключить отображение ников")
-					end
-					imgui.CenterTextDisabled(u8'(видны только те ники, на которые вы навелись)')
-				else
-					if imgui.SmallButton(fa.TOGGLE_OFF .. '##nick') then
-						settings.general.hide_nick = false
-						save_settings()
-						hidenicks(0)
-					end
-					if imgui.IsItemHovered() then
-						imgui.SetTooltip(u8"Включить отображение ников")
-					end
-					imgui.CenterTextDisabled(u8'(будут видны только те ники, на которые вы наведетесь)')
-				end
-				imgui.Separator()
-			end
-			imgui.CenterText(fa.MESSAGE ..  u8' Отображение текста над головой в режиме камеры:')
+		local function draw_toggle(icon, label, tooltip_on, tooltip_off, setting_key)
+			imgui.Text(icon .. u8' ' .. label)
 			imgui.SameLine()
-			if settings.general.chat_bubble then
-				if imgui.SmallButton(fa.TOGGLE_ON .. '##buble') then
-					settings.general.chat_bubble = false
-					save_settings()
-				end
-				if imgui.IsItemHovered() then
-					imgui.SetTooltip(u8"Отключить отображение текста над головой")
-				end
-				imgui.CenterTextDisabled(u8'(видны действия игроков на которых вы навелись)')
-			else
-				if imgui.SmallButton(fa.TOGGLE_OFF .. '##buble') then
-					settings.general.chat_bubble = true
-					save_settings()
-				end
-				if imgui.IsItemHovered() then
-					imgui.SetTooltip(u8"Включить отображение текста над головой")
-				end
-				imgui.CenterTextDisabled(u8'(будут видны действия игроков на которых вы навелись)')
+			local current = settings.general[setting_key]
+			if imgui.SmallButton((current and fa.TOGGLE_ON or fa.TOGGLE_OFF) .. '##' .. setting_key) then
+				settings.general[setting_key] = not current
+				save_settings()
+				sampAddChatMessage('{ff0000}[CamHack V5] {ffffff}Перезайдите в игру для применения этого действия!',-1)
 			end
-			imgui.Separator()
-			if imgui.Button(fa.CIRCLE_XMARK .. u8' Закрыть', imgui.ImVec2(400 * MONET_DPI_SCALE, 25 * MONET_DPI_SCALE)) then
-				imgui.CloseCurrentPopup()
+			if imgui.IsItemHovered() then
+				imgui.SetTooltip(current and tooltip_off or tooltip_on)
 			end
-			imgui.End()
 		end
+		draw_toggle(fa.USER, u8'Видимость ников над головой', u8"Включить отображение ников", u8"Отключить отображение ников", 'hide_nick')
+		draw_toggle(fa.MESSAGE, u8'Видимость текста над головой', u8"Включить отображение текста над головой", u8"Отключить отображение текста над головой", 'chat_bubble')
+
+
 		imgui.Separator()
 		imgui.CenterText(fa.HEADSET .. u8' Связь с MTG MODS и поддержка:')
-		if imgui.Button(fa.GLOBE .. u8' Discord',  imgui.ImVec2(imgui.GetMiddleButtonX(2), 25 * MONET_DPI_SCALE)) then
+		if imgui.Button(fa.GLOBE .. u8' Telegram', imgui.ImVec2(imgui.GetMiddleButtonX(3), 25 * MONET_DPI_SCALE)) then
+			openLink('https://t.me/mtgmods')
+		end
+		imgui.SameLine()
+		if imgui.Button(fa.GLOBE .. u8' Discord',  imgui.ImVec2(imgui.GetMiddleButtonX(3), 25 * MONET_DPI_SCALE)) then
 			openLink('https://discord.com/invite/qBPEYjfNhv')
 		end
 		imgui.SameLine()
-
-		if imgui.Button(fa.GLOBE .. u8' Telegram', imgui.ImVec2(imgui.GetMiddleButtonX(2), 25 * MONET_DPI_SCALE)) then
-			openLink('https://t.me/mtgmods')
-		end
-		imgui.Separator()
-		if imgui.Button(fa.GLOBE .. u8' Тема скрипта на BlastHack', imgui.ImVec2(imgui.GetMiddleButtonX(1), 25 * MONET_DPI_SCALE)) then
+		if imgui.Button(fa.GLOBE .. u8' BlastHack', imgui.ImVec2(imgui.GetMiddleButtonX(3), 25 * MONET_DPI_SCALE)) then
 			openLink('https://www.blast.hk/threads/175690')
 		end
 		imgui.EndChild()
@@ -1017,12 +1015,12 @@ local MainWindow = imgui.OnFrame(
     end
 )
 
-local CamHackWindow = imgui.OnFrame(
+imgui.OnFrame(
     function() return CamHackWindow[0] end,
     function(player)
 		imgui.SetNextWindowPos(imgui.ImVec2(sizeX / 5, sizeY / 2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
 		--imgui.SetNextWindowSize(imgui.ImVec2(480 * MONET_DPI_SCALE, 130	* MONET_DPI_SCALE), imgui.Cond.FirstUseEver)
-		imgui.Begin(fa.CAMERA.." CamHack V4 by MTG MODS##camhack", CamHack, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize)
+		imgui.Begin(fa.CAMERA.." CamHack by MTG MODS##camhack", CamHack, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize)
 		if imgui.BeginChild('##1', imgui.ImVec2(150 * MONET_DPI_SCALE, 120 * MONET_DPI_SCALE), true) then
 			imgui.CenterText('Main Camera')
 			imgui.Separator()
@@ -1313,7 +1311,6 @@ end
 
 function onScriptTerminate(script, quit) 
 	if script == thisScript() and not quit then
-		if camhack_active then camhack_off() end
-		if camhack_active and not isMonetLoader() then hidenicks(0) end
+		if camhack_active then camhack_off() hidenicks(false) end
 	end
 end
