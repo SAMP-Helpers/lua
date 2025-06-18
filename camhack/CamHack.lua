@@ -1,7 +1,7 @@
 script_name("CamHack V5")
 script_description('CamHack for MoonLoader / MonetLoader')
 script_author("MTG MODS")
-script_version(4)
+script_version(5)
 
 require('lib.moonloader')
 require ('encoding').default = 'CP1251'
