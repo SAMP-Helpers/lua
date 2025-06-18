@@ -35,7 +35,7 @@ local default_settings = {
 		enable = true,
 		hud = true,
 		chat_bubble = false,
-		hide_nick = true,
+		visible_nick = true,
 		camhack_type = 1
 	},
 	binds = {
@@ -233,7 +233,7 @@ function main()
     if ((not isSampLoaded()) or (not isSampfuncsLoaded())) then return end
     while (not isSampAvailable()) do wait(0) end 
 
-	sampAddChatMessage('{ff0000}[INFO] {ffffff}Скрипт "CamHack" загружен и готов к работе! Автор: MTG MODS | Версия: 4 | Используйте {00ccff}/cmh',-1)
+	sampAddChatMessage('{ff0000}[INFO] {ffffff}Скрипт "CamHack" загружен и готов к работе! Автор: MTG MODS | Версия: 5 | Используйте {00ccff}/cmh',-1)
 
 	check()
 
@@ -380,7 +380,7 @@ function camhack_on()
 		lockPlayerControl(true)
 	end
 	camhack_active = true
-	if settings.general.hide_nick then
+	if not settings.general.visible_nick then
 		hidenicks(true)
 	end
 end
@@ -396,7 +396,7 @@ function camhack_off()
 		lockPlayerControl(false)
 	end
 	camhack_enable_hud()
-	if settings.general.hide_nick then
+	if not settings.general.visible_nick then
 		hidenicks(false)
 	end
 end
@@ -720,7 +720,7 @@ function hidenicks(status)
 end
 
 require("samp.events").onShowPlayerNameTag = function(playerId, show)
-    if settings.general.hide_nick then
+    if settings.general.visible_nick then
         return false
     end
 end
@@ -993,7 +993,7 @@ imgui.OnFrame(
 				imgui.SetTooltip(current and tooltip_off or tooltip_on)
 			end
 		end
-		draw_toggle(fa.USER, u8'Видимость ников над головой', u8"Включить отображение ников", u8"Отключить отображение ников", 'hide_nick')
+		draw_toggle(fa.USER, u8'Видимость ников над головой', u8"Включить отображение ников", u8"Отключить отображение ников", 'visible_nick')
 		draw_toggle(fa.MESSAGE, u8'Видимость текста над головой', u8"Включить отображение текста над головой", u8"Отключить отображение текста над головой", 'chat_bubble')
 
 
