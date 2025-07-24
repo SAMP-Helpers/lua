@@ -1,4 +1,7 @@
 {
-  "current_version": "2.1.1 Free",
+  "current_version": "2.2 Free",
   "update_url": "https://github.com/MTGMODS/lua_scripts/raw/refs/heads/main/justice-helper/Justice%20Helper.lua",
-  "update_info": "- Фикс \"Не флуди\" в /wanteds\n- Вскоре будет ещё одно глобальное обновление..."}
+  "update_info": "- Переход на новое облако для поддержки умного розыска и штрафов\n- Финальное обновление перед переходом на Arizona Helper",
+
+  "new_helper_check": "true"
+}

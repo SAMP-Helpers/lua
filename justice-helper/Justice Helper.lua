@@ -3,7 +3,7 @@
 script_name("Justice Helper")
 script_description('This is a Cross-platform Lua script helper for Arizona RP players who work in the Ministry of Justice (PD and FBI) ??and the Ministry of Defense (Army)')
 script_author("MTG MODS")
-script_version("2.1.1 Free")
+script_version("2.2 Free")
 
 require('lib.moonloader')
 require('encoding').default = 'CP1251'
@@ -2283,7 +2283,7 @@ function getNameOfARZVehicleModel(id)
 	if need_download_arzveh then
 		sampAddChatMessage('[Justice Helper] {ffffff}Пытаюсь скачать файл VehiclesArizona.json в папку ' .. path_arzvehicles, message_color)
 		download_arzvehicles = true
-		downloadFileFromUrlToPath('https://github.com/MTGMODS/lua_scripts/raw/refs/heads/main/justice-helper/VehiclesArizona/VehiclesArizona.json', path_arzvehicles)
+		downloadFileFromUrlToPath('https://github.com/MTGMODS/arizona-helper/raw/refs/heads/main/SmartVEH/Vehicles.json', path_arzvehicles)
 		return ' транспортного средства'
 	end
 end
@@ -2830,6 +2830,19 @@ function check_update()
 						updateInfoText = uText
 						UpdateWindow[0] = true
 					else
+						local isShowNewHelperInfo = updateInfo.new_helper_check
+						if isShowNewHelperInfo == 'true' then
+							local infoMessage = [[
+Поддержка хелпера прекращена, в связи с чем что:
+- Justice, Hospital, SMI, AS и т.д. хелперы обьеденились в один
+
+Общий универсальный Arizona Helper для ЛЮБОЙ фракции!
+
+Все те же функции, но более улучшенные, и больше функционала
+
+Скачать можно в Telegram/Discord, ссылки есть в настройках хелпера]]
+							sampShowDialog(789789, '{009EFF}Justice Helper [' .. script.version .. ']', infoMessage, '{009EFF}Закрыть', '', 0)
+						end
 						print('[Justice Helper] Обновление не нужно!')
 						sampAddChatMessage('[Justice Helper] {ffffff}Обновление не нужно, у вас актуальная версия!', message_color)
 					end
@@ -4505,7 +4518,7 @@ imgui.OnFrame(
 					imgui.SetCursorPosX(105 * settings.general.custom_dpi)
 					if imgui.Button(fa.DOWNLOAD .. u8' Загрузить ##smartuk') then
 						download_smartuk = true
-						downloadFileFromUrlToPath('https://github.com/MTGMODS/lua_scripts/raw/refs/heads/main/justice-helper/SmartUK/' .. getARZServerNumber() .. '/SmartUK.json', path_uk)
+						downloadFileFromUrlToPath('https://github.com/MTGMODS/arizona-helper/raw/refs/heads/main/SmartUK/' .. getARZServerNumber() .. '/SmartUK.json', path_uk)
 						imgui.OpenPopup(fa.CIRCLE_INFO .. u8' Justice Helper - Оповещение##donwloadsmartuk')
 					end
 					if imgui.BeginPopupModal(fa.CIRCLE_INFO .. u8' Justice Helper - Оповещение##donwloadsmartuk', _, imgui.WindowFlags.NoCollapse  + imgui.WindowFlags.NoResize) then
@@ -4529,7 +4542,7 @@ imgui.OnFrame(
 						end
 						imgui.SameLine()
 						if imgui.Button(fa.CIRCLE_PLAY .. u8' Открыть облако', imgui.ImVec2(300 * settings.general.custom_dpi, 25 * settings.general.custom_dpi)) then
-							openLink('https://github.com/MTGMODS/lua_scripts/tree/main/justice-helper/SmartUK/')
+							openLink('https://github.com/MTGMODS/arizona-helper/raw/refs/heads/main/SmartUK/')
 							MainWindow[0] = false
 						end
 						imgui.EndPopup()
@@ -4733,7 +4746,7 @@ imgui.OnFrame(
 					imgui.SetCursorPosX(105 * settings.general.custom_dpi)
 					if imgui.Button(fa.DOWNLOAD .. u8' Загрузить ##smartpdd') then
 						download_smartpdd = true
-						downloadFileFromUrlToPath('https://github.com/MTGMODS/lua_scripts/raw/refs/heads/main/justice-helper/SmartPDD/' .. getARZServerNumber() .. '/SmartPDD.json', path_pdd)
+						downloadFileFromUrlToPath('https://github.com/MTGMODS/arizona-helper/raw/refs/heads/main/SmartPDD/' .. getARZServerNumber() .. '/SmartPDD.json', path_pdd)
 						imgui.OpenPopup(fa.CIRCLE_INFO .. u8' Justice Helper - Оповещение##donwloadsmartpdd')
 					end
 					if imgui.BeginPopupModal(fa.CIRCLE_INFO .. u8' Justice Helper - Оповещение##donwloadsmartpdd', _, imgui.WindowFlags.NoCollapse  + imgui.WindowFlags.NoResize) then
@@ -4757,7 +4770,7 @@ imgui.OnFrame(
 						end
 						imgui.SameLine()
 						if imgui.Button(fa.CIRCLE_PLAY .. u8' Открыть облако', imgui.ImVec2(300 * settings.general.custom_dpi, 25 * settings.general.custom_dpi)) then
-							openLink('https://github.com/MTGMODS/lua_scripts/tree/main/justice-helper/SmartPDD/')
+							openLink('https://github.com/MTGMODS/arizona-helper/raw/refs/heads/main/SmartPDD/')
 							MainWindow[0] = false
 						end
 						imgui.EndPopup()
