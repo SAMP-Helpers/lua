@@ -2830,19 +2830,6 @@ function check_update()
 						updateInfoText = uText
 						UpdateWindow[0] = true
 					else
-						local isShowNewHelperInfo = updateInfo.new_helper_check
-						if isShowNewHelperInfo == 'true' then
-							local infoMessage = [[
-Поддержка хелпера прекращена, в связи с чем что:
-- Justice, Hospital, SMI, AS и т.д. хелперы обьеденились в один
-
-Общий универсальный Arizona Helper для ЛЮБОЙ фракции!
-
-Все те же функции, но более улучшенные, и больше функционала
-
-Скачать можно в Telegram/Discord, ссылки есть в настройках хелпера]]
-							sampShowDialog(789789, '{009EFF}Justice Helper [' .. script.version .. ']', infoMessage, '{009EFF}Закрыть', '', 0)
-						end
 						print('[Justice Helper] Обновление не нужно!')
 						sampAddChatMessage('[Justice Helper] {ffffff}Обновление не нужно, у вас актуальная версия!', message_color)
 					end
