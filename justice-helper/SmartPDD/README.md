@@ -1,2 +1,7 @@
-Новое облако:
-https://github.com/MTGMODS/arizona-helper/tree/refs/heads/main/SmartUK
+# Требуется актуальная версия хелпера для работы с новым облаком
+
+Для работы с новым облаком используйте актуальную версию:
+**2.2 Free** или **2.6 VIP**.
+
+# Если же вы не хотите обновлять хелпер — скачайте нужные файлы вручную из нового облака:
+https://github.com/MTGMODS/arizona-helper/tree/refs/heads/main/SmartPDD
