@@ -5968,7 +5968,7 @@ imgui.OnFrame(
 			end
 			if imgui.Button(u8 "Уволить из организации", imgui.ImVec2(290 * MONET_DPI_SCALE, 30 * MONET_DPI_SCALE)) then
 				sampSetChatInputEnabled(true)
-				sampSetChatInputText('/uval ' .. player_id .. ' ')
+				sampSetChatInputText('/unv ' .. player_id .. ' ')
 				LeaderFastMenu[0] = false
 			end
 		end
