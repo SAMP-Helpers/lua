@@ -1325,7 +1325,7 @@ function sampev.onServerMessage(color,text)
 					sampAddChatMessage(text, 0xFF2DB043)
 					if message3 == text then
 						auto_uval_checker = true
-						sampSendChat('/fmute ' .. playerID .. ' 1 [AutoUval] Ожидайте...')
+						sampSendChat('/fmute ' .. playerID .. ' 1 [AutoUval] Ожидайте')
 					elseif tag == "R" then
 						sampSendChat("/rb "..name.." отправьте /rb +++ чтобы уволится ПСЖ!")
 					elseif tag == "F" then
@@ -1334,7 +1334,7 @@ function sampev.onServerMessage(color,text)
 				elseif ((message == "(( +++ ))" or message == "(( +++. ))") and (PlayerID == playerID)) then
 					sampAddChatMessage(text, 0xFF2DB043)
 					auto_uval_checker = true
-					sampSendChat('/fmute ' .. PlayerID .. ' 1 [AutoUval] Ожидайте...')
+					sampSendChat('/fmute ' .. PlayerID .. ' 1 [AutoUval] Ожидайте')
 				end
 			end)
 		elseif text:find("%[(.-)%] %[(.-)%] (.+) (.-)%[(.-)%]: (.+)") and color == 766526463 then -- /r или /f с тэгом
@@ -1349,7 +1349,7 @@ function sampev.onServerMessage(color,text)
 					sampAddChatMessage(text, 0xFF2DB043)
 					if message3 == text then
 						auto_uval_checker = true
-						sampSendChat('/fmute ' .. playerID .. ' 1 [AutoUval] Ожидайте...')
+						sampSendChat('/fmute ' .. playerID .. ' 1 [AutoUval] Ожидайте')
 					elseif tag == "R" then
 						sampSendChat("/rb "..name.."["..playerID.."], отправьте /rb +++ чтобы уволится ПСЖ!")
 					elseif tag == "F" then
@@ -1357,13 +1357,15 @@ function sampev.onServerMessage(color,text)
 					end
 				elseif ((message == "(( +++ ))" or  message == "(( +++. ))") and (PlayerID == playerID)) then
 					auto_uval_checker = true
-					sampSendChat('/fmute ' .. playerID .. ' 1 [AutoUval] Ожидайте...')
+					sampSendChat('/fmute ' .. playerID .. ' 1 [AutoUval] Ожидайте')
 				end
 			end)
 		end
 		
-		if text:find("(.+) заглушил%(а%) игрока (.+) на 1 минут. Причина: %[AutoUval%] Ожидайте...") and auto_uval_checker then
-			local Name, PlayerName, Time, Reason = text:match("(.+) заглушил%(а%) игрока (.+) на (%d+) минут. Причина: (.+)")
+		if text:find("(.+) заглушил%(а%) игрока (.+) на 1 минут. Причина: %[AutoUval%] Ожидайте") and auto_uval_checker then
+			local text2 = text:gsub('{......}', '')
+			local DATA, PlayerName, Time, Reason = text2:match("(.+) заглушил%(а%) игрока (.+) на 1 минут. Причина: (.+)")
+			local Name = DATA:match(" ([A-Za-z0-9_]+)%[")
 			local MyName = sampGetPlayerNickname(select(2, sampGetPlayerIdByCharHandle(PLAYER_PED)))
 			lua_thread.create(function ()
 				wait(50)
@@ -3024,7 +3026,7 @@ imgui.OnFrame(
 			end
 			if imgui.Button(u8"Уволить из организации",imgui.ImVec2(290 * settings.general.custom_dpi, 30 * settings.general.custom_dpi)) then
 				sampSetChatInputEnabled(true)
-				sampSetChatInputText('/uval '..player_id..' ')
+				sampSetChatInputText('/unv '..player_id..' ')
 				LeaderFastMenu[0] = false
 			end
 		end
