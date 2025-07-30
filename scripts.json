@@ -109,7 +109,7 @@
     },
     {
         "name": "CamHack",
-        "ver": "3",
+        "ver": "5",
         "author": "MTG MODS",
         "link": "https://github.com/MTGMODS/lua_scripts/raw/refs/heads/main/camhack/CamHack.lua",
         "img": "https://media.discordapp.net/attachments/1119664359891800186/1267954063987970070/image.png?ex=674834fe&is=6746e37e&hm=a84d4afa4374b9f2ce05ecaf0a962be948102ec2e61af459c13e7f0ca632520e&=&format=webp&quality=lossless",
