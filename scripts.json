@@ -117,6 +117,15 @@
         "info": "Свободное управление камерой (/cmh)"
     },
     {
+        "name": "Oil Helper",
+        "ver": "1",
+        "author": "MTG MODS",
+        "link": "https://github.com/MTGMODS/lua_scripts/raw/refs/heads/main/oil_helper/Oil%20Helper.lua",
+        "img": "https://media.discordapp.net/attachments/1119664359891800186/1267954063987970070/image.png?ex=674834fe&is=6746e37e&hm=a84d4afa4374b9f2ce05ecaf0a962be948102ec2e61af459c13e7f0ca632520e&=&format=webp&quality=lossless",
+        "platform": "PC + MOBILE",
+        "info": "Хелпер для нефтевышек (/oil_sell в конце)"
+    },
+    {
         "name": "Probiv",
         "ver": "1",
         "author": "MTG MODS",
